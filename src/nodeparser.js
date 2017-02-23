@@ -32,8 +32,23 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     parent.visibile = parent.isElementVisible();
     this.createPseudoHideStyles(element.ownerDocument);
     this.disableAnimations(element.ownerDocument);
+
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    var height = window.innerHeight || document.documentElement.clientHeight;
+
     this.nodes = flatten([parent].concat(this.getChildren(parent)).filter(function(container) {
-        return container.visible = container.isElementVisible();
+        // MCH -->
+        // test for visibility in viewport
+        var isVisible = container.isElementVisible();
+        if (isVisible && options.type === 'view') {
+            var rect = container.node.getBoundingClientRect && container.node.getBoundingClientRect();
+            if (rect) {
+                isVisible = rect.left <= width && rect.right >= 0 && rect.top <= height && rect.bottom >= 0;
+            }
+        }
+        container.visible = isVisible;
+        return isVisible;
+        // <--
     }).map(this.getPseudoElements, this));
     this.fontMetrics = new FontMetrics();
     log("Fetched nodes, total:", this.nodes.length);
