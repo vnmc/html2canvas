@@ -11,6 +11,7 @@ var bind = utils.bind;
 var getBounds = utils.getBounds;
 var parseBackgrounds = utils.parseBackgrounds;
 var offsetBounds = utils.offsetBounds;
+var getMatchingRules = utils.getMatchingRules;
 
 function NodeParser(element, renderer, support, imageLoader, options) {
     log("Starting NodeParser");
@@ -416,8 +417,24 @@ NodeParser.prototype.paintRadio = function(container) {
     }, this);
 };
 
+var getPropertyValue = function(container, propertyName, placeholderRules) {
+    if (!placeholderRules) {
+        return container.css(propertyName);
+    }
+
+    for (var i = placeholderRules.length - 1; i >= 0; i--) {
+        var value = placeholderRules[i].style[propertyName];
+        if (value) {
+            return value;
+        }
+    }
+
+    return container.css(propertyName);
+};
+
 NodeParser.prototype.paintFormValue = function(container) {
     var value = container.getValue();
+    var isPlaceholder = container.isPlaceholderShown();
     if (value.length > 0) {
         var document = container.node.ownerDocument;
         var wrapper = document.createElement('html2canvaswrapper');
@@ -425,22 +442,26 @@ NodeParser.prototype.paintFormValue = function(container) {
             'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
             'width', 'height', 'borderLeftStyle', 'borderTopStyle', 'borderLeftWidth', 'borderTopWidth',
             'boxSizing', 'whiteSpace', 'wordWrap'];
+        var lenProperties = properties.length;
+        var placeholderRules = isPlaceholder ? getMatchingRules(container.node, /::placeholder|::-webkit-input-placeholder|::?-moz-placeholder|:-ms-input-placeholder/) : null;
 
-        properties.forEach(function(property) {
+        for (var i = 0; i < lenProperties; i++) {
+            var property = properties[i];
             try {
-                wrapper.style[property] = container.css(property);
+                wrapper.style[property] = getPropertyValue(container, property, placeholderRules);
             } catch(e) {
                 // Older IE has issues with "border"
                 log("html2canvas: Parse: Exception caught in renderFormValue: " + e.message);
             }
-        });
+        }
+
         var bounds = container.parseBounds();
         wrapper.style.position = "fixed";
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
         wrapper.textContent = value;
         document.body.appendChild(wrapper);
-        this.paintText(new TextContainer(wrapper.firstChild, container));
+        this.paintText(new TextContainer(wrapper.firstChild, new NodeContainer(wrapper, container)));
         document.body.removeChild(wrapper);
     }
 };

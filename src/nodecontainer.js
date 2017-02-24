@@ -203,7 +203,7 @@ NodeContainer.prototype.parseTextShadows = function() {
                 color: new Color(s[0]),
                 offsetX: s[1] ? parseFloat(s[1].replace('px', '')) : 0,
                 offsetY: s[2] ? parseFloat(s[2].replace('px', '')) : 0,
-                blur: s[3] ? s[3].replace('px', '') : 0
+                blur: s[3] ? parseFloat(s[3].replace('px', '')) : 0
             });
         }
     }
@@ -256,6 +256,10 @@ NodeContainer.prototype.getValue = function() {
         value = Array(value.length + 1).join('\u2022'); // jshint ignore:line
     }
     return value.length === 0 ? (this.node.placeholder || "") : value;
+};
+
+NodeContainer.prototype.isPlaceholderShown = function() {
+    return this.node.tagName !== "SELECT" && !this.node.value && !!this.node.placeholder;
 };
 
 NodeContainer.prototype.MATRIX_PROPERTY = /(matrix|matrix3d)\((.+)\)/;

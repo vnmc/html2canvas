@@ -1,3 +1,5 @@
+/* global SPECIFICITY: true */
+
 exports.smallImage = function smallImage() {
     return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 };
@@ -166,4 +168,84 @@ exports.parseBackgrounds = function(backgroundImage) {
 
     appendResult();
     return results;
+};
+
+exports.getMatchingRules = function(element, selectorRegex) {
+    var matchingRules = [];
+
+    var getMatchingRulesRecursive = function(rules) {
+        if (!rules) {
+            return;
+        }
+
+        var len = rules.length;
+        for (var i = 0; i < len; i++) {
+            var rule = rules[i];
+            switch (rule.type) {
+            case 1: // CSSRule.STYLE_RULE
+                try {
+                    if (element.matches(rule.selectorText.replace(/::?[a-zA-Z\-]+/g, '')) && (!selectorRegex || selectorRegex.test(rule.selectorText))) {
+                        matchingRules.push(rule);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                break;
+
+            case 3:  // CSSRule.IMPORT_RULE
+                getMatchingRulesRecursive(rule.styleSheet.cssRules);
+                break;
+
+            case 4:  // CSSRule.MEDIA_RULE
+            case 12: // CSSRule.SUPPORTS_RULE
+            case 13: // CSSRule.DOCUMENT_RULE
+                getMatchingRulesRecursive(rule.cssRules);
+                break;            
+            }
+        }
+    };
+
+    var lenStyleSheets = element.ownerDocument.styleSheets.length;
+    for (var i = 0; i < lenStyleSheets; i++) {
+        try {
+            var styleSheet = element.ownerDocument.styleSheets[i];
+            if (styleSheet && styleSheet.cssRules) {
+                getMatchingRulesRecursive(styleSheet.cssRules);
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    var calculateSpecificity = function(rule) {
+        var s = SPECIFICITY.calculate(rule.selectorText);
+        var len = s.length;
+
+        if (len === 1) {
+            return s[0].specificityArray;
+        }
+
+        var arr = [];
+        for (var i = 0; i < len; i++) {
+            if (element.matches(s[i].selector)) {
+                arr.push(s[i].specificityArray);
+            }
+        }
+
+        arr.sort(SPECIFICITY.compare);
+        return arr[arr.length - 1];
+    };
+
+    matchingRules.sort(function(a, b) {
+        if (a.specificity === undefined) {
+            a.specificity = calculateSpecificity(a);
+        }
+        if (b.specificity === undefined) {
+            b.specificity = calculateSpecificity(b);
+        }
+
+        return SPECIFICITY.compare(a.specificity, b.specificity);
+    });
+
+    return matchingRules;
 };
