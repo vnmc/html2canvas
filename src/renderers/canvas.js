@@ -95,9 +95,17 @@ CanvasRenderer.prototype.font = function(color, style, variant, weight, size, fa
 
 CanvasRenderer.prototype.fontShadow = function(color, offsetX, offsetY, blur) {
     this.setVariable("shadowColor", color.toString())
-        .setVariable("shadowOffsetY", offsetX)
-        .setVariable("shadowOffsetX", offsetY)
+        .setVariable("shadowOffsetX", offsetX)
+        .setVariable("shadowOffsetY", offsetY)
         .setVariable("shadowBlur", blur);
+};
+
+// https://github.com/niklasvh/html2canvas/pull/908/commits/9eb4f7d19397300db58669d689ff96f5e0d8848f
+CanvasRenderer.prototype.renderTextShadow = function(text, bounds, shadows) {
+    for (var i = 0; i < shadows.length ; i++) {
+        this.fontShadow(shadows[i].color, shadows[i].offsetX, shadows[i].offsetY, shadows[i].blur);
+        this.text(text, bounds.left, bounds.bottom);
+    }
 };
 
 CanvasRenderer.prototype.clearShadow = function() {

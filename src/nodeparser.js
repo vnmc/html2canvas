@@ -481,6 +481,7 @@ NodeParser.prototype.paintText = function(container) {
     this.renderer.font(container.parent.color('color'), container.parent.css('fontStyle'), container.parent.css('fontVariant'), weight, size, family);
     if (shadows.length) {
         // TODO: support multiple text shadows
+        // TODO: comment this out once "renderTextShadow" works correctly
         this.renderer.fontShadow(shadows[0].color, shadows[0].offsetX, shadows[0].offsetY, shadows[0].blur);
     } else {
         this.renderer.clearShadow();
@@ -489,7 +490,13 @@ NodeParser.prototype.paintText = function(container) {
     this.renderer.clip(container.parent.clip, function() {
         textList.map(this.parseTextBounds(container), this).forEach(function(bounds, index) {
             if (bounds) {
+                // https://github.com/niklasvh/html2canvas/pull/908/commits/8a05595ecd2b437694fd54005639f397fb8bafc1
+                // MCH: TODO: renderTextShadow doesn't work with letter-spacing
+                //if (shadows.length) {
+                //    this.renderer.renderTextShadow(textList[index], bounds, shadows);
+                //} else {
                 this.renderer.text(textList[index], bounds.left, bounds.bottom);
+                //}
                 this.renderTextDecoration(container.parent, bounds, this.fontMetrics.getMetrics(family, size));
             }
         }, this);
