@@ -41,7 +41,7 @@ function NodeParser(element, renderer, support, imageLoader, options) {
         // MCH -->
         // test for visibility in viewport
         var isVisible = container.isElementVisible();
-        if (isVisible && options.type === 'view') {
+        if (isVisible && options.type === 'view' && container.node.tagName !== 'HTML') {
             var rect = container.node.getBoundingClientRect && container.node.getBoundingClientRect();
             if (rect) {
                 isVisible = rect.left <= width && rect.right >= 0 && rect.top <= height && rect.bottom >= 0;
