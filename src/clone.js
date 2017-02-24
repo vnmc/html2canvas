@@ -65,6 +65,7 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
     container.style.left = "-10000px";
     container.style.top = "0px";
     container.style.border = "0";
+    container.style.padding = "0"; // MCH: in case iframe padding is styled in the embedder style sheets
     container.width = width;
     container.height = height;
     container.scrolling = "no"; // ios won't scroll without it
@@ -81,6 +82,15 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
                 if (documentClone.body.childNodes.length > 0) {
                     initNode(documentClone.documentElement);
                     clearInterval(interval);
+
+                    // MCH -->
+                    // make the "HTML" element the full height of the iframe
+                    var html = documentClone.documentElement;
+                    if (html && !html.style.height) {
+                        html.style.height = "100%";
+                    }
+                    // <--
+
                     if (options.type === "view") {
                         container.contentWindow.scrollTo(x, y);
                         if ((/(iPad|iPhone|iPod)/g).test(navigator.userAgent) && (container.contentWindow.scrollY !== y || container.contentWindow.scrollX !== x)) {
