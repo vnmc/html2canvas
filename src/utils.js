@@ -170,6 +170,9 @@ exports.parseBackgrounds = function(backgroundImage) {
     return results;
 };
 
+
+var REGEX_PSEUDO_ELEMENTS = /::?(?:after|before|first-line|first-letter)/;
+
 exports.getMatchingRules = function(element, selectorRegex) {
     var matchingRules = [];
 
@@ -227,7 +230,7 @@ exports.getMatchingRules = function(element, selectorRegex) {
 
         var arr = [];
         for (var i = 0; i < len; i++) {
-            if (element.matches(s[i].selector)) {
+            if (element.matches(s[i].selector.replace(REGEX_PSEUDO_ELEMENTS, ''))) {
                 arr.push(s[i].specificityArray);
             }
         }

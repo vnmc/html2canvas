@@ -806,12 +806,7 @@ function getBorderRadiusData(container) {
         }
 
         arr = arr.map(function(radius) {
-            if (
-                typeof radius === 'string'
-                && radius.endsWith('%')
-                && container.bounds
-                && container.bounds.height
-            ) {
+            if (typeof radius === 'string' && radius.endsWith('%') && container.bounds && container.bounds.height) {
                 return (parseFloat(radius) / 100) * container.bounds.height;
             }
             return radius;
