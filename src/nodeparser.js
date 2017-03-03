@@ -34,23 +34,44 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     this.createPseudoHideStyles(element.ownerDocument);
     this.disableAnimations(element.ownerDocument);
 
+    // MCH -->
     var width = window.innerWidth || document.documentElement.clientWidth;
     var height = window.innerHeight || document.documentElement.clientHeight;
 
-    this.nodes = flatten([parent].concat(this.getChildren(parent)).filter(function(container) {
-        // MCH -->
+    var allNodes = [parent].concat(this.getChildren(parent));
+    allNodes.forEach(function(container) {
         // test for visibility in viewport
         var isVisible = container.isElementVisible();
-        if (isVisible && options.type === 'view' && container.node.tagName !== 'HTML') {
+        if (isVisible && options.type === 'view') {
             var rect = container.node.getBoundingClientRect && container.node.getBoundingClientRect();
             if (rect) {
                 isVisible = rect.left <= width && rect.right >= 0 && rect.top <= height && rect.bottom >= 0;
             }
+
+            // make sure all the parent nodes are also visible
+            if (isVisible) {
+                var parent = container.parent;
+                while (parent && !parent.visible) {
+                    parent.visible = true;
+                    parent = parent.parent;
+                }
+            }
         }
         container.visible = isVisible;
-        return isVisible;
-        // <--
+    });
+
+    this.nodes = flatten(allNodes
+        .filter(function(container) { return container.visible; })
+        .map(this.getPseudoElements, this)
+    );
+    // <--
+
+    /*
+    this.nodes = flatten([parent].concat(this.getChildren(parent)).filter(function(container) {
+        return container.visible = container.isElementVisible();
     }).map(this.getPseudoElements, this));
+    */
+
     this.fontMetrics = new FontMetrics();
     log("Fetched nodes, total:", this.nodes.length);
     log("Calculate overflow clips");
