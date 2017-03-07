@@ -1,0 +1,8 @@
+body {
+	border: 12px dotted orange !important;
+}
+
+html {
+	padding: 10px 20px 30px 40px;
+	margin: 0;
+}

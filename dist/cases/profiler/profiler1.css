@@ -1,0 +1,11 @@
+.red {
+	background-color: forestgreen;
+}
+
+.marker-bubble {
+    fill: rgb(0, 160, 219);
+}
+
+.marker-bubble-text {
+    fill: white;
+}

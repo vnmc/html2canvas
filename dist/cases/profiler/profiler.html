@@ -1,0 +1,120 @@
+<!doctype html>
+<html xmlns:svg="http://www.w3.org/2000/svg">
+	<head>
+		<title>Profiler Test!</title>
+
+		<link rel="stylesheet" href="profilerstyle.css"/>
+		<link rel="stylesheet" href="test.css"/>
+
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../html2canvas.svg.js"></script>
+
+		<style>
+			h1 {
+				background-color: purple;
+			}
+
+			.dot:after {
+				content: "(after)";
+				display: inline-block;
+				width: 20px;
+				height: 20px;
+				border-radius: 10px;
+				background-color: lime;
+			}
+
+			button {
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+		<h1 style="border: 1px solid violet; border-radius: 50px !important;">Profyler Test</h1>
+		<h2 id="cid"></h2>
+		<a href="ghostlab://this-is-a-test">Ghostlab Link</a>
+		<h1 class="test" id="test:title">Test Title VI</h1>
+		<div class="red blue" style="text-align: center;">
+			This is the red/blue div.
+			<div class="yellow">
+			<!--<div>-->
+				<span class="dot">Hello</span>
+			</div>
+		</div>
+		<button id="start">Start</button>
+		<div class="absolute"></div>
+		<div class="red" style="text-align: right;">
+			Hello2 <a href="http://www.xyz.com/content1.html?q=KA\.41">World</a>!
+		</div>
+		<input class="test" type="text" placeholder="hello world!">
+		<img src="mountain.jpg"/>
+		<img src="https://drscdn.500px.org/photo/199582827/q%3D80_m%3D2000_k%3D1/b7f43962e47eda5eff16c021ad292bb2" style="width: 400px; height: auto; padding: 0; border: 10px solid black;">
+		<img src="https://www.vanamco.com/wp-content/uploads/2015/08/Screen-Shot-2015-08-17-at-10.45.53.png" style="width: 300px; height: auto; border: 2px dotted #bada55;">
+		<!--<iframe src="https://www.gabhart-pictures.com/" width="400" height="300"></iframe>-->
+		<div style="width: 400px; height: 400px; background-image: url(img1.png)"></div>
+		<div class="animated"></div>
+
+		<form>
+			<input type="text"/><br/>
+			<input type="text"/><br/>
+			<input type="email"/><br/>
+			<input type="date"/><br/>
+			<input type="text"/><br/>
+			<label><input type="checkbox"> Extra</label>
+			<label><input type="radio" name="x"> OK</label>
+			<label><input type="radio" name="x"> Good</label>
+			<label><input type="radio" name="x"> Awesome</label>
+		</form>
+
+		<!--<video>
+		<source src="http://html5demos.com/assets/dizzy.mp4" type="video/mp4" />
+		<source src="http://html5demos.com/assets/dizzy.webm" type="video/webm" />
+		<source src="http://html5demos.com/assets/dizzy.ogv" type="video/ogg" />
+		</video>
+		<video src="http://html5demos.com/assets/dizzy.mp4" controls></video>-->
+		<a xmlns="http://www.w3.org/2000/svg" href="http://www.thyante.com">Test</a>
+
+		<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+			<path class="marker-bubble" d="
+	            m 310,460
+	            c 0,-20 20,-20 20,-20
+	            l 350,0
+	            c 20,0 20,20 20,20
+	            l 0,30
+	            c 0,20 -20,20 -20,20
+	            l -80,0
+	            l 10,40
+	            l -120,-40
+	            l -160,0
+	            c -20,0 -20,-20 -20,-20
+	            z"/>
+	        <a href="http://www.vanamco.com"><text x="505" y="490" text-anchor="middle">Da stehen wir aktuell</text></a>
+		</svg>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '-60px';
+					canvas.style.top = '-30px';
+					canvas.style.padding = '0';
+					canvas.style.opacity = '0.5';
+
+					document.body.append(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

@@ -543,29 +543,6 @@
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],2:[function(_dereq_,module,exports){
-/* global Areion: true */
-
-function ProxyImageContainer(src, proxy) {
-    var self = this;
-    this.src = src;
-    this.image = new Image();
-    this.tainted = null;
-
-    this.promise = new Promise(function(resolve, reject) {
-        self.image.onload = resolve;
-        self.image.onerror = reject;
-
-        self.image.src = Areion.rewriteUrl(src);
-
-        if (self.image.complete === true) {
-            resolve(self.image);
-        }
-    });
-}
-
-module.exports = ProxyImageContainer;
-
-},{}],3:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 
 function restoreOwnerScroll(ownerDocument, x, y) {
@@ -633,7 +610,6 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
     container.style.left = "-10000px";
     container.style.top = "0px";
     container.style.border = "0";
-    container.style.padding = "0"; // MCH: in case iframe padding is styled in the embedder style sheets
     container.width = width;
     container.height = height;
     container.scrolling = "no"; // ios won't scroll without it
@@ -650,15 +626,6 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
                 if (documentClone.body.childNodes.length > 0) {
                     initNode(documentClone.documentElement);
                     clearInterval(interval);
-
-                    // MCH -->
-                    // make the "HTML" element the full height of the iframe
-                    var html = documentClone.documentElement;
-                    if (html && !html.style.height) {
-                        html.style.height = "100%";
-                    }
-                    // <--
-
                     if (options.type === "view") {
                         container.contentWindow.scrollTo(x, y);
                         if ((/(iPad|iPhone|iPod)/g).test(navigator.userAgent) && (container.contentWindow.scrollY !== y || container.contentWindow.scrollX !== x)) {
@@ -681,7 +648,7 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
     });
 };
 
-},{"./log":14}],4:[function(_dereq_,module,exports){
+},{"./log":13}],3:[function(_dereq_,module,exports){
 // http://dev.w3.org/csswg/css-color/
 
 function Color(value) {
@@ -955,7 +922,7 @@ var colors = {
 
 module.exports = Color;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 var Support = _dereq_('./support');
 var CanvasRenderer = _dereq_('./renderers/canvas');
 var ImageLoader = _dereq_('./imageloader');
@@ -1112,7 +1079,7 @@ function absoluteUrl(url) {
     return link;
 }
 
-},{"./clone":3,"./imageloader":12,"./log":14,"./nodecontainer":15,"./nodeparser":16,"./proxy":17,"./renderers/canvas":20,"./support":22,"./utils":26}],6:[function(_dereq_,module,exports){
+},{"./clone":2,"./imageloader":11,"./log":13,"./nodecontainer":14,"./nodeparser":15,"./proxy":16,"./renderers/canvas":20,"./support":22,"./utils":26}],5:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var smallImage = _dereq_('./utils').smallImage;
 
@@ -1136,7 +1103,7 @@ function DummyImageContainer(src) {
 
 module.exports = DummyImageContainer;
 
-},{"./log":14,"./utils":26}],7:[function(_dereq_,module,exports){
+},{"./log":13,"./utils":26}],6:[function(_dereq_,module,exports){
 var smallImage = _dereq_('./utils').smallImage;
 
 function Font(family, size) {
@@ -1190,7 +1157,7 @@ function Font(family, size) {
 
 module.exports = Font;
 
-},{"./utils":26}],8:[function(_dereq_,module,exports){
+},{"./utils":26}],7:[function(_dereq_,module,exports){
 var Font = _dereq_('./font');
 
 function FontMetrics() {
@@ -1206,7 +1173,7 @@ FontMetrics.prototype.getMetrics = function(family, size) {
 
 module.exports = FontMetrics;
 
-},{"./font":7}],9:[function(_dereq_,module,exports){
+},{"./font":6}],8:[function(_dereq_,module,exports){
 var utils = _dereq_('./utils');
 var getBounds = utils.getBounds;
 var loadUrlDocument = _dereq_('./proxy').loadUrlDocument;
@@ -1239,7 +1206,7 @@ FrameContainer.prototype.proxyLoad = function(proxy, bounds, options) {
 
 module.exports = FrameContainer;
 
-},{"./core":5,"./proxy":17,"./utils":26}],10:[function(_dereq_,module,exports){
+},{"./core":4,"./proxy":16,"./utils":26}],9:[function(_dereq_,module,exports){
 function GradientContainer(imageData) {
     this.src = imageData.value;
     this.colorStops = [];
@@ -1262,7 +1229,7 @@ GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,
 
 module.exports = GradientContainer;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 function ImageContainer(src, cors) {
     this.src = src;
     this.image = new Image();
@@ -1283,12 +1250,11 @@ function ImageContainer(src, cors) {
 
 module.exports = ImageContainer;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var ImageContainer = _dereq_('./imagecontainer');
-var VideoContainer = _dereq_('./videocontainer');
 var DummyImageContainer = _dereq_('./dummyimagecontainer');
-var ProxyImageContainer = _dereq_('./areion_proxyimagecontainer');
+var ProxyImageContainer = _dereq_('./proxyimagecontainer');
 var FrameContainer = _dereq_('./framecontainer');
 var SVGContainer = _dereq_('./svgcontainer');
 var SVGNodeContainer = _dereq_('./svgnodecontainer');
@@ -1305,19 +1271,12 @@ function ImageLoader(options, support) {
 
 ImageLoader.prototype.findImages = function(nodes) {
     var images = [];
-    var videoIndex = 0;
     nodes.reduce(function(imageNodes, container) {
         switch(container.node.nodeName) {
         case "IMG":
             return imageNodes.concat([{
                 args: [container.node.src],
                 method: "url"
-            }]);
-        case "VIDEO":
-            return imageNodes.concat([{
-                args: [container.node],
-                videoIndex: videoIndex++,
-                method: "VIDEO"
             }]);
         case "svg":
         case "IFRAME":
@@ -1375,9 +1334,7 @@ ImageLoader.prototype.loadImage = function(imageData) {
         return new SVGNodeContainer(imageData.args[0], this.support.svg);
     } else if (imageData.method === "IFRAME") {
         return new FrameContainer(imageData.args[0], this.isSameOrigin(imageData.args[0].src), this.options);
-    } else if (imageData.method === "VIDEO") {
-        return new VideoContainer(imageData);
-    }  else {
+    } else {
         return new DummyImageContainer(imageData);
     }
 };
@@ -1419,13 +1376,6 @@ ImageLoader.prototype.get = function(src) {
     }) ? found : null;
 };
 
-ImageLoader.prototype.getVideo = function(videoIndex) {
-    var found = null;
-    return this.images.some(function(img) {
-        return (found = img).videoIndex === videoIndex;
-    }) ? found : null;
-};
-
 ImageLoader.prototype.fetch = function(nodes) {
     this.images = nodes.reduce(bind(this.findBackgroundImage, this), this.findImages(nodes));
     this.images.forEach(function(image, index) {
@@ -1459,7 +1409,7 @@ ImageLoader.prototype.timeout = function(container, timeout) {
 
 module.exports = ImageLoader;
 
-},{"./areion_proxyimagecontainer":2,"./dummyimagecontainer":6,"./framecontainer":9,"./imagecontainer":11,"./lineargradientcontainer":13,"./log":14,"./svgcontainer":23,"./svgnodecontainer":24,"./utils":26,"./videocontainer":27,"./webkitgradientcontainer":28}],13:[function(_dereq_,module,exports){
+},{"./dummyimagecontainer":5,"./framecontainer":8,"./imagecontainer":10,"./lineargradientcontainer":12,"./log":13,"./proxyimagecontainer":17,"./svgcontainer":23,"./svgnodecontainer":24,"./utils":26,"./webkitgradientcontainer":27}],12:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var Color = _dereq_('./color');
 
@@ -1563,7 +1513,7 @@ LinearGradientContainer.REGEXP_DIRECTION = /^\s*(?:to|left|right|top|bottom|cent
 
 module.exports = LinearGradientContainer;
 
-},{"./color":4,"./gradientcontainer":10}],14:[function(_dereq_,module,exports){
+},{"./color":3,"./gradientcontainer":9}],13:[function(_dereq_,module,exports){
 var logger = function() {
     if (logger.options.logging && window.console && window.console.log) {
         Function.prototype.bind.call(window.console.log, (window.console)).apply(window.console, [(Date.now() - logger.options.start) + "ms", "html2canvas:"].concat([].slice.call(arguments, 0)));
@@ -1573,7 +1523,7 @@ var logger = function() {
 logger.options = {logging: false};
 module.exports = logger;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 var Color = _dereq_('./color');
 var utils = _dereq_('./utils');
 var getBounds = utils.getBounds;
@@ -1779,7 +1729,7 @@ NodeContainer.prototype.parseTextShadows = function() {
                 color: new Color(s[0]),
                 offsetX: s[1] ? parseFloat(s[1].replace('px', '')) : 0,
                 offsetY: s[2] ? parseFloat(s[2].replace('px', '')) : 0,
-                blur: s[3] ? parseFloat(s[3].replace('px', '')) : 0
+                blur: s[3] ? s[3].replace('px', '') : 0
             });
         }
     }
@@ -1834,10 +1784,6 @@ NodeContainer.prototype.getValue = function() {
     return value.length === 0 ? (this.node.placeholder || "") : value;
 };
 
-NodeContainer.prototype.isPlaceholderShown = function() {
-    return this.node.tagName !== "SELECT" && !this.node.value && !!this.node.placeholder;
-};
-
 NodeContainer.prototype.MATRIX_PROPERTY = /(matrix|matrix3d)\((.+)\)/;
 NodeContainer.prototype.TEXT_SHADOW_PROPERTY = /((rgba|rgb)\([^\)]+\)(\s-?\d+px){0,})/g;
 NodeContainer.prototype.TEXT_SHADOW_VALUES = /(-?\d+px)|(#.+)|(rgb\(.+\))|(rgba\(.+\))/g;
@@ -1875,7 +1821,7 @@ function asFloat(str) {
 
 module.exports = NodeContainer;
 
-},{"./color":4,"./utils":26}],16:[function(_dereq_,module,exports){
+},{"./color":3,"./utils":26}],15:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var punycode = _dereq_('punycode');
 var NodeContainer = _dereq_('./nodecontainer');
@@ -1889,7 +1835,6 @@ var bind = utils.bind;
 var getBounds = utils.getBounds;
 var parseBackgrounds = utils.parseBackgrounds;
 var offsetBounds = utils.offsetBounds;
-var getMatchingRules = utils.getMatchingRules;
 
 function NodeParser(element, renderer, support, imageLoader, options) {
     log("Starting NodeParser");
@@ -1911,45 +1856,9 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     parent.visibile = parent.isElementVisible();
     this.createPseudoHideStyles(element.ownerDocument);
     this.disableAnimations(element.ownerDocument);
-
-    // MCH -->
-    var width = window.innerWidth || document.documentElement.clientWidth;
-    var height = window.innerHeight || document.documentElement.clientHeight;
-
-    var allNodes = [parent].concat(this.getChildren(parent));
-    allNodes.forEach(function(container) {
-        // test for visibility in viewport
-        var isVisible = container.isElementVisible();
-        if (isVisible && options.type === 'view') {
-            var rect = container.node.getBoundingClientRect && container.node.getBoundingClientRect();
-            if (rect) {
-                isVisible = rect.left <= width && rect.right >= 0 && rect.top <= height && rect.bottom >= 0;
-            }
-
-            // make sure all the parent nodes are also visible
-            if (isVisible) {
-                var parent = container.parent;
-                while (parent && !parent.visible) {
-                    parent.visible = true;
-                    parent = parent.parent;
-                }
-            }
-        }
-        container.visible = isVisible;
-    });
-
-    this.nodes = flatten(allNodes
-        .filter(function(container) { return container.visible; })
-        .map(this.getPseudoElements, this)
-    );
-    // <--
-
-    /*
     this.nodes = flatten([parent].concat(this.getChildren(parent)).filter(function(container) {
         return container.visible = container.isElementVisible();
     }).map(this.getPseudoElements, this));
-    */
-
     this.fontMetrics = new FontMetrics();
     log("Fetched nodes, total:", this.nodes.length);
     log("Calculate overflow clips");
@@ -2268,14 +2177,6 @@ NodeParser.prototype.paintElement = function(container) {
                 log("Error loading <img>", container.node.src);
             }
             break;
-        case "VIDEO":
-            var videoContainer = this.images.getVideo(container.node.videoIndex);
-            if (videoContainer) {
-                this.renderer.renderImage(container, bounds, container.borders, videoContainer);
-            } else {
-                log("Error loading <video>", container.node.src);
-            }
-            break;
         case "CANVAS":
             this.renderer.renderImage(container, bounds, container.borders, {image: container.node});
             break;
@@ -2324,24 +2225,8 @@ NodeParser.prototype.paintRadio = function(container) {
     }, this);
 };
 
-var getPropertyValue = function(container, propertyName, placeholderRules) {
-    if (!placeholderRules) {
-        return container.css(propertyName);
-    }
-
-    for (var i = placeholderRules.length - 1; i >= 0; i--) {
-        var value = placeholderRules[i].style[propertyName];
-        if (value) {
-            return value;
-        }
-    }
-
-    return container.css(propertyName);
-};
-
 NodeParser.prototype.paintFormValue = function(container) {
     var value = container.getValue();
-    var isPlaceholder = container.isPlaceholderShown();
     if (value.length > 0) {
         var document = container.node.ownerDocument;
         var wrapper = document.createElement('html2canvaswrapper');
@@ -2349,26 +2234,22 @@ NodeParser.prototype.paintFormValue = function(container) {
             'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
             'width', 'height', 'borderLeftStyle', 'borderTopStyle', 'borderLeftWidth', 'borderTopWidth',
             'boxSizing', 'whiteSpace', 'wordWrap'];
-        var lenProperties = properties.length;
-        var placeholderRules = isPlaceholder ? getMatchingRules(container.node, /::placeholder|::-webkit-input-placeholder|::?-moz-placeholder|:-ms-input-placeholder/) : null;
 
-        for (var i = 0; i < lenProperties; i++) {
-            var property = properties[i];
+        properties.forEach(function(property) {
             try {
-                wrapper.style[property] = getPropertyValue(container, property, placeholderRules);
+                wrapper.style[property] = container.css(property);
             } catch(e) {
                 // Older IE has issues with "border"
                 log("html2canvas: Parse: Exception caught in renderFormValue: " + e.message);
             }
-        }
-
+        });
         var bounds = container.parseBounds();
         wrapper.style.position = "fixed";
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
         wrapper.textContent = value;
         document.body.appendChild(wrapper);
-        this.paintText(new TextContainer(wrapper.firstChild, new NodeContainer(wrapper, container)));
+        this.paintText(new TextContainer(wrapper.firstChild, container));
         document.body.removeChild(wrapper);
     }
 };
@@ -2388,7 +2269,6 @@ NodeParser.prototype.paintText = function(container) {
     this.renderer.font(container.parent.color('color'), container.parent.css('fontStyle'), container.parent.css('fontVariant'), weight, size, family);
     if (shadows.length) {
         // TODO: support multiple text shadows
-        // TODO: comment this out once "renderTextShadow" works correctly
         this.renderer.fontShadow(shadows[0].color, shadows[0].offsetX, shadows[0].offsetY, shadows[0].blur);
     } else {
         this.renderer.clearShadow();
@@ -2397,13 +2277,7 @@ NodeParser.prototype.paintText = function(container) {
     this.renderer.clip(container.parent.clip, function() {
         textList.map(this.parseTextBounds(container), this).forEach(function(bounds, index) {
             if (bounds) {
-                // https://github.com/niklasvh/html2canvas/pull/908/commits/8a05595ecd2b437694fd54005639f397fb8bafc1
-                // MCH: TODO: renderTextShadow doesn't work with letter-spacing
-                //if (shadows.length) {
-                //    this.renderer.renderTextShadow(textList[index], bounds, shadows);
-                //} else {
                 this.renderer.text(textList[index], bounds.left, bounds.bottom);
-                //}
                 this.renderTextDecoration(container.parent, bounds, this.fontMetrics.getMetrics(family, size));
             }
         }, this);
@@ -2698,19 +2572,10 @@ function noLetterSpacing(container) {
 function getBorderRadiusData(container) {
     return ["TopLeft", "TopRight", "BottomRight", "BottomLeft"].map(function(side) {
         var value = container.css('border' + side + 'Radius');
-
         var arr = value.split(" ");
         if (arr.length <= 1) {
             arr[1] = arr[0];
         }
-
-        arr = arr.map(function(radius) {
-            if (typeof radius === 'string' && radius.charAt(radius.length - 1) === '%' && container.bounds && container.bounds.height) {
-                return (parseFloat(radius) / 100) * container.bounds.height;
-            }
-            return radius;
-        });
-
         return arr.map(asInt);
     });
 }
@@ -2827,7 +2692,7 @@ function hasUnicode(string) {
 
 module.exports = NodeParser;
 
-},{"./color":4,"./fontmetrics":8,"./log":14,"./nodecontainer":15,"./pseudoelementcontainer":18,"./stackingcontext":21,"./textcontainer":25,"./utils":26,"punycode":1}],17:[function(_dereq_,module,exports){
+},{"./color":3,"./fontmetrics":7,"./log":13,"./nodecontainer":14,"./pseudoelementcontainer":18,"./stackingcontext":21,"./textcontainer":25,"./utils":26,"punycode":1}],16:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var utils = _dereq_('./utils');
 var log = _dereq_('./log');
@@ -2924,7 +2789,30 @@ exports.Proxy = Proxy;
 exports.ProxyURL = ProxyURL;
 exports.loadUrlDocument = loadUrlDocument;
 
-},{"./clone":3,"./log":14,"./utils":26,"./xhr":29}],18:[function(_dereq_,module,exports){
+},{"./clone":2,"./log":13,"./utils":26,"./xhr":28}],17:[function(_dereq_,module,exports){
+var ProxyURL = _dereq_('./proxy').ProxyURL;
+
+function ProxyImageContainer(src, proxy) {
+    var link = document.createElement("a");
+    link.href = src;
+    src = link.href;
+    this.src = src;
+    this.image = new Image();
+    var self = this;
+    this.promise = new Promise(function(resolve, reject) {
+        self.image.crossOrigin = "Anonymous";
+        self.image.onload = resolve;
+        self.image.onerror = reject;
+
+        new ProxyURL(src, proxy, document).then(function(url) {
+            self.image.src = url;
+        })['catch'](reject);
+    });
+}
+
+module.exports = ProxyImageContainer;
+
+},{"./proxy":16}],18:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function PseudoElementContainer(node, parent, type) {
@@ -2964,7 +2852,7 @@ PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_AFTER = "___html2canv
 
 module.exports = PseudoElementContainer;
 
-},{"./nodecontainer":15}],19:[function(_dereq_,module,exports){
+},{"./nodecontainer":14}],19:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 
 function Renderer(width, height, images, options, document) {
@@ -2988,8 +2876,8 @@ Renderer.prototype.renderImage = function(container, bounds, borderData, imageCo
         imageContainer,
         0,
         0,
-        imageContainer.image.videoWidth || imageContainer.image.width || width,
-        imageContainer.image.videoHeight || imageContainer.image.height || height,
+        imageContainer.image.width || width,
+        imageContainer.image.height || height,
         bounds.left + paddingLeft + borders[3].width,
         bounds.top + paddingTop + borders[0].width,
         width,
@@ -3074,7 +2962,7 @@ Renderer.prototype.renderBackgroundRepeating = function(container, bounds, image
 
 module.exports = Renderer;
 
-},{"./log":14}],20:[function(_dereq_,module,exports){
+},{"./log":13}],20:[function(_dereq_,module,exports){
 var Renderer = _dereq_('../renderer');
 var LinearGradientContainer = _dereq_('../lineargradientcontainer');
 var log = _dereq_('../log');
@@ -3172,17 +3060,9 @@ CanvasRenderer.prototype.font = function(color, style, variant, weight, size, fa
 
 CanvasRenderer.prototype.fontShadow = function(color, offsetX, offsetY, blur) {
     this.setVariable("shadowColor", color.toString())
-        .setVariable("shadowOffsetX", offsetX)
-        .setVariable("shadowOffsetY", offsetY)
+        .setVariable("shadowOffsetY", offsetX)
+        .setVariable("shadowOffsetX", offsetY)
         .setVariable("shadowBlur", blur);
-};
-
-// https://github.com/niklasvh/html2canvas/pull/908/commits/9eb4f7d19397300db58669d689ff96f5e0d8848f
-CanvasRenderer.prototype.renderTextShadow = function(text, bounds, shadows) {
-    for (var i = 0; i < shadows.length ; i++) {
-        this.fontShadow(shadows[i].color, shadows[i].offsetX, shadows[i].offsetY, shadows[i].blur);
-        this.text(text, bounds.left, bounds.bottom);
-    }
 };
 
 CanvasRenderer.prototype.clearShadow = function() {
@@ -3265,7 +3145,7 @@ function hasEntries(array) {
 
 module.exports = CanvasRenderer;
 
-},{"../lineargradientcontainer":13,"../log":14,"../renderer":19}],21:[function(_dereq_,module,exports){
+},{"../lineargradientcontainer":12,"../log":13,"../renderer":19}],21:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function StackingContext(hasOwnStacking, opacity, element, parent) {
@@ -3285,7 +3165,7 @@ StackingContext.prototype.getParentStack = function(context) {
 
 module.exports = StackingContext;
 
-},{"./nodecontainer":15}],22:[function(_dereq_,module,exports){
+},{"./nodecontainer":14}],22:[function(_dereq_,module,exports){
 function Support(document) {
     this.rangeBounds = this.testRangeBounds(document);
     this.cors = this.testCORS();
@@ -3392,7 +3272,7 @@ SVGContainer.prototype.decode64 = function(str) {
 
 module.exports = SVGContainer;
 
-},{"./utils":26,"./xhr":29}],24:[function(_dereq_,module,exports){
+},{"./utils":26,"./xhr":28}],24:[function(_dereq_,module,exports){
 var SVGContainer = _dereq_('./svgcontainer');
 
 function SVGNodeContainer(node, _native) {
@@ -3454,9 +3334,7 @@ function capitalize(m, p1, p2) {
 
 module.exports = TextContainer;
 
-},{"./nodecontainer":15}],26:[function(_dereq_,module,exports){
-/* global SPECIFICITY: true */
-
+},{"./nodecontainer":14}],26:[function(_dereq_,module,exports){
 exports.smallImage = function smallImage() {
     return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 };
@@ -3627,124 +3505,7 @@ exports.parseBackgrounds = function(backgroundImage) {
     return results;
 };
 
-
-var REGEX_PSEUDO_ELEMENTS = /::?(?:after|before|first-line|first-letter)/;
-
-exports.getMatchingRules = function(element, selectorRegex) {
-    var matchingRules = [];
-
-    var getMatchingRulesRecursive = function(rules) {
-        if (!rules) {
-            return;
-        }
-
-        var len = rules.length;
-        for (var i = 0; i < len; i++) {
-            var rule = rules[i];
-            switch (rule.type) {
-            case 1: // CSSRule.STYLE_RULE
-                try {
-                    if (element.matches(rule.selectorText.replace(/::?[a-zA-Z\-]+/g, '')) && (!selectorRegex || selectorRegex.test(rule.selectorText))) {
-                        matchingRules.push(rule);
-                    }
-                } catch (e) {
-                    // ignore
-                }
-                break;
-
-            case 3:  // CSSRule.IMPORT_RULE
-                getMatchingRulesRecursive(rule.styleSheet.cssRules);
-                break;
-
-            case 4:  // CSSRule.MEDIA_RULE
-            case 12: // CSSRule.SUPPORTS_RULE
-            case 13: // CSSRule.DOCUMENT_RULE
-                getMatchingRulesRecursive(rule.cssRules);
-                break;            
-            }
-        }
-    };
-
-    var lenStyleSheets = element.ownerDocument.styleSheets.length;
-    for (var i = 0; i < lenStyleSheets; i++) {
-        try {
-            var styleSheet = element.ownerDocument.styleSheets[i];
-            if (styleSheet && styleSheet.cssRules) {
-                getMatchingRulesRecursive(styleSheet.cssRules);
-            }
-        } catch (e) {
-            // ignore
-        }
-    }
-
-    var calculateSpecificity = function(rule) {
-        var s = SPECIFICITY.calculate(rule.selectorText);
-        var len = s.length;
-
-        if (len === 1) {
-            return s[0].specificityArray;
-        }
-
-        var arr = [];
-        for (var i = 0; i < len; i++) {
-            if (element.matches(s[i].selector.replace(REGEX_PSEUDO_ELEMENTS, ''))) {
-                arr.push(s[i].specificityArray);
-            }
-        }
-
-        arr.sort(SPECIFICITY.compare);
-        return arr[arr.length - 1];
-    };
-
-    matchingRules.sort(function(a, b) {
-        if (a.specificity === undefined) {
-            a.specificity = calculateSpecificity(a);
-        }
-        if (b.specificity === undefined) {
-            b.specificity = calculateSpecificity(b);
-        }
-
-        return SPECIFICITY.compare(a.specificity, b.specificity);
-    });
-
-    return matchingRules;
-};
-
 },{}],27:[function(_dereq_,module,exports){
-function VideoContainer(imageData) {
-  this.src = imageData.args[0].src;
-
-  // Adding index to identify the video element as <video> can have multiple child <source>.
-  this.videoIndex = imageData.videoIndex;
-  imageData.args[0].videoIndex = imageData.videoIndex;
-  this.image = imageData.args[0];
-  this.promise = new Promise(function (resolve, reject){
-    imageData.args[0].muted = true;
-    var originalVideos = document.getElementsByTagName('video');
-    if (originalVideos.length !== 0 && originalVideos[imageData.videoIndex]) {
-      var originalVideo = originalVideos[imageData.videoIndex];
-      if (originalVideo.currentTime) {
-        imageData.args[0].currentTime = originalVideo.currentTime;
-      }
-      if (!imageData.args[0].paused) {
-        resolve();
-      } else {
-        var playPromise = imageData.args[0].play();
-        if (playPromise) {
-          playPromise.then(resolve, reject);
-        } else {
-          resolve();
-        }
-      }
-    } else {
-      resolve();
-    }
-  });
-}
-
-module.exports = VideoContainer;
-
-},{}],28:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 
 function WebkitGradientContainer(imageData) {
@@ -3756,7 +3517,7 @@ WebkitGradientContainer.prototype = Object.create(GradientContainer.prototype);
 
 module.exports = WebkitGradientContainer;
 
-},{"./gradientcontainer":10}],29:[function(_dereq_,module,exports){
+},{"./gradientcontainer":9}],28:[function(_dereq_,module,exports){
 function XHR(url) {
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
@@ -3780,5 +3541,5 @@ function XHR(url) {
 
 module.exports = XHR;
 
-},{}]},{},[5])(5)
+},{}]},{},[4])(4)
 });
