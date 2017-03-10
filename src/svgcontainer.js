@@ -34,12 +34,21 @@ SVGContainer.prototype.isInline = function(src) {
 SVGContainer.prototype.createCanvas = function(resolve) {
     var self = this;
     return function (objects, options) {
-        var canvas = new window.html2canvas.svg.fabric.StaticCanvas('c');
+        var c = document.createElement('canvas');
+        var canvas = new window.html2canvas.svg.fabric.StaticCanvas(c);
         self.image = canvas.lowerCanvasEl;
+
+        var bb = self.src.getBoundingClientRect();
+        var group = window.html2canvas.svg.fabric.util.groupSVGElements(objects, options);
+        group.set({
+            scaleX: bb.width / options.width,
+            scaleY: bb.height / options.height
+        });
+
         canvas
-            .setWidth(options.width)
-            .setHeight(options.height)
-            .add(window.html2canvas.svg.fabric.util.groupSVGElements(objects, options))
+            .setWidth(bb.width)
+            .setHeight(bb.height)
+            .add(group)
             .renderAll();
         resolve(canvas.lowerCanvasEl);
     };
