@@ -24,7 +24,13 @@ SVGContainer.prototype.inlineFormatting = function(src) {
 };
 
 SVGContainer.prototype.removeContentType = function(src) {
-    return src.replace(/^data:image\/svg\+xml(;base64)?,/,'');
+    if (/^data:image\/svg\+xml(;base64)?,/.test(src)) {
+       return src.replace(/^data:image\/svg\+xml(;base64)?,/,'');
+    }
+    else {
+        var x = decodeURIComponent(src.replace(/^data:image\/svg\+xml.+,/,''));
+        return x;
+    }
 };
 
 SVGContainer.prototype.isInline = function(src) {
@@ -38,16 +44,22 @@ SVGContainer.prototype.createCanvas = function(resolve) {
         var canvas = new window.html2canvas.svg.fabric.StaticCanvas(c);
         self.image = canvas.lowerCanvasEl;
 
-        var bb = self.src.getBoundingClientRect();
-        var group = window.html2canvas.svg.fabric.util.groupSVGElements(objects, options);
-        group.set({
-            scaleX: bb.width / options.width,
-            scaleY: bb.height / options.height
-        });
+        var group = window.html2canvas.svg.fabric.util.groupSVGElements(objects, options),
+        bb;
+
+        if (self.src.getBoundingClientRect) {
+            bb = self.src.getBoundingClientRect();
+
+            group.set({
+                scaleX: bb.width / options.width,
+                scaleY: bb.height / options.height
+            });
+        }
+
 
         canvas
-            .setWidth(bb.width)
-            .setHeight(bb.height)
+            .setWidth(bb ? bb.width : options.width)
+            .setHeight(bb ? bb.height : options.height)
             .add(group)
             .renderAll();
         resolve(canvas.lowerCanvasEl);
