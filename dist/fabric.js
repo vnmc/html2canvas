@@ -1,6 +1,5 @@
 window.html2canvas.svg = { fabric: (function() {
 
-
   /* build: `node build.js modules=parser,text,interaction minifier=uglifyjs` */
    /*! Fabric.js Copyright 2008-2015, Printio (Juriy Zaytsev, Maxim Chernyak) */
 
@@ -3115,9 +3114,17 @@ window.html2canvas.svg = { fabric: (function() {
             xlink = el.getAttribute('xlink:href').substr(1),
             x = el.getAttribute('x') || 0,
             y = el.getAttribute('y') || 0,
-            el2 = elementById(doc, xlink).cloneNode(true),
-            currentTrans = (el2.getAttribute('transform') || '') + ' translate(' + x + ', ' + y + ')',
+            elInDoc = elementById(doc, xlink) || elementById(document, xlink),
+            el2 = elInDoc ? elInDoc.cloneNode(true) : null,
+            currentTrans = el2 ? (el2.getAttribute('transform') || '') + ' translate(' + x + ', ' + y + ')' : '',
             parentNode, oldLength = nodelist.length, attr, j, attrs, l;
+
+        if (el2 === null) {
+            if (nodelist.length === oldLength) {
+              i++;
+            }
+            continue;
+        }
 
         applyViewboxTransform(el2);
         if (/^svg$/i.test(el2.nodeName)) {
