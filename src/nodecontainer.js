@@ -122,18 +122,15 @@ NodeContainer.prototype.parseBackgroundImages = function() {
     return this.backgroundImages || (this.backgroundImages = parseBackgrounds(this.css("backgroundImage")));
 };
 
-NodeContainer.prototype.cssList = function(property, index) {
-    var value = (this.css(property) || '').split(',');
-    value = value[index || 0] || value[0] || 'auto';
-    value = value.trim().split(' ');
-    if (value.length === 1) {
-        value = [value[0], isPercentage(value[0]) ? 'auto' : value[0]];
-    }
-    return value;
-};
 
 NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
-    var size = this.cssList("backgroundSize", index);
+    var size = (this.css("backgroundSize") || '').split(',');
+    size = size[index || 0] || size[0] || 'auto';
+    size = size.trim().split(' ');
+    if (size.length === 1) {
+        size.push('auto');
+    }
+
     var width, height;
 
     if (isPercentage(size[0])) {
@@ -163,7 +160,7 @@ NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
 };
 
 NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index, backgroundSize) {
-    var position = this.cssList('backgroundPosition', index);
+    var position = [this.css('backgroundPositionX'), this.css('backgroundPositionY')];
     var left, top;
 
     if (isPercentage(position[0])){
@@ -188,7 +185,7 @@ NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index,
 };
 
 NodeContainer.prototype.parseBackgroundRepeat = function(index) {
-    return this.cssList("backgroundRepeat", index)[0];
+    return this.css("backgroundRepeat");
 };
 
 NodeContainer.prototype.parseTextShadows = function() {
