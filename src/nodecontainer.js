@@ -184,6 +184,50 @@ NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index,
     return {left: left, top: top};
 };
 
+NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
+    var borderLeft = this.cssInt('borderLeftWidth');
+    var borderRight = this.cssInt('borderRightWidth');
+    var borderTop = this.cssInt('borderTopWidth');
+    var borderBottom = this.cssInt('borderBottomWidth');
+
+    switch (this.css("backgroundOrigin")) {
+    case "content-box":
+        var paddingLeft = this.cssInt('paddingLeft');
+        var paddingRight = this.cssInt('paddingRight');
+        var paddingTop = this.cssInt('paddingTop');
+        var paddingBottom = this.cssInt('paddingBottom');
+
+        return {
+            left: bounds.left + paddingLeft,
+            top: bounds.top + paddingTop,
+            right: bounds.right - paddingRight,
+            bottom: bounds.bottom - paddingBottom,
+            width: bounds.width - paddingLeft - paddingRight - borderLeft - borderRight,
+            height: bounds.height - paddingTop - paddingBottom - borderTop - borderBottom
+        };
+
+    case "padding-box":
+        return {
+            left: bounds.left,
+            top: bounds.top,
+            right: bounds.right,
+            bottom: bounds.bottom,
+            width: bounds.width - borderLeft - borderRight,
+            height: bounds.height - borderTop - borderBottom
+        };
+
+    case "border-box":
+        return {
+            left: bounds.left - borderLeft,
+            top: bounds.top - borderTop,
+            right: bounds.right + borderRight,
+            bottom: bounds.bounds + borderBottom,
+            width: bounds.width,
+            height: bounds.height
+        };
+    }
+};
+
 NodeContainer.prototype.parseBackgroundRepeat = function(index) {
     return this.css("backgroundRepeat");
 };
