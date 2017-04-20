@@ -44,6 +44,14 @@ Renderer.prototype.renderBackgroundColor = function(container, bounds) {
     }
 };
 
+Renderer.prototype.renderShadows = function(container, shape) {
+    var boxShadow = container.css('boxShadow');
+    if (boxShadow !== 'none') {
+        var shadows = boxShadow.split(/,(?![^(]*\))/);
+        this.shadow(shape, shadows);
+    }
+};
+
 Renderer.prototype.renderBorders = function(borders) {
     borders.forEach(this.renderBorder, this);
 };

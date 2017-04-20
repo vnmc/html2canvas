@@ -41,6 +41,38 @@ CanvasRenderer.prototype.circleStroke = function(left, top, size, color, stroke,
     this.ctx.stroke();
 };
 
+CanvasRenderer.prototype.shadow = function(shape, shadows) {
+    var parseShadow = function(str) {
+        var propertyFilters = { color: /^(#|rgb|hsl|(?!(inset|initial|inherit))\D+)/i, inset: /^inset/i, px: /px$/i };
+        var pxPropertyNames = [ 'x', 'y', 'blur', 'spread' ];
+        var properties = str.split(/ (?![^(]*\))/);
+        var info = {};
+        for (var key in propertyFilters) {
+            info[key] = properties.filter(propertyFilters[key].test.bind(propertyFilters[key]));
+            info[key] = info[key].length === 0 ? null : info[key].length === 1 ? info[key][0] : info[key];
+        }
+        for (var i=0; i<info.px.length; i++) {
+            info[pxPropertyNames[i]] = parseInt(info.px[i]);
+        }
+        return info;
+    };
+    var drawShadow = function(shadow) {
+        var info = parseShadow(shadow);
+        if (!info.inset) {
+            context.shadowOffsetX = info.x;
+            context.shadowOffsetY = info.y;
+            context.shadowColor = info.color;
+            context.shadowBlur = info.blur;
+            context.fill();
+        }
+    };
+    var context = this.setFillStyle('white');
+    context.save();
+    this.shape(shape);
+    shadows.forEach(drawShadow, this);
+    context.restore();
+};
+
 CanvasRenderer.prototype.drawShape = function(shape, color) {
     this.shape(shape);
     this.setFillStyle(color).fill();
@@ -74,6 +106,16 @@ CanvasRenderer.prototype.clip = function(shapes, callback, context) {
     }, this);
     callback.call(context);
     this.ctx.restore();
+};
+
+CanvasRenderer.prototype.mask = function(shapes, callback, context, container) {
+    var borderClip = shapes[shapes.length-1];
+    if (borderClip && borderClip.length) {
+        var canvasBorderCCW = ["rect", this.canvas.width, 0, -this.canvas.width, this.canvas.height];
+        var maskShape = [canvasBorderCCW].concat(borderClip).concat([borderClip[0]]);
+        shapes = shapes.slice(0,-1).concat([maskShape]);
+    }
+    this.clip(shapes, callback, context, container);
 };
 
 CanvasRenderer.prototype.shape = function(shape) {
