@@ -5,98 +5,55 @@ function LinearGradientContainer(imageData) {
     GradientContainer.apply(this, arguments);
     this.type = GradientContainer.TYPES.LINEAR;
 
-    var hasDirection = LinearGradientContainer.REGEXP_DIRECTION.test( imageData.args[0] ) ||
-        !GradientContainer.REGEXP_COLORSTOP.test( imageData.args[0] );
+    // default angle: from top to bottom
+    this.angle = Math.PI;
+
+    var hasDirection =
+        LinearGradientContainer.REGEXP_DIRECTION.test(imageData.args[0]) ||
+        !GradientContainer.REGEXP_COLORSTOP.test(imageData.args[0]);
 
     if (hasDirection) {
-        imageData.args[0].split(/\s+/).reverse().forEach(function(position, index) {
-            switch(position) {
-            case "left":
-                this.x0 = 0;
-                this.x1 = 1;
-                break;
-            case "top":
-                this.y0 = 0;
-                this.y1 = 1;
-                break;
-            case "right":
-                this.x0 = 1;
-                this.x1 = 0;
-                break;
-            case "bottom":
-                this.y0 = 1;
-                this.y1 = 0;
-                break;
-            case "to":
-                var y0 = this.y0;
-                var x0 = this.x0;
-                this.y0 = this.y1;
-                this.x0 = this.x1;
-                this.x1 = x0;
-                this.y1 = y0;
-                break;
-            case "center":
-                break; // centered by default
-            // Firefox internally converts position keywords to percentages:
-            // http://www.w3.org/TR/2010/WD-CSS2-20101207/colors.html#propdef-background-position
-            default: // percentage or absolute length
-                // TODO: support absolute start point positions (e.g., use bounds to convert px to a ratio)
-                var ratio = parseFloat(position, 10) * 1e-2;
-                if (isNaN(ratio)) { // invalid or unhandled value
-                    break;
-                }
-                if (index === 0) {
-                    this.y0 = ratio;
-                    this.y1 = 1 - this.y0;
-                } else {
-                    this.x0 = ratio;
-                    this.x1 = 1 - this.x0;
-                }
-                break;
+        if (LinearGradientContainer.REGEXP_ANGLE.test(imageData.args[0])) {
+            this.angle = parseFloat(imageData.args[0]) / 180 * Math.PI;
+
+            // if there is a prefix, the 0° angle points due East (instead of North per W3C)
+            if (imageData.prefix) {
+                this.angle -= Math.PI * 0.5;
             }
-        }, this);
-    } else {
-        this.y0 = 0;
-        this.y1 = 1;
-    }
+        } else {
+            var parts = imageData.args[0].split(/\s+/);
+            var hasTo = false;
+            
+            if (parts[0] === 'to') {
+                hasTo = true;
+                parts.shift();
+            }
 
-    this.colorStops = imageData.args.slice(hasDirection ? 1 : 0).map(function(colorStop) {
-        var colorStopMatch = colorStop.match(GradientContainer.REGEXP_COLORSTOP);
-        var value = +colorStopMatch[2];
-        var unit = value === 0 ? "%" : colorStopMatch[3]; // treat "0" as "0%"
-        return {
-            color: new Color(colorStopMatch[1]),
-            // TODO: support absolute stop positions (e.g., compute gradient line length & convert px to ratio)
-            stop: unit === "%" ? value / 100 : null
-        };
-    });
+            var angle = 0;
+            var len = parts.length;
+            for (var i = 0; i < len; i++) {
+                angle += LinearGradientContainer.ANGLES[parts[i]] || 0;
+            }
 
-    if (this.colorStops[0].stop === null) {
-        this.colorStops[0].stop = 0;
-    }
-
-    if (this.colorStops[this.colorStops.length - 1].stop === null) {
-        this.colorStops[this.colorStops.length - 1].stop = 1;
-    }
-
-    // calculates and fills-in explicit stop positions when omitted from rule
-    this.colorStops.forEach(function(colorStop, index) {
-        if (colorStop.stop === null) {
-            this.colorStops.slice(index).some(function(find, count) {
-                if (find.stop !== null) {
-                    colorStop.stop = ((find.stop - this.colorStops[index - 1].stop) / (count + 1)) + this.colorStops[index - 1].stop;
-                    return true;
-                } else {
-                    return false;
-                }
-            }, this);
+            this.angle = angle / len + (hasTo ? Math.PI : 0);
         }
-    }, this);
+
+        this.parseColorStops(imageData.args.slice(1));
+    } else {
+        this.parseColorStops(imageData.args);
+    }
 }
 
 LinearGradientContainer.prototype = Object.create(GradientContainer.prototype);
 
-// TODO: support <angle> (e.g. -?\d{1,3}(?:\.\d+)deg, etc. : https://developer.mozilla.org/docs/Web/CSS/angle )
-LinearGradientContainer.REGEXP_DIRECTION = /^\s*(?:to|left|right|top|bottom|center|\d{1,3}(?:\.\d+)?%?)(?:\s|$)/i;
+LinearGradientContainer.REGEXP_DIRECTION = /^\s*(?:to|left|right|top|bottom|\d*(?:\.\d+)?deg)(?:\s|$)/i;
+LinearGradientContainer.REGEXP_ANGLE = /^\d*(?:\.\d+)?deg\s*$/i;
+
+LinearGradientContainer.ANGLES = {
+    bottom: 0,
+    left: Math.PI * 0.5,
+    top: Math.PI,
+    right: Math.PI * 1.5
+};
 
 module.exports = LinearGradientContainer;

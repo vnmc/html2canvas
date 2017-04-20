@@ -7,6 +7,9 @@ var FrameContainer = require('./framecontainer');
 var SVGContainer = require('./svgcontainer');
 var SVGNodeContainer = require('./svgnodecontainer');
 var LinearGradientContainer = require('./lineargradientcontainer');
+var RadialGradientContainer = require('./radialgradientcontainer');
+var RepeatingLinearGradientContainer = require('./repeatinglineargradientcontainer');
+var RepeatingRadialGradientContainer = require('./repeatingradialgradientcontainer');
 var WebkitGradientContainer = require('./webkitgradientcontainer');
 var bind = require('./utils').bind;
 
@@ -83,6 +86,12 @@ ImageLoader.prototype.loadImage = function(imageData) {
         }
     } else if (imageData.method === "linear-gradient") {
         return new LinearGradientContainer(imageData);
+    } else if (imageData.method === "radial-gradient") {
+        return new RadialGradientContainer(imageData);
+    } else if (imageData.method === "repeating-linear-gradient") {
+        return new RepeatingLinearGradientContainer(imageData);
+    } else if (imageData.method === "repeating-radial-gradient") {
+        return new RepeatingRadialGradientContainer(imageData);
     } else if (imageData.method === "gradient") {
         return new WebkitGradientContainer(imageData);
     } else if (imageData.method === "svg") {
@@ -91,7 +100,7 @@ ImageLoader.prototype.loadImage = function(imageData) {
         return new FrameContainer(imageData.args[0], this.isSameOrigin(imageData.args[0].src), this.options);
     } else if (imageData.method === "VIDEO") {
         return new VideoContainer(imageData);
-    }  else {
+    } else {
         return new DummyImageContainer(imageData);
     }
 };

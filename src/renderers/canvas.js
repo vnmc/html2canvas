@@ -1,5 +1,8 @@
 var Renderer = require('../renderer');
 var LinearGradientContainer = require('../lineargradientcontainer');
+var RadialGradientContainer = require('../radialgradientcontainer');
+var RepeatingLinearGradientContainer = require('../repeatinglineargradientcontainer');
+var RepeatingRadialGradientContainer = require('../repeatingradialgradientcontainer');
 var log = require('../log');
 
 function CanvasRenderer(width, height) {
@@ -155,15 +158,79 @@ CanvasRenderer.prototype.renderBackgroundRepeat = function(imageContainer, backg
 };
 
 CanvasRenderer.prototype.renderBackgroundGradient = function(gradientImage, bounds) {
+    var gradient;
+
     if (gradientImage instanceof LinearGradientContainer) {
-        var gradient = this.ctx.createLinearGradient(
-            bounds.left + bounds.width * gradientImage.x0,
-            bounds.top + bounds.height * gradientImage.y0,
-            bounds.left +  bounds.width * gradientImage.x1,
-            bounds.top +  bounds.height * gradientImage.y1);
+        // normalize the angle (0 <= alpha < 2π)
+        var alpha = gradientImage.angle % (2 * Math.PI);
+        if (alpha < 0) {
+            alpha += 2 * Math.PI;
+        }
+
+        var d = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height);
+        var beta = Math.atan2(bounds.height, bounds.width);
+        var a;
+
+        if (alpha < Math.PI * 0.5) {
+            // (0,h)
+            a = d * Math.sin(alpha + beta);
+            gradient = this.ctx.createLinearGradient(
+                bounds.left,
+                bounds.bottom,
+                bounds.left + a * Math.sin(alpha),
+                bounds.bottom - a * Math.cos(alpha)
+            );
+        } else if (alpha < Math.PI) {
+            // (0,0)
+            a = d * Math.sin(alpha - beta);
+            gradient = this.ctx.createLinearGradient(
+                bounds.left,
+                bounds.top,
+                bounds.left + a * Math.sin(alpha),
+                bounds.top - a * Math.cos(alpha)
+            );
+        } else if (alpha < Math.PI * 1.5) {
+            // (w,0)
+            a = d * Math.sin(alpha + beta);
+            gradient = this.ctx.createLinearGradient(
+                bounds.right,
+                bounds.top,
+                bounds.right - a * Math.sin(alpha),
+                bounds.top + a * Math.cos(alpha)
+            );
+        } else {
+            // (w,h)
+            a = d * Math.sin(alpha - beta);
+            gradient = this.ctx.createLinearGradient(
+                bounds.right,
+                bounds.bottom,
+                bounds.right - a * Math.sin(alpha),
+                bounds.bottom + a * Math.cos(alpha)
+            );
+        }
+    } else if (gradientImage instanceof RadialGradientContainer) {
+        // TODO
+
+        if (gradientImage.rx0 === gradientImage.ry0) {
+            // circular radial gradient
+            gradient = this.ctx.createRadialGradient(
+                gradientImage.x0, gradientImage.y0, gradientImage.rx0,
+                gradientImage.x1, gradientImage.y1, gradientImage.rx1
+            );
+        } else {
+            // elliptical radial gradient
+        }
+    } else if (gradientImage instanceof RepeatingLinearGradientContainer) {
+        // TODO
+    } else if (gradientImage instanceof RepeatingRadialGradientContainer) {
+        // TODO
+    }
+
+    if (gradient) {
         gradientImage.colorStops.forEach(function(colorStop) {
             gradient.addColorStop(colorStop.stop, colorStop.color.toString());
         });
+
         this.rectangle(bounds.left, bounds.top, bounds.width, bounds.height, gradient);
     }
 };
