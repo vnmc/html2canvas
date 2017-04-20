@@ -365,7 +365,7 @@ NodeParser.prototype.paintElement = function(container) {
     var bounds = container.parseBounds();
     this.renderer.clip(container.backgroundClip, function() {
         this.renderer.renderBackground(container, bounds, container.borders.borders.map(getWidth));
-    }, this);
+    }, this, container);
 
     this.renderer.mask(container.backgroundClip, function() {
         this.renderer.renderShadows(container, container.borders.clip);
@@ -373,7 +373,7 @@ NodeParser.prototype.paintElement = function(container) {
 
     this.renderer.clip(container.clip, function() {
         this.renderer.renderBorders(container.borders.borders);
-    }, this);
+    }, this, container);
 
     this.renderer.clip(container.backgroundClip, function() {
         switch (container.node.nodeName) {
@@ -411,7 +411,7 @@ NodeParser.prototype.paintElement = function(container) {
             this.paintFormValue(container);
             break;
         }
-    }, this);
+    }, this, container);
 };
 
 NodeParser.prototype.paintCheckbox = function(container) {
@@ -434,7 +434,7 @@ NodeParser.prototype.paintCheckbox = function(container) {
             this.renderer.font(new Color('#424242'), 'normal', 'normal', 'bold', (size - 3) + "px", 'arial');
             this.renderer.text("\u2714", bounds.left + size / 6, bounds.top + size - 1);
         }
-    }, this);
+    }, this, container);
 };
 
 NodeParser.prototype.paintRadio = function(container) {
@@ -447,7 +447,7 @@ NodeParser.prototype.paintRadio = function(container) {
         if (container.node.checked) {
             this.renderer.circle(Math.ceil(bounds.left + size / 4) + 1, Math.ceil(bounds.top + size / 4) + 1, Math.floor(size / 2), new Color('#424242'));
         }
-    }, this);
+    }, this, container);
 };
 
 var getPropertyValue = function(container, propertyName, placeholderRules) {
@@ -537,7 +537,7 @@ NodeParser.prototype.paintText = function(container) {
                 this.renderTextDecoration(container.parent, bounds, this.fontMetrics.getMetrics(family, size));
             }
         }, this);
-    }, this);
+    }, this, container.parent);
 };
 
 NodeParser.prototype.renderTextDecoration = function(container, bounds, metrics) {
