@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			div {
+				display: inline-block;
+				width: 100px;
+				height: 100px;
+				padding: 10px;
+				border: 15px solid transparent;
+			}
+		</style>
+	</head>
+	<body>
+		<div style="border-image: url(border.png) 27"></div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '350px';
+					canvas.style.padding = '0';
+
+					document.body.append(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

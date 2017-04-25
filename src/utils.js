@@ -170,6 +170,79 @@ exports.parseBackgrounds = function(backgroundImage) {
     return results;
 };
 
+exports.parseShadow = function(str) {
+    var propertyFilters = { color: /^(#|rgb|hsl|(?!(inset|initial|inherit))[^\d\-\.]+)/i, inset: /^inset/i, px: /px$/i };
+    var pxPropertyNames = [ 'x', 'y', 'blur', 'spread' ];
+    var properties = str.split(/ (?![^(]*\))/);
+    var info = {};
+    for (var key in propertyFilters) {
+        info[key] = properties.filter(propertyFilters[key].test.bind(propertyFilters[key]));
+        info[key] = info[key].length === 0 ? null : info[key].length === 1 ? info[key][0] : info[key];
+    }
+    for (var i=0; i<info.px.length; i++) {
+        info[pxPropertyNames[i]] = parseInt(info.px[i]);
+    }
+    return info;
+};
+
+exports.matrixInverse = function(m) {
+    // This is programmed specifically for transform matrices, which have a fixed structure.
+    // [ a b | c ]   [ a0 a2 | a4 ]
+    // [ d e | f ] = [ a1 a3 | a5 ]
+    var a = m[0], b = m[2], c = m[4], d = m[1], e = m[3], f = m[5];
+    var detInv = 1 / (a*e - b*d);
+    return [e*detInv, -d*detInv, -b*detInv, a*detInv, (b*f-c*e)*detInv, (c*d-a*f)*detInv];
+};
+
+function getShapeBounds(shape) {
+    var len = shape.length;
+    if (len === 1 && shape[0][0] === 'rect') {
+        return {
+            left: shape[0][1],
+            top: shape[0][2],
+            right: shape[0][1] + shape[0][3],
+            bottom: shape[0][2] + shape[0][4],
+            width: shape[0][3],
+            height: shape[0][4]
+        };
+    }
+
+    var xmin = Infinity;
+    var ymin = Infinity;
+    var xmax = -Infinity;
+    var ymax = -Infinity;
+
+    for (var i = 0; i < len; i++) {
+        var s = shape[i];
+        var x = s[s.length - 2];
+        var y = s[s.length - 1];
+
+        if (typeof x === 'number') {
+            xmin = Math.min(xmin, x);
+            ymin = Math.min(ymin, y);
+            xmax = Math.max(xmax, x);
+            ymax = Math.max(ymax, y);
+        } else {
+            var bounds = getShapeBounds(s);
+            xmin = Math.min(xmin, bounds.left);
+            ymin = Math.min(ymin, bounds.top);
+            xmax = Math.max(xmax, bounds.right);
+            ymax = Math.max(ymax, bounds.bottom);
+        }
+    }
+
+    return {
+        left: xmin,
+        top: ymin,
+        right: xmax,
+        bottom: ymax,
+        width: xmax - xmin,
+        height: ymax - ymin
+    };
+}
+
+exports.getShapeBounds = getShapeBounds;
+
 
 var REGEX_PSEUDO_ELEMENTS = /::?(?:after|before|first-line|first-letter)/;
 

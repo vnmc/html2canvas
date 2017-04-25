@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<script src="../specificity.js"></script>
+		<script src="_scripts/test.js"></script>
 		<script src="../html2canvas.js"></script>
 		<script src="../fabric.js"></script>
 
@@ -27,7 +27,7 @@
 		<div style="background: radial-gradient(farthest-corner, red, blue)"></div>
 		<div style="background: radial-gradient(circle 20px, red, blue)"></div>
 		<div style="background: radial-gradient(ellipse 20px 30px, red, blue)"></div>
-		<div style="background: radial-gradient(circle 20px at 6em 80px, red, blue)"></div>
+		<div style="background: radial-gradient(circle 20px at 70px 80px, red, blue)"></div>
 		<div style="background: radial-gradient(circle farthest-side, red, blue)"></div>
 		<div style="background: radial-gradient(at 20px 20px, red, blue)"></div>
 		<div style="background: radial-gradient(ellipse farthest-corner at 45px 45px , #00FFFF 0%, rgba(0, 0, 255, 0) 50%, #0000FF 95%);"></div>
@@ -38,31 +38,5 @@
 				<div style="background: radial-gradient(ellipse, red, blue); width:150px;"></div>
 			</div>
 		</div>
-
-		<script>
-			setTimeout(function()
-			{
-				html2canvas(
-					//document.body,
-					document.documentElement,
-					{
-						background: '#ffffff',
-						type: 'view',
-						letterRendering: true,
-						javascriptEnabled: true,
-						proxy: 'areion'
-					}
-				).then(function(canvas)
-				{
-					canvas.style.position = 'absolute';
-					canvas.style.left = '0';
-					canvas.style.top = '600px';
-					canvas.style.padding = '0';
-					//canvas.style.opacity = '0.5';
-
-					document.body.append(canvas);
-				});
-			}, 2000);
-		</script>
 	</body>
 </html>

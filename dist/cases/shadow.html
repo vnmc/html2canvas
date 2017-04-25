@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: aliceblue;
+			}
+
+			div {
+				display: inline-block;
+				width: 100px;
+				height: 100px;
+				margin: 30px;
+				vertical-align: top;
+			}
+		</style>
+	</head>
+	<body>
+		<div style="background-color:aquamarine; box-shadow: inset 0 0 20px rgba(0,0,0,0.5)"></div>
+		<div style="background-color:lavender; border:10px solid purple; box-shadow: inset 0 0 20px black; border-radius:30px; /*box-sizing:border-box*/"></div>
+		<div style="background-color:pink; border-radius:20px; box-shadow:inset -10px 5px 20px rgba(0,0,0,0.8)"></div>
+		<div style="background-color:hotpink; border-radius:20px; box-shadow:inset -10px 5px 5px 20px royalblue"></div>
+		<div style="background-color:teal; box-shadow:0 0 20px rgba(0,0,0,0.9), 10px 10px 0 20px blanchedalmond, -10px -10px 30px 10px orange"></div>
+		<div style="transform: translate3d(-1000px,0,0); margin:0 50px 0 0;">
+			<div style="background-color: violet; transform: translate3d(1000px,0,0); box-shadow: 0 0 20px 10px royalblue"></div>
+			<div style="background-color: orchid; box-shadow: 0 0 20px teal"></div>
+		</div>
+		<div style="background-color:transparent; box-shadow:0 0 20px 30px orangered; transform:rotate(-5deg) scale(0.6) translate3d(10px,10px,0)"></div>
+		<div style="background-color:transparent; box-shadow:0 0 100px 30px red"></div>
+		<div style="background-color:deepskyblue; border-radius:20px; box-shadow:0 0 20px rgba(0,0,0,0.8)"></div>
+		<div style="background-color:royalblue; border-radius:20px; border-bottom-right-radius:0; box-shadow:0 0 20px 30px midnightblue"></div>
+		
+
+		<script>
+			// - inset box shadow
+			// - shadow spread
+			// - shadow should not be drawn if shape not visible (clip)
+			// - concatenated transforms: correct clip?
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '450px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.append(canvas);
+				}, function()
+				{
+					console.error(arguments);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

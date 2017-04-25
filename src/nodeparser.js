@@ -120,7 +120,75 @@ NodeParser.prototype.calculateOverflowClips = function() {
                         cssClip.bottom - cssClip.top
                 ]]);
             }
-            container.clip = hasParentClip(container) ? container.parent.clip.concat(clip) : clip;
+
+            // MCH -->
+            // if the container has a transform, calculate the pre-image of the top left and bottom right
+            // corners of the canvas and apply the inverse transform to the clips of the parent containers
+            var hasTransform = container.hasTransform();
+            var a11, a12, a13, a21, a22, a23, ox, oy;
+            if (hasTransform) {
+                var invTransform = container.inverseTransform();
+                var m = invTransform.matrix;
+                a11 = m[0];
+                a12 = m[2];
+                a13 = m[4];
+                a21 = m[1];
+                a22 = m[3];
+                a23 = m[5];
+                ox = invTransform.origin[0];
+                oy = invTransform.origin[1];
+
+                var b = (container && container.parent && container.parent.canvasBorder) || [0, 0, this.renderer.width, this.renderer.height];
+                container.canvasBorder = [
+                    a11 * (b[0] + ox) + a12 * (b[1] + oy) + a13 - ox,
+                    a21 * (b[0] + ox) + a22 * (b[1] + oy) + a23 - oy,
+                    a11 * (b[2] + ox) + a12 * (b[3] + oy) + a13 - ox,
+                    a21 * (b[2] + ox) + a22 * (b[3] + oy) + a23 - oy
+                ];
+            } else {
+                container.canvasBorder = [0, 0, this.renderer.width, this.renderer.height];
+            }
+
+            if (hasParentClip(container)) {
+                if (hasTransform) {
+                    var len = container.parent.clip.length;
+                    container.clip = [];
+
+                    for (var i = 0; i < len; i++) {
+                        var c = container.parent.clip[i];
+                        var lenClip = c.length;
+                        var transformedClip = [];
+
+                        for (var j = 0; j < lenClip; j++) {
+                            var shape = c[j];
+
+                            //                    [ a11 a12 | a13 ]   [ x + ox ]    [ ox ]
+                            // v' = A*(v+o) - o = [ a21 a22 | a23 ] * [ y + oy ] -  [ oy ]
+                            //                    [   0   0 |   1 ]   [   1    ]    [  0 ]
+                            // x' = a11*(x+ox) + a12*(y+oy) + a13 - ox
+                            // y' = a21*(x+ox) + a22*(y+oy) + a23 - oy
+
+                            var transformedShape = [
+                                shape[0],
+                                a11 * (shape[1] + ox) + a12 * (shape[2] + oy) + a13 - ox,
+                                a21 * (shape[1] + ox) + a22 * (shape[2] + oy) + a23 - oy
+                            ];
+                            transformedClip.push(transformedShape);
+                        }
+                        container.clip.push(transformedClip);
+                    }
+                    Array.prototype.push.apply(container.clip, clip);
+                } else {
+                    container.clip = container.parent.clip.concat(clip);
+                }
+            } else {
+                container.clip = clip;
+            }
+
+            // original code:
+            // container.clip = hasParentClip(container) ? container.parent.clip.concat(clip) : clip;
+            // <--
+
             container.backgroundClip = (container.css('overflow') !== "hidden") ? container.clip.concat([container.borders.clip]) : container.clip;
             if (isPseudoElement(container)) {
                 container.cleanDOM();
@@ -237,8 +305,18 @@ NodeParser.prototype.newStackingContext = function(container, hasOwnStacking) {
 
 NodeParser.prototype.createStackingContexts = function() {
     this.nodes.forEach(function(container) {
-        if (isElement(container) && (this.isRootElement(container) || hasOpacity(container) || isPositionedForStacking(container) || this.isBodyWithTransparentRoot(container) || container.hasTransform())) {
+        if (isElement(container) && (this.isRootElement(container) || hasOpacity(container) || isPositionedForStacking(container, container.parent && container.parent.hasChildWithOwnStacking) || this.isBodyWithTransparentRoot(container) || container.hasTransform())) {
             this.newStackingContext(container, true);
+
+            // MCH -->
+            if (container.parent) {
+                // set a flag on the parent that one of its children has its own stacking context
+                // we use this so that an absolutely (or relatively) positioned node without z-index
+                // following one with a stacking context (e.g., due to a transform on the node)
+                // is positioned correctly (above the previous sibling)
+                container.parent.hasChildWithOwnStacking = true;
+            }
+            // <--
         } else if (isElement(container) && ((isPositioned(container) && zIndex0(container)) || isInlineBlock(container) || isFloating(container))) {
             this.newStackingContext(container, false);
         } else {
@@ -363,17 +441,16 @@ NodeParser.prototype.paintNode = function(container) {
 };
 
 NodeParser.prototype.paintElement = function(container) {
+    console.log(container.node);
+
     var bounds = container.parseBounds();
+
     this.renderer.clip(container.backgroundClip, function() {
         this.renderer.renderBackground(container, bounds, container.borders.borders.map(getWidth));
     }, this, container);
 
     this.renderer.mask(container.backgroundClip, function() {
-        this.renderer.renderShadows(container, container.borders.clip);
-    }, this, container);
-
-    this.renderer.clip(container.clip, function() {
-        this.renderer.renderBorders(container.borders.borders);
+        this.renderer.renderShadows(container, container.borders.clip, null, false);
     }, this, container);
 
     this.renderer.clip(container.backgroundClip, function() {
@@ -412,6 +489,12 @@ NodeParser.prototype.paintElement = function(container) {
             this.paintFormValue(container);
             break;
         }
+
+        this.renderer.renderShadows(container, container.backgroundClip, container.borders, true);
+    }, this, container);
+
+    this.renderer.clip(container.clip, function() {
+        this.renderer.renderBorders(container.borders.borders);
     }, this, container);
 };
 
@@ -850,9 +933,19 @@ function renderableNode(node) {
     return (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE);
 }
 
-function isPositionedForStacking(container) {
+function isPositionedForStacking(container, hasSiblingWithOwnStacking) {
     var position = container.css("position");
-    var zIndex = (["absolute", "relative", "fixed"].indexOf(position) !== -1) ? container.css("zIndex") : "auto";
+    var isNonStaticPosition = ["absolute", "relative", "fixed"].indexOf(position) !== -1;
+
+    // MCH -->
+    if (hasSiblingWithOwnStacking) {
+        // if container has a sibling with its own stacking, always create an own
+        // stacking context for this container if the node is positioned non-statically
+        return isNonStaticPosition;
+    }
+    // <--
+
+    var zIndex = isNonStaticPosition ? container.css("zIndex") : "auto";
     return zIndex !== "auto";
 }
 

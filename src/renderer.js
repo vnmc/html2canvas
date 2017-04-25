@@ -44,11 +44,11 @@ Renderer.prototype.renderBackgroundColor = function(container, bounds) {
     }
 };
 
-Renderer.prototype.renderShadows = function(container, shape) {
+Renderer.prototype.renderShadows = function(container, shape, borderData, inset) {
     var boxShadow = container.css('boxShadow');
-    if (boxShadow !== 'none') {
+    if (boxShadow !== 'none' && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
         var shadows = boxShadow.split(/,(?![^(]*\))/);
-        this.shadow(shape, shadows);
+        this.shadow(shape, shadows, container, inset, borderData && borderData.borders);
     }
 };
 
@@ -75,6 +75,9 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
             }
             break;
         case "linear-gradient":
+        case "radial-gradient":
+        case "repeating-linear-gradient":
+        case "repeating-radial-gradient":
         case "gradient":
             var gradientImage = this.images.get(backgroundImage.value);
             if (gradientImage) {
