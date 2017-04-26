@@ -441,8 +441,6 @@ NodeParser.prototype.paintNode = function(container) {
 };
 
 NodeParser.prototype.paintElement = function(container) {
-    console.log(container.node);
-
     var bounds = container.parseBounds();
 
     this.renderer.clip(container.backgroundClip, function() {
@@ -465,11 +463,11 @@ NodeParser.prototype.paintElement = function(container) {
             }
             break;
         case "IMG":
-            var imageContainer = this.images.get(container.node.src);
+            var imageContainer = this.images.get(container.node.currentSrc || container.node.src);
             if (imageContainer) {
                 this.renderer.renderImage(container, bounds, container.borders, imageContainer);
             } else {
-                log("Error loading <img>", container.node.src);
+                log("Error loading <img>", container.node.currentSrc || container.node.src);
             }
             break;
         case "VIDEO":
