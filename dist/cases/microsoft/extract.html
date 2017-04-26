@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+	<head>
+	    <script src="../../specificity.js"></script>
+	    <script src="../../html2canvas.js"></script>
+	    <script src="../../fabric.js"></script>
+
+	    <style>
+	    	picture {
+	    		border: 4px solid royalblue;
+	    	}
+
+	    	img {
+	    		width: auto;
+	    		height: 160px;
+	    	}
+	    </style>
+	</head>
+
+	<body>
+		<picture>
+			<img set="//img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/REHt8H?ver=8787" srcset="//img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/REHt8H?ver=8787">
+        </picture>
+        <div>
+            <h3>Xbox One S</h3>
+            <p>Schnittiger. Schlanker. Schärfer.</p>
+        </div>
+
+		<script>
+            setTimeout(function()
+            {
+                html2canvas(
+                    //document.body,
+                    document.documentElement,
+                    {
+                        background: '#ffffff',
+                        type: 'view',
+                        letterRendering: true,
+                        javascriptEnabled: true,
+                        proxy: 'areion'
+                    }
+                ).then(function(canvas)
+                {
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '0';
+                    canvas.style.top = '300px';
+                    canvas.style.padding = '0';
+                    canvas.style.opacity = '1';
+                    canvas.style.zIndex = '1000000';
+
+                    document.body.append(canvas);
+                });
+            }, 2000);
+        </script>
+	</body>
+</html>
