@@ -1,8 +1,5 @@
 var Renderer = require('../renderer');
-var LinearGradientContainer = require('../lineargradientcontainer');
-var RadialGradientContainer = require('../radialgradientcontainer');
-var RepeatingLinearGradientContainer = require('../repeatinglineargradientcontainer');
-var RepeatingRadialGradientContainer = require('../repeatingradialgradientcontainer');
+var GradientContainer = require('../gradientcontainer');
 var utils = require('../utils');
 var log = require('../log');
 
@@ -280,46 +277,26 @@ CanvasRenderer.prototype.renderBackgroundRepeat = function(imageContainer, backg
     this.ctx.translate(-offsetX, -offsetY);
 };
 
-function dist(x, y) {
-    return Math.sqrt(x * x + y * y);
-}
-
-function findCorner(bounds, x, y, closest) {
-    var corners = [
-        [bounds.left, bounds.top],
-        [bounds.left, bounds.bottom],
-        [bounds.right, bounds.top],
-        [bounds.right, bounds.bottom]
-    ];
-
-    var distOpt = closest ? Infinity : -Infinity;
-    var idx = -1;
-
-    for (var i = 0; i < corners.length; i++) {
-        var d = dist(x - corners[i][0], y - corners[i][1]);
-        if (closest ? d < distOpt : d > distOpt) {
-            distOpt = d;
-            idx = i;
-        }
-    }
-
-    return corners[idx];
-}
-
-CanvasRenderer.prototype.renderBackgroundGradient = function(gradientImage, bounds) {
+CanvasRenderer.prototype.renderGradient = function(gradientImage, bounds) {
     var gradient;
-    var needsRestore = false;
 
-    if (gradientImage instanceof LinearGradientContainer) {
-        gradient = this.createLinearGradient(gradientImage, bounds);
-    } else if (gradientImage instanceof RadialGradientContainer) {
-        var ret = this.createRadialGradient(gradientImage, bounds);
-        gradient = ret.gradient;
-        needsRestore = ret.needsRestore;
-    } else if (gradientImage instanceof RepeatingLinearGradientContainer) {
+    switch (gradientImage.type) {
+    case GradientContainer.TYPES.LINEAR:
+        gradient = this.ctx.createLinearGradient(gradientImage.x0, gradientImage.y0, gradientImage.x1, gradientImage.y1);
+        break;
+    case GradientContainer.TYPES.RADIAL:
+        if (gradientImage.transform) {
+            this.ctx.save();
+            this.setTransform(gradientImage.transform);
+        }
+        gradient = this.ctx.createRadialGradient(gradientImage.cx, gradientImage.cy, 0, gradientImage.cx, gradientImage.cy, gradientImage.r);
+        break;
+    case GradientContainer.TYPES.REPEATING_LINEAR:
         // TODO
-    } else if (gradientImage instanceof RepeatingRadialGradientContainer) {
+        break;
+    case GradientContainer.TYPES.REPEATING_RADIAL:
         // TODO
+        break;
     }
 
     if (gradient) {
@@ -330,173 +307,9 @@ CanvasRenderer.prototype.renderBackgroundGradient = function(gradientImage, boun
         this.rectangle(bounds.left, bounds.top, bounds.width, bounds.height, gradient);
     }
 
-    if (needsRestore) {
+    if (gradientImage.transform) {
         this.ctx.restore();
     }
-};
-
-CanvasRenderer.prototype.createLinearGradient = function(gradientImage, bounds) {
-    // normalize the angle (0 <= alpha < 2π)
-    var alpha = gradientImage.angle % (2 * Math.PI);
-    if (alpha < 0) {
-        alpha += 2 * Math.PI;
-    }
-
-    var d = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height);
-    var beta = Math.atan2(bounds.height, bounds.width);
-    var a;
-
-    if (alpha < Math.PI * 0.5) {
-        // (0,h)
-        a = d * Math.sin(alpha + beta);
-        return this.ctx.createLinearGradient(
-            bounds.left,
-            bounds.bottom,
-            bounds.left + a * Math.sin(alpha),
-            bounds.bottom - a * Math.cos(alpha)
-        );
-    }
-
-    if (alpha < Math.PI) {
-        // (0,0)
-        a = d * Math.sin(alpha - beta);
-        return this.ctx.createLinearGradient(
-            bounds.left,
-            bounds.top,
-            bounds.left + a * Math.sin(alpha),
-            bounds.top - a * Math.cos(alpha)
-        );
-    }
-
-    if (alpha < Math.PI * 1.5) {
-        // (w,0)
-        a = d * Math.sin(alpha + beta);
-        return this.ctx.createLinearGradient(
-            bounds.right,
-            bounds.top,
-            bounds.right - a * Math.sin(alpha),
-            bounds.top + a * Math.cos(alpha)
-        );
-    }
-
-    // (w,h)
-    a = d * Math.sin(alpha - beta);
-    return this.ctx.createLinearGradient(
-        bounds.right,
-        bounds.bottom,
-        bounds.right - a * Math.sin(alpha),
-        bounds.bottom + a * Math.cos(alpha)
-    );
-};
-
-CanvasRenderer.prototype.createRadialGradient = function(gradientImage, bounds) {
-    var rx, ry, c, corner;
-    var needsRestore = false;
-
-    var x = gradientImage.position.x.value;
-    if (gradientImage.position.x.isRelative) {
-        x *= bounds.width;
-    }
-    var y = gradientImage.position.y.value;
-    if (gradientImage.position.y.isRelative) {
-        y *= bounds.height;
-    }
-
-    x += bounds.left;
-    y += bounds.top;
-
-    switch (gradientImage.radius.descriptor) {
-    case 'closest-side':
-        // the ending shape is sized so that that it exactly meets the side of the gradient box closest to the gradient’s center
-        // if the shape is an ellipse, it exactly meets the closest side in each dimension
-        if (gradientImage.isCircle) {
-            rx = ry = Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right), Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
-        } else {
-            rx = Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
-            ry = Math.min(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
-        }
-        break;
-
-    case 'closest-corner':
-        // the ending shape is sized so that that it passes through the corner of the gradient box closest to the gradient’s center
-        // if the shape is an ellipse, the ending shape is given the same aspect-ratio it would have if closest-side were specified
-        if (gradientImage.isCircle) {
-            rx = ry = Math.min(
-                dist(x - bounds.left, y - bounds.top),
-                dist(x - bounds.left, y - bounds.bottom),
-                dist(x - bounds.right, y - bounds.top),
-                dist(x - bounds.right, y - bounds.bottom)
-            );
-        } else {
-            // compute the ratio ry/rx (which is to be the same as for "closest-side")
-            c = Math.min(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom)) / Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
-            corner = findCorner(bounds, x, y, true);
-            rx = Math.sqrt((corner[0] - x) * (corner[0] - x) + (corner[1] - y) * (corner[1] - y) / (c * c));
-            ry = c * rx;
-        }
-        break;
-
-    case 'farthest-side':
-        // same as closest-side, except the ending shape is sized based on the farthest side(s)
-        if (gradientImage.isCircle) {
-            rx = ry = Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right), Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
-        } else {
-            rx = Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
-            ry = Math.max(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
-        }
-        break;
-
-    case 'farthest-corner':
-        // same as closest-corner, except the ending shape is sized based on the farthest corner
-        // if the shape is an ellipse, the ending shape is given the same aspect ratio it would have if farthest-side were specified
-        if (gradientImage.isCircle) {
-            rx = ry = Math.max(
-                dist(x - bounds.left, y - bounds.top),
-                dist(x - bounds.left, y - bounds.bottom),
-                dist(x - bounds.right, y - bounds.top),
-                dist(x - bounds.right, y - bounds.bottom)
-            );
-        } else {
-            // compute the ratio ry/rx (which is to be the same as for "farthest-side")
-            c = Math.max(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom)) / Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
-            corner = findCorner(bounds, x, y, false);
-            rx = Math.sqrt((corner[0] - x) * (corner[0] - x) + (corner[1] - y) * (corner[1] - y) / (c * c));
-            ry = c * rx;
-        }
-        break;
-
-    default:
-        // pixel or percentage values
-        rx = (gradientImage.radius.x && gradientImage.radius.x.value) || 0;
-        ry = (gradientImage.radius.y && gradientImage.radius.y.value) || rx;
-        if (gradientImage.radius.isRelative) {
-            rx *= bounds.width;
-            ry *= bounds.height;
-        }
-        break;
-    }
-
-    if (rx !== ry) {
-        // transforms for elliptical radial gradient
-        needsRestore = true;
-        this.ctx.save();
-
-        var midX = bounds.left + 0.5 * bounds.width;
-        var midY = bounds.top + 0.5 * bounds.height;
-        var f = ry / rx;
-        this.ctx.translate(midX, midY);
-        this.ctx.transform(1, 0, 0, f, 0, 0);
-        this.ctx.translate(-midX, -midY);
-
-        var invF = 1 / f;
-        bounds.top = invF * (bounds.top - midY) + midY;
-        bounds.height *= invF;
-    }
-
-    return {
-        gradient: this.ctx.createRadialGradient(x, y, 0, x, y, rx),
-        needsRestore: needsRestore
-    };
 };
 
 CanvasRenderer.prototype.resizeImage = function(imageContainer, size) {
