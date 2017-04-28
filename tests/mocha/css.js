@@ -85,7 +85,7 @@ describe('Text-shadow', function() {
 
                 // only testing blur once
                 if (i === 1) {
-                    expect(shadows[0].blur).to.equal('1');
+                    expect(shadows[0].blur).to.equal(1);
                 }
             }
         });

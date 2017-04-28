@@ -1,23 +1,13 @@
 <!doctype html>
 <html>
 	<head>
-		<script src="../es6-promise.auto.js"></script>
-		<script src="../specificity.js"></script>
-		<script src="../html2canvas.js"></script>
-		<script src="../fabric.js"></script>
-
-		<style>
-			div {
-				display: inline-block;
-				width: 100px;
-				height: 100px;
-				padding: 10px;
-				border: 15px solid transparent;
-			}
-		</style>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
 	</head>
 	<body>
-		<div style="border-image: url(border.png) 27"></div>
+		<h1>Hello, World!</h1>
 
 		<script>
 			setTimeout(function()
@@ -36,8 +26,9 @@
 				{
 					canvas.style.position = 'absolute';
 					canvas.style.left = '0';
-					canvas.style.top = '350px';
+					canvas.style.top = '100px';
 					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
 
 					document.body.appendChild(canvas);
 				});

@@ -6,9 +6,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>https://www.gabhart-pictures.com/</title>
 
-        <script src="../specificity.js"></script>
-        <script src="../html2canvas.js"></script>
-        <script src="../html2canvas.svg.js"></script>
+        <script src="../../es6-promise.auto.js"></script>
+        <script src="../../specificity.js"></script>
+        <script src="../../html2canvas.js"></script>
+        <script src="../../html2canvas.svg.js"></script>
     </head>
     <body>
         <div class="background"></div>
@@ -113,7 +114,7 @@
                     canvas.style.padding = '0';
                     canvas.style.opacity = '0.5';
 
-                    document.body.append(canvas);
+                    document.body.appendChild(canvas);
                 });
             }, 2000);
         </script>

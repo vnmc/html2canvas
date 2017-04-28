@@ -2,6 +2,7 @@
 <html xmlns:mscom="http://schemas.microsoft.com/CMSvNext" xmlns:md="http://schemas.microsoft.com/mscom-data" class="no-js" lang="en" dir="ltr">
 
 <head>
+    <script src="../../es6-promise.auto.js"></script>
     <script src="../../specificity.js"></script>
     <script src="../../html2canvas.js"></script>
     <script src="../../fabric.js"></script>
@@ -1074,7 +1075,7 @@
                     canvas.style.opacity = '0.5';
                     canvas.style.zIndex = '1000000';
 
-                    document.body.append(canvas);
+                    document.body.appendChild(canvas);
                 });
             }, 2000);
         </script>

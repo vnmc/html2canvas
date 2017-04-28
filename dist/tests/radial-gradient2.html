@@ -3,6 +3,8 @@
     <head>
         <title>Background attribute tests</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+        <script src="../es6-promise.auto.js"></script>
         <script src="../specificity.js"></script>
         <script src="../html2canvas.js"></script>
         <script src="../fabric.js"></script>
@@ -181,7 +183,7 @@
                     canvas.style.padding = '0';
                     //canvas.style.opacity = '0.5';
 
-                    document.body.append(canvas);
+                    document.body.appendChild(canvas);
                 });
             }, 2000);
         </script>
