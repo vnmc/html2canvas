@@ -162,24 +162,62 @@ NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
 };
 
 NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index, backgroundSize) {
-    var position = [this.css('backgroundPositionX'), this.css('backgroundPositionY')];
+    var positionX = this.css('backgroundPositionX');
+    var positionY;
+    if (positionX === undefined) {
+        // the properties "backgroundPositionX" and "backgroundPositionY" don't exist; parse "backgroundPosition"
+        var position = this.css('backgroundPosition').split(/\s+/);
+        if (position.length === 1) {
+            // 1 value syntax:
+            // - keyword "top", "left", "bottom", "right" => other dimension is set to "50%"
+            // - length or percentage: specifies x-coordinate relative to left edge; y set to "50%"
+            // (https://developer.mozilla.org/en-US/docs/Web/CSS/background-position)
+
+            positionX = position[0];
+            if (positionX === "top" || positionX === "bottom") {
+                positionY = positionX;
+                positionX = "50%";
+            } else {
+                positionY = "50%";
+            }
+        } else {
+            // 2 value syntax
+            positionX = position[0];
+            positionY = position[1];
+        }
+    } else {
+        // the properties "backgroundPositionX" and "backgroundPositionY" exist
+        positionY = this.css('backgroundPositionY');
+    }
+
     var left, top;
-
-    if (isPercentage(position[0])){
-        left = (bounds.width - (backgroundSize || image).width) * (parseFloat(position[0]) / 100);
+    if (positionX === 'left') {
+        left = 0;
+    } else if (positionX === 'center') {
+        left = (bounds.width - (backgroundSize || image).width) * 0.5;
+    } else if (positionX === 'right') {
+        left = bounds.width - (backgroundSize || image).width;
+    } else if (isPercentage(positionX)){
+        left = (bounds.width - (backgroundSize || image).width) * (parseFloat(positionX) / 100);
     } else {
-        left = parseInt(position[0], 10);
+        left = parseInt(positionX, 10);
     }
 
-    if (position[1] === 'auto') {
+    if (positionY === 'auto') {
         top = left / image.width * image.height;
-    } else if (isPercentage(position[1])){
-        top =  (bounds.height - (backgroundSize || image).height) * parseFloat(position[1]) / 100;
+    } else if (positionY === 'top') {
+        top = 0;
+    } else if (positionY === 'center') {
+        top =  (bounds.height - (backgroundSize || image).height) * 0.5;
+    } else if (positionY === 'bottom') {
+        top =  bounds.height - (backgroundSize || image).height;
+    } else if (isPercentage(positionY)){
+        top =  (bounds.height - (backgroundSize || image).height) * parseFloat(positionY) / 100;
     } else {
-        top = parseInt(position[1], 10);
+        top = parseInt(positionY, 10);
     }
 
-    if (position[0] === 'auto') {
+    if (positionX === 'auto') {
         left = top / image.height * image.width;
     }
 
