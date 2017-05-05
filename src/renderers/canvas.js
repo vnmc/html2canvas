@@ -213,7 +213,19 @@ CanvasRenderer.prototype.shape = function(shape) {
 
 CanvasRenderer.prototype.font = function(color, style, variant, weight, size, family) {
     variant = /^(normal|small-caps)$/i.test(variant) ? variant : '';
-    this.setFillStyle(color).font = [style, variant, weight, size, family].join(" ").split(",")[0];
+
+    // MCH -->
+    //
+    // this.setFillStyle(color).font = [style, variant, weight, size, family].join(" ").split(",")[0];
+    //
+    // "split" was introduced here: https://github.com/niklasvh/html2canvas/commit/525b5c4f36d617460e3ba7ed48050cd8fcd1d4c0
+    // Not sure why this would be needed (it certainly also prevents certain sites from rendering correctly, e.g.
+    // YouTube uses 'font-family: "YouTube Noto", Roboto, arial, sans-serif' and doesn't define the font face "YouTube Noto"
+    // (thus, the texts are rendered in Roboto)).
+
+    // use string concatenation instead of the array join: https://jsperf.com/string-concat-vs-array-join-10000/15
+    this.setFillStyle(color).font = style + " " + variant + " " + weight + " " + size + " " + family;
+    // <--
 };
 
 CanvasRenderer.prototype.fontShadow = function(color, offsetX, offsetY, blur) {
