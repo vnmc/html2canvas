@@ -34,7 +34,7 @@ GradientContainer.prototype.parseColorStops = function(args) {
             if (i > 0) {
                 previousColor = this.colorStops[i - 1].color;
             } 
-            if (i < this.colorStops.length) {
+            if (i + 1 < this.colorStops.length) {
                 nextColor = this.colorStops[i + 1].color;
             } 
             if (previousColor) {
