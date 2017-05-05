@@ -261,7 +261,7 @@ function toCamelCase(str) {
 
 NodeParser.prototype.getPseudoElement = function(container, type) {
     var style = container.computedStyle(type);
-    if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none") {
+    if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none" || style.visibility === "hidden") {
         return null;
     }
 
