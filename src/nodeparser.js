@@ -776,31 +776,52 @@ function calculateCurvePoints(bounds, borderRadius, borders) {
     var x = bounds.left,
         y = bounds.top,
         width = bounds.width,
-        height = bounds.height,
+        height = bounds.height;
 
-        tlh = borderRadius[0][0] < width / 2 ? borderRadius[0][0] : width / 2,
-        tlv = borderRadius[0][1] < height / 2 ? borderRadius[0][1] : height / 2,
-        trh = borderRadius[1][0] < width / 2 ? borderRadius[1][0] : width / 2,
-        trv = borderRadius[1][1] < height / 2 ? borderRadius[1][1] : height / 2,
-        brh = borderRadius[2][0] < width / 2 ? borderRadius[2][0] : width / 2,
-        brv = borderRadius[2][1] < height / 2 ? borderRadius[2][1] : height / 2,
-        blh = borderRadius[3][0] < width / 2 ? borderRadius[3][0] : width / 2,
-        blv = borderRadius[3][1] < height / 2 ? borderRadius[3][1] : height / 2;
+    // https://www.w3.org/TR/css3-background/#corner-overlap:
+    // Corner curves must not overlap: When the sum of any two adjacent border radii exceeds
+    // the size of the border box, UAs must proportionally reduce the used values of all border
+    // radii until none of them overlap. The algorithm for reducing radii is as follows:
+    // Let f = min(L_i/S_i), where i ∈ {top, right, bottom, left}, S_i is the sum of the two
+    // corresponding radii of the corners on side i, and L_top = L_bottom = the width of the box,
+    // and L_left = L_right = the height of the box.
+    // If f < 1, then all corner radii are reduced by multiplying them by f.
 
-    var topWidth = width - trh,
-        rightHeight = height - brv,
-        bottomWidth = width - brh,
-        leftHeight = height - blv;
+    var f = Math.min(
+        1,
+        width / (borderRadius[0][0] + borderRadius[1][0]),
+        height / (borderRadius[1][borderRadius[1][1] === undefined ? 0 : 1] + borderRadius[2][borderRadius[2][1] === undefined ? 0 : 1]),
+        width / (borderRadius[2][0] + borderRadius[3][0]),
+        height / (borderRadius[3][borderRadius[3][1] === undefined ? 0 : 1] + borderRadius[0][borderRadius[0][1] === undefined ? 0 : 1]));
+
+    var h = [],
+        v = [];
+
+    for (var i = 0; i < 4; i++) {
+        if (borderRadius[0][1] === undefined) {
+            var a = f * borderRadius[i][0];
+            h.push(a);
+            v.push(a);
+        } else {
+            h.push(f * borderRadius[i][0]);
+            v.push(f * borderRadius[i][1]);
+        }
+    }
+
+    var topWidth = width - h[1],
+        rightHeight = height - v[2],
+        bottomWidth = width - h[2],
+        leftHeight = height - v[3];
 
     return {
-        topLeftOuter: getCurvePoints(x, y, tlh, tlv).topLeft.subdivide(0.5),
-        topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, tlh - borders[3].width), Math.max(0, tlv - borders[0].width)).topLeft.subdivide(0.5),
-        topRightOuter: getCurvePoints(x + topWidth, y, trh, trv).topRight.subdivide(0.5),
-        topRightInner: getCurvePoints(x + Math.min(topWidth, width + borders[3].width), y + borders[0].width, (topWidth > width + borders[3].width) ? 0 :trh - borders[3].width, trv - borders[0].width).topRight.subdivide(0.5),
-        bottomRightOuter: getCurvePoints(x + bottomWidth, y + rightHeight, brh, brv).bottomRight.subdivide(0.5),
-        bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, brh - borders[1].width),  brv - borders[2].width).bottomRight.subdivide(0.5),
-        bottomLeftOuter: getCurvePoints(x, y + leftHeight, blh, blv).bottomLeft.subdivide(0.5),
-        bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, blh - borders[3].width), blv - borders[2].width).bottomLeft.subdivide(0.5)
+        topLeftOuter: getCurvePoints(x, y, h[0], v[0]).topLeft.subdivide(0.5),
+        topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, h[0] - borders[3].width), Math.max(0, v[0] - borders[0].width)).topLeft.subdivide(0.5),
+        topRightOuter: getCurvePoints(x + topWidth, y, h[1], v[1]).topRight.subdivide(0.5),
+        topRightInner: getCurvePoints(x + Math.min(topWidth, width + borders[3].width), y + borders[0].width, (topWidth > width + borders[3].width) ? 0 :h[1] - borders[3].width, v[1] - borders[0].width).topRight.subdivide(0.5),
+        bottomRightOuter: getCurvePoints(x + bottomWidth, y + rightHeight, h[2], v[2]).bottomRight.subdivide(0.5),
+        bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, h[2] - borders[1].width),  v[2] - borders[2].width).bottomRight.subdivide(0.5),
+        bottomLeftOuter: getCurvePoints(x, y + leftHeight, h[3], v[3]).bottomLeft.subdivide(0.5),
+        bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, h[3] - borders[3].width), v[3] - borders[2].width).bottomLeft.subdivide(0.5)
     };
 }
 
@@ -910,20 +931,23 @@ function noLetterSpacing(container) {
 function getBorderRadiusData(container) {
     return ["TopLeft", "TopRight", "BottomRight", "BottomLeft"].map(function(side) {
         var value = container.css('border' + side + 'Radius');
-
         var arr = value.split(" ");
-        if (arr.length <= 1) {
-            arr[1] = arr[0];
-        }
 
-        arr = arr.map(function(radius) {
-            if (typeof radius === 'string' && radius.charAt(radius.length - 1) === '%' && container.bounds && container.bounds.height) {
-                return (parseFloat(radius) / 100) * container.bounds.height;
+        switch (arr.length) {
+        case 0:
+            return [0];
+        case 1:
+            var v = parseFloat(arr[0]);
+            if (typeof arr[0] === 'string' && arr[0].charAt(arr[0].length - 1) === '%') {
+                return [v / 100 * container.bounds.width, v / 100 * container.bounds.height];
             }
-            return radius;
-        });
-
-        return arr.map(asInt);
+            return [v];
+        default:
+            return [
+                typeof arr[0] === 'string' && arr[0].charAt(arr[0].length - 1) === '%' ? parseFloat(arr[0]) / 100 * container.bounds.width : parseFloat(arr[0]),
+                typeof arr[1] === 'string' && arr[1].charAt(arr[1].length - 1) === '%' ? parseFloat(arr[1]) / 100 * container.bounds.height : parseFloat(arr[1])
+            ];
+        }
     });
 }
 
@@ -986,10 +1010,6 @@ function zIndexSort(contexts) {
 
 function hasOpacity(container) {
     return container.getOpacity() < 1;
-}
-
-function asInt(value) {
-    return parseInt(value, 10);
 }
 
 function getWidth(border) {
