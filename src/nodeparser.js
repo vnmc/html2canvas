@@ -297,7 +297,14 @@ NodeParser.prototype.getChildren = function(parentContainer) {
 
 NodeParser.prototype.newStackingContext = function(container, hasOwnStacking) {
     var stack = new StackingContext(hasOwnStacking, container.getOpacity(), container.node, container.parent);
+    var opacity = stack.opacity;
     container.cloneTo(stack);
+
+    // MCH -->
+    // "cloneTo" overwrites the opacity
+    stack.opacity = opacity;
+    // <--
+
     var parentStack = hasOwnStacking ? stack.getParentStack(this) : stack.parent.stack;
     parentStack.contexts.push(stack);
     container.stack = stack;
