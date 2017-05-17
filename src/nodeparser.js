@@ -168,11 +168,14 @@ NodeParser.prototype.calculateOverflowClips = function() {
                             // x' = a11*(x+ox) + a12*(y+oy) + a13 - ox
                             // y' = a21*(x+ox) + a22*(y+oy) + a23 - oy
 
-                            var transformedShape = [
-                                shape[0],
-                                a11 * (shape[1] + ox) + a12 * (shape[2] + oy) + a13 - ox,
-                                a21 * (shape[1] + ox) + a22 * (shape[2] + oy) + a23 - oy
-                            ];
+                            var transformedShape = [shape[0]];
+                            var lenShape = shape.length;
+                            for (var k = 1; k < lenShape; k += 2) {
+                                transformedShape.push(
+                                    a11 * (shape[k] + ox) + a12 * (shape[k + 1] + oy) + a13 - ox,
+                                    a21 * (shape[k] + ox) + a22 * (shape[k + 1] + oy) + a23 - oy
+                                );
+                            }
                             transformedClip.push(transformedShape);
                         }
                         container.clip.push(transformedClip);
