@@ -2162,13 +2162,14 @@ NodeParser.prototype.calculateOverflowClips = function() {
                 container.canvasBorder = [0, 0, this.renderer.width, this.renderer.height];
             }
 
-            if (hasParentClip(container)) {
+            var parentClip = getParentClip(container);
+            if (parentClip) {
                 if (hasTransform) {
-                    var len = container.parent.clip.length;
+                    var len = parentClip.length;
                     container.clip = [];
 
                     for (var i = 0; i < len; i++) {
-                        var c = container.parent.clip[i];
+                        var c = parentClip[i];
                         var lenClip = c.length;
                         var transformedClip = [];
 
@@ -2195,7 +2196,7 @@ NodeParser.prototype.calculateOverflowClips = function() {
                     }
                     Array.prototype.push.apply(container.clip, clip);
                 } else {
-                    container.clip = container.parent.clip.concat(clip);
+                    container.clip = parentClip.concat(clip);
                 }
             } else {
                 container.clip = clip;
@@ -2220,6 +2221,24 @@ NodeParser.prototype.calculateOverflowClips = function() {
 
 function hasParentClip(container) {
     return container.parent && container.parent.clip.length;
+}
+
+function getParentClip(container) {
+    var pos = container.css('position');
+
+    if (pos === 'fixed') {
+        return null;
+    }
+    if (pos !== 'absolute') {
+        return container.parent && container.parent.clip;
+    }
+
+    for (var parent = container.parent; parent; parent = parent.parent) {
+        if (parent.css('position') !== 'static') {
+            return parent.clip;
+        }
+    }
+    return null;
 }
 
 NodeParser.prototype.asyncRenderer = function(queue, resolve, asyncTimer) {

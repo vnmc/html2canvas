@@ -14,11 +14,15 @@
 
             .title {
                 overflow: hidden;
+                display: block;
+                width: 50px;
+                height: 10px;
+                /*position: relative;*/
             }
 
 
             .title:before {
-                position: absolute;
+                position: fixed;
                 content: '';
                 background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0), #fff);
                 background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
@@ -37,7 +41,13 @@
 	<body>
 
          <img class="visual_img is_ready" src="http://www.zvv.ch/zvv-assets/service/hindernisfrei-reisen/velo_02.jpg/_jcr_content/renditions/cq5dam.web.728.480.jpeg">
-         <h3 class="title" aria-level="3" role="heading"></h3>
+         <h3 class="title" aria-level="3" role="heading">Ha-drei</h3>
+
+         <div style="position:relative; width:50px; height:50px;/*overflow: hidden*/">
+            <div style="position:static; width:50px; height:20px; margin-left:10px; overflow:hidden; background-color:yellow">
+                <div style="position:absolute; top:10px; left:10px; width:100px; height:20px; background-color:orange"
+            </div>
+         </div>
 
 
 		<script>
@@ -59,7 +69,7 @@
 				{
 					canvas.style.position = 'absolute';
 					canvas.style.left = '0';
-					canvas.style.top = '520px';
+					canvas.style.top = '580px';
 					canvas.style.padding = '0';
 					//canvas.style.opacity = '0.5';
 
