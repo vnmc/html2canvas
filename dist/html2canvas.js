@@ -1044,7 +1044,6 @@ function renderWindow(node, container, options, windowWidth, windowHeight) {
     var clonedWindow = container.contentWindow;
     var support = new Support(clonedWindow.document);
     var imageLoader = new ImageLoader(options, support);
-    var bounds = getBounds(node);
     var width = options.type === "view" ? windowWidth : documentWidth(clonedWindow.document);
     var height = options.type === "view" ? windowHeight : documentHeight(clonedWindow.document);
     var renderer = new options.renderer(width, height, imageLoader, options, document);
@@ -1052,6 +1051,7 @@ function renderWindow(node, container, options, windowWidth, windowHeight) {
     return parser.ready.then(function() {
         log("Finished rendering");
         var canvas;
+        var bounds = getBounds(node);
 
         if (options.type === "view") {
             canvas = crop(renderer.canvas, {width: renderer.canvas.width, height: renderer.canvas.height, top: 0, left: 0, x: 0, y: 0});
@@ -1112,7 +1112,7 @@ function absoluteUrl(url) {
     return link;
 }
 
-},{"./clone":3,"./imageloader":12,"./log":14,"./nodecontainer":15,"./nodeparser":16,"./proxy":17,"./renderers/canvas":20,"./support":22,"./utils":26}],6:[function(_dereq_,module,exports){
+},{"./clone":3,"./imageloader":12,"./log":14,"./nodecontainer":15,"./nodeparser":16,"./proxy":17,"./renderers/canvas":21,"./support":25,"./utils":29}],6:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var smallImage = _dereq_('./utils').smallImage;
 
@@ -1136,7 +1136,7 @@ function DummyImageContainer(src) {
 
 module.exports = DummyImageContainer;
 
-},{"./log":14,"./utils":26}],7:[function(_dereq_,module,exports){
+},{"./log":14,"./utils":29}],7:[function(_dereq_,module,exports){
 var smallImage = _dereq_('./utils').smallImage;
 
 function Font(family, size) {
@@ -1190,7 +1190,7 @@ function Font(family, size) {
 
 module.exports = Font;
 
-},{"./utils":26}],8:[function(_dereq_,module,exports){
+},{"./utils":29}],8:[function(_dereq_,module,exports){
 var Font = _dereq_('./font');
 
 function FontMetrics() {
@@ -1239,21 +1239,100 @@ FrameContainer.prototype.proxyLoad = function(proxy, bounds, options) {
 
 module.exports = FrameContainer;
 
-},{"./core":5,"./proxy":17,"./utils":26}],10:[function(_dereq_,module,exports){
+},{"./core":5,"./proxy":17,"./utils":29}],10:[function(_dereq_,module,exports){
+var Color = _dereq_('./color');
+
 function GradientContainer(imageData) {
     this.src = imageData.value;
     this.colorStops = [];
     this.type = null;
-    this.x0 = 0.5;
-    this.y0 = 0.5;
-    this.x1 = 0.5;
-    this.y1 = 0.5;
     this.promise = Promise.resolve(true);
 }
 
+GradientContainer.prototype.parseColorStops = function(args) {
+    this.colorStops = args.map(function(colorStop) {
+        var colorStopMatch = colorStop.match(GradientContainer.REGEXP_COLORSTOP);
+        var value = +colorStopMatch[2];
+        var unit = value === 0 ? "%" : colorStopMatch[3]; // treat "0" as "0%"
+        var isTransparent = colorStopMatch[1] === "transparent";
+
+        return {
+            color: isTransparent ? colorStopMatch[1] : new Color(colorStopMatch[1]),
+            // TODO: support absolute stop positions (e.g., compute gradient line length & convert px to ratio)
+            stop: unit === "%" ? value / 100 : null
+        };
+    });
+
+    // fix transparent stops based on neighboring colors for smooth and correct gradients
+    // https://github.com/niklasvh/html2canvas/pull/777/
+    for (var i = 0; i < this.colorStops.length; ++i) {
+        var colorStop = this.colorStops[i];
+ 
+        if (colorStop.color === "transparent") {
+            var previousColor = null;
+            var nextColor = null;
+            var targetColor = null;
+ 
+            if (i > 0) {
+                previousColor = this.colorStops[i - 1].color;
+            } 
+            if (i + 1 < this.colorStops.length) {
+                nextColor = this.colorStops[i + 1].color;
+            } 
+            if (previousColor) {
+                // If we have a color before the transparency, that should the
+                // color of this transparency as well
+                targetColor = previousColor;
+            } else {
+                // Otherwise, the color following the transparency is our target color
+                targetColor = nextColor;
+            }
+ 
+            // Copy target color setting alpha to 0
+            colorStop.color = new Color([targetColor.r, targetColor.g, targetColor.b, 0]);
+ 
+            // If this transparency is between 2 non-"transparent" colors then add a
+            // new color stop at the same position but with the color of the following
+            // color for a clean gradient
+            if (previousColor && nextColor && nextColor !== "transparent") {
+                var newColorStop = {
+                    color: new Color([nextColor.r, nextColor.g, nextColor.b, 0]),
+                    stop: colorStop.stop
+                };
+ 
+                this.colorStops.splice(i + 1, 0, newColorStop);
+            }
+        }
+    }
+
+    if (this.colorStops[0].stop === null) {
+        this.colorStops[0].stop = 0;
+    }
+
+    if (this.colorStops[this.colorStops.length - 1].stop === null) {
+        this.colorStops[this.colorStops.length - 1].stop = 1;
+    }
+
+    // calculates and fills-in explicit stop positions when omitted from rule
+    this.colorStops.forEach(function(colorStop, index) {
+        if (colorStop.stop === null) {
+            this.colorStops.slice(index).some(function(find, count) {
+                if (find.stop !== null) {
+                    colorStop.stop = ((find.stop - this.colorStops[index - 1].stop) / (count + 1)) + this.colorStops[index - 1].stop;
+                    return true;
+                } else {
+                    return false;
+                }
+            }, this);
+        }
+    }, this);
+};
+
 GradientContainer.TYPES = {
     LINEAR: 1,
-    RADIAL: 2
+    RADIAL: 2,
+    REPEATING_LINEAR: 3,
+    REPEATING_RADIAL: 4
 };
 
 // TODO: support hsl[a], negative %/length values
@@ -1262,7 +1341,7 @@ GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,
 
 module.exports = GradientContainer;
 
-},{}],11:[function(_dereq_,module,exports){
+},{"./color":4}],11:[function(_dereq_,module,exports){
 function ImageContainer(src, cors) {
     this.src = src;
     this.image = new Image();
@@ -1293,6 +1372,9 @@ var FrameContainer = _dereq_('./framecontainer');
 var SVGContainer = _dereq_('./svgcontainer');
 var SVGNodeContainer = _dereq_('./svgnodecontainer');
 var LinearGradientContainer = _dereq_('./lineargradientcontainer');
+var RadialGradientContainer = _dereq_('./radialgradientcontainer');
+var RepeatingLinearGradientContainer = _dereq_('./repeatinglineargradientcontainer');
+var RepeatingRadialGradientContainer = _dereq_('./repeatingradialgradientcontainer');
 var WebkitGradientContainer = _dereq_('./webkitgradientcontainer');
 var bind = _dereq_('./utils').bind;
 
@@ -1310,7 +1392,7 @@ ImageLoader.prototype.findImages = function(nodes) {
         switch(container.node.nodeName) {
         case "IMG":
             return imageNodes.concat([{
-                args: [container.node.src],
+                args: [container.node.currentSrc || container.node.src],
                 method: "url"
             }]);
         case "VIDEO":
@@ -1369,6 +1451,12 @@ ImageLoader.prototype.loadImage = function(imageData) {
         }
     } else if (imageData.method === "linear-gradient") {
         return new LinearGradientContainer(imageData);
+    } else if (imageData.method === "radial-gradient") {
+        return new RadialGradientContainer(imageData);
+    } else if (imageData.method === "repeating-linear-gradient") {
+        return new RepeatingLinearGradientContainer(imageData);
+    } else if (imageData.method === "repeating-radial-gradient") {
+        return new RepeatingRadialGradientContainer(imageData);
     } else if (imageData.method === "gradient") {
         return new WebkitGradientContainer(imageData);
     } else if (imageData.method === "svg") {
@@ -1377,7 +1465,7 @@ ImageLoader.prototype.loadImage = function(imageData) {
         return new FrameContainer(imageData.args[0], this.isSameOrigin(imageData.args[0].src), this.options);
     } else if (imageData.method === "VIDEO") {
         return new VideoContainer(imageData);
-    }  else {
+    } else {
         return new DummyImageContainer(imageData);
     }
 };
@@ -1459,7 +1547,7 @@ ImageLoader.prototype.timeout = function(container, timeout) {
 
 module.exports = ImageLoader;
 
-},{"./areion_proxyimagecontainer":2,"./dummyimagecontainer":6,"./framecontainer":9,"./imagecontainer":11,"./lineargradientcontainer":13,"./log":14,"./svgcontainer":23,"./svgnodecontainer":24,"./utils":26,"./videocontainer":27,"./webkitgradientcontainer":28}],13:[function(_dereq_,module,exports){
+},{"./areion_proxyimagecontainer":2,"./dummyimagecontainer":6,"./framecontainer":9,"./imagecontainer":11,"./lineargradientcontainer":13,"./log":14,"./radialgradientcontainer":19,"./repeatinglineargradientcontainer":22,"./repeatingradialgradientcontainer":23,"./svgcontainer":26,"./svgnodecontainer":27,"./utils":29,"./videocontainer":30,"./webkitgradientcontainer":31}],13:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var Color = _dereq_('./color');
 
@@ -1467,99 +1555,56 @@ function LinearGradientContainer(imageData) {
     GradientContainer.apply(this, arguments);
     this.type = GradientContainer.TYPES.LINEAR;
 
-    var hasDirection = LinearGradientContainer.REGEXP_DIRECTION.test( imageData.args[0] ) ||
-        !GradientContainer.REGEXP_COLORSTOP.test( imageData.args[0] );
+    // default angle: from top to bottom
+    this.angle = Math.PI;
+
+    var hasDirection =
+        LinearGradientContainer.REGEXP_DIRECTION.test(imageData.args[0]) ||
+        !GradientContainer.REGEXP_COLORSTOP.test(imageData.args[0]);
 
     if (hasDirection) {
-        imageData.args[0].split(/\s+/).reverse().forEach(function(position, index) {
-            switch(position) {
-            case "left":
-                this.x0 = 0;
-                this.x1 = 1;
-                break;
-            case "top":
-                this.y0 = 0;
-                this.y1 = 1;
-                break;
-            case "right":
-                this.x0 = 1;
-                this.x1 = 0;
-                break;
-            case "bottom":
-                this.y0 = 1;
-                this.y1 = 0;
-                break;
-            case "to":
-                var y0 = this.y0;
-                var x0 = this.x0;
-                this.y0 = this.y1;
-                this.x0 = this.x1;
-                this.x1 = x0;
-                this.y1 = y0;
-                break;
-            case "center":
-                break; // centered by default
-            // Firefox internally converts position keywords to percentages:
-            // http://www.w3.org/TR/2010/WD-CSS2-20101207/colors.html#propdef-background-position
-            default: // percentage or absolute length
-                // TODO: support absolute start point positions (e.g., use bounds to convert px to a ratio)
-                var ratio = parseFloat(position, 10) * 1e-2;
-                if (isNaN(ratio)) { // invalid or unhandled value
-                    break;
-                }
-                if (index === 0) {
-                    this.y0 = ratio;
-                    this.y1 = 1 - this.y0;
-                } else {
-                    this.x0 = ratio;
-                    this.x1 = 1 - this.x0;
-                }
-                break;
+        if (LinearGradientContainer.REGEXP_ANGLE.test(imageData.args[0])) {
+            this.angle = parseFloat(imageData.args[0]) / 180 * Math.PI;
+
+            // if there is a prefix, the 0° angle points due East (instead of North per W3C)
+            if (imageData.prefix) {
+                this.angle -= Math.PI * 0.5;
             }
-        }, this);
-    } else {
-        this.y0 = 0;
-        this.y1 = 1;
-    }
+        } else {
+            var parts = imageData.args[0].split(/\s+/);
+            var hasTo = false;
+            
+            if (parts[0] === 'to') {
+                hasTo = true;
+                parts.shift();
+            }
 
-    this.colorStops = imageData.args.slice(hasDirection ? 1 : 0).map(function(colorStop) {
-        var colorStopMatch = colorStop.match(GradientContainer.REGEXP_COLORSTOP);
-        var value = +colorStopMatch[2];
-        var unit = value === 0 ? "%" : colorStopMatch[3]; // treat "0" as "0%"
-        return {
-            color: new Color(colorStopMatch[1]),
-            // TODO: support absolute stop positions (e.g., compute gradient line length & convert px to ratio)
-            stop: unit === "%" ? value / 100 : null
-        };
-    });
+            var angle = 0;
+            var len = parts.length;
+            for (var i = 0; i < len; i++) {
+                angle += LinearGradientContainer.ANGLES[parts[i]] || 0;
+            }
 
-    if (this.colorStops[0].stop === null) {
-        this.colorStops[0].stop = 0;
-    }
-
-    if (this.colorStops[this.colorStops.length - 1].stop === null) {
-        this.colorStops[this.colorStops.length - 1].stop = 1;
-    }
-
-    // calculates and fills-in explicit stop positions when omitted from rule
-    this.colorStops.forEach(function(colorStop, index) {
-        if (colorStop.stop === null) {
-            this.colorStops.slice(index).some(function(find, count) {
-                if (find.stop !== null) {
-                    colorStop.stop = ((find.stop - this.colorStops[index - 1].stop) / (count + 1)) + this.colorStops[index - 1].stop;
-                    return true;
-                } else {
-                    return false;
-                }
-            }, this);
+            this.angle = angle / len + (hasTo ? Math.PI : 0);
         }
-    }, this);
+
+        this.parseColorStops(imageData.args.slice(1));
+    } else {
+        this.parseColorStops(imageData.args);
+    }
 }
 
 LinearGradientContainer.prototype = Object.create(GradientContainer.prototype);
 
-// TODO: support <angle> (e.g. -?\d{1,3}(?:\.\d+)deg, etc. : https://developer.mozilla.org/docs/Web/CSS/angle )
-LinearGradientContainer.REGEXP_DIRECTION = /^\s*(?:to|left|right|top|bottom|center|\d{1,3}(?:\.\d+)?%?)(?:\s|$)/i;
+LinearGradientContainer.REGEXP_DIRECTION = /^\s*(?:to|left|right|top|bottom|\d*(?:\.\d+)?deg)(?:\s|$)/i;
+LinearGradientContainer.REGEXP_ANGLE = /^\d*(?:\.\d+)?deg\s*$/i;
+
+LinearGradientContainer.ANGLES = {
+    bottom: 0,
+    left: Math.PI * 0.5,
+    top: Math.PI,
+    right: Math.PI * 1.5
+};
 
 module.exports = LinearGradientContainer;
 
@@ -1588,6 +1633,7 @@ function NodeContainer(node, parent) {
     this.borders = null;
     this.clip = [];
     this.backgroundClip = [];
+    this.canvasBorder = [];
     this.offsetBounds = null;
     this.visible = null;
     this.computedStyles = null;
@@ -1606,6 +1652,7 @@ NodeContainer.prototype.cloneTo = function(stack) {
     stack.bounds = this.bounds;
     stack.clip = this.clip;
     stack.backgroundClip = this.backgroundClip;
+    stack.canvasBorder = this.canvasBorder;
     stack.computedStyles = this.computedStyles;
     stack.styles = this.styles;
     stack.backgroundImages = this.backgroundImages;
@@ -1698,18 +1745,15 @@ NodeContainer.prototype.parseBackgroundImages = function() {
     return this.backgroundImages || (this.backgroundImages = parseBackgrounds(this.css("backgroundImage")));
 };
 
-NodeContainer.prototype.cssList = function(property, index) {
-    var value = (this.css(property) || '').split(',');
-    value = value[index || 0] || value[0] || 'auto';
-    value = value.trim().split(' ');
-    if (value.length === 1) {
-        value = [value[0], isPercentage(value[0]) ? 'auto' : value[0]];
-    }
-    return value;
-};
 
 NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
-    var size = this.cssList("backgroundSize", index);
+    var size = (this.css("backgroundSize") || '').split(',');
+    size = size[index || 0] || size[0] || 'auto';
+    size = size.trim().split(' ');
+    if (size.length === 1) {
+        size.push('auto');
+    }
+
     var width, height;
 
     if (isPercentage(size[0])) {
@@ -1739,32 +1783,114 @@ NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
 };
 
 NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index, backgroundSize) {
-    var position = this.cssList('backgroundPosition', index);
+    var positionX = this.css('backgroundPositionX');
+    var positionY;
+    if (positionX === undefined) {
+        // the properties "backgroundPositionX" and "backgroundPositionY" don't exist; parse "backgroundPosition"
+        var position = this.css('backgroundPosition').split(/\s+/);
+        if (position.length === 1) {
+            // 1 value syntax:
+            // - keyword "top", "left", "bottom", "right" => other dimension is set to "50%"
+            // - length or percentage: specifies x-coordinate relative to left edge; y set to "50%"
+            // (https://developer.mozilla.org/en-US/docs/Web/CSS/background-position)
+
+            positionX = position[0];
+            if (positionX === "top" || positionX === "bottom") {
+                positionY = positionX;
+                positionX = "50%";
+            } else {
+                positionY = "50%";
+            }
+        } else {
+            // 2 value syntax
+            positionX = position[0];
+            positionY = position[1];
+        }
+    } else {
+        // the properties "backgroundPositionX" and "backgroundPositionY" exist
+        positionY = this.css('backgroundPositionY');
+    }
+
     var left, top;
-
-    if (isPercentage(position[0])){
-        left = (bounds.width - (backgroundSize || image).width) * (parseFloat(position[0]) / 100);
+    if (positionX === 'left') {
+        left = 0;
+    } else if (positionX === 'center') {
+        left = (bounds.width - (backgroundSize || image).width) * 0.5;
+    } else if (positionX === 'right') {
+        left = bounds.width - (backgroundSize || image).width;
+    } else if (isPercentage(positionX)){
+        left = (bounds.width - (backgroundSize || image).width) * (parseFloat(positionX) / 100);
     } else {
-        left = parseInt(position[0], 10);
+        left = parseInt(positionX, 10);
     }
 
-    if (position[1] === 'auto') {
+    if (positionY === 'auto') {
         top = left / image.width * image.height;
-    } else if (isPercentage(position[1])){
-        top =  (bounds.height - (backgroundSize || image).height) * parseFloat(position[1]) / 100;
+    } else if (positionY === 'top') {
+        top = 0;
+    } else if (positionY === 'center') {
+        top =  (bounds.height - (backgroundSize || image).height) * 0.5;
+    } else if (positionY === 'bottom') {
+        top =  bounds.height - (backgroundSize || image).height;
+    } else if (isPercentage(positionY)){
+        top =  (bounds.height - (backgroundSize || image).height) * parseFloat(positionY) / 100;
     } else {
-        top = parseInt(position[1], 10);
+        top = parseInt(positionY, 10);
     }
 
-    if (position[0] === 'auto') {
+    if (positionX === 'auto') {
         left = top / image.height * image.width;
     }
 
     return {left: left, top: top};
 };
 
+NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
+    var borderLeft = this.cssInt('borderLeftWidth');
+    var borderRight = this.cssInt('borderRightWidth');
+    var borderTop = this.cssInt('borderTopWidth');
+    var borderBottom = this.cssInt('borderBottomWidth');
+
+    switch (this.css("backgroundOrigin")) {
+    case "content-box":
+        var paddingLeft = this.cssInt('paddingLeft');
+        var paddingRight = this.cssInt('paddingRight');
+        var paddingTop = this.cssInt('paddingTop');
+        var paddingBottom = this.cssInt('paddingBottom');
+
+        return {
+            left: bounds.left + paddingLeft,
+            top: bounds.top + paddingTop,
+            right: bounds.right - paddingRight,
+            bottom: bounds.bottom - paddingBottom,
+            width: bounds.width - paddingLeft - paddingRight - borderLeft - borderRight,
+            height: bounds.height - paddingTop - paddingBottom - borderTop - borderBottom
+        };
+
+    case "padding-box":
+        return {
+            left: bounds.left,
+            top: bounds.top,
+            right: bounds.right,
+            bottom: bounds.bottom,
+            width: bounds.width - borderLeft - borderRight,
+            height: bounds.height - borderTop - borderBottom
+        };
+
+    case "border-box":
+        return {
+            left: bounds.left - borderLeft,
+            top: bounds.top - borderTop,
+            right: bounds.right + borderRight,
+            bottom: bounds.bounds + borderBottom,
+            width: bounds.width,
+            height: bounds.height
+        };
+    }
+};
+
 NodeContainer.prototype.parseBackgroundRepeat = function(index) {
-    return this.cssList("backgroundRepeat", index)[0];
+    return this.css("backgroundRepeat");
 };
 
 NodeContainer.prototype.parseTextShadows = function() {
@@ -1814,6 +1940,15 @@ NodeContainer.prototype.parseTransformMatrix = function() {
         this.transformMatrix = matrix ? matrix : [1, 0, 0, 1, 0, 0];
     }
     return this.transformMatrix;
+};
+
+NodeContainer.prototype.inverseTransform = function() {
+    var transformData = this.parseTransform();
+    var inverseOrigin = [];
+    for (var i = 0; i < transformData.origin.length; i++) {
+        inverseOrigin.push(-transformData.origin[i]);
+    }
+    return { origin: inverseOrigin, matrix: utils.matrixInverse(transformData.matrix) };
 };
 
 NodeContainer.prototype.parseBounds = function() {
@@ -1875,7 +2010,7 @@ function asFloat(str) {
 
 module.exports = NodeContainer;
 
-},{"./color":4,"./utils":26}],16:[function(_dereq_,module,exports){
+},{"./color":4,"./utils":29}],16:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var punycode = _dereq_('punycode');
 var NodeContainer = _dereq_('./nodecontainer');
@@ -1987,7 +2122,8 @@ NodeParser.prototype.calculateOverflowClips = function() {
                 container.appendToDOM();
             }
             container.borders = this.parseBorders(container);
-            var clip = (container.css('overflow') === "hidden") ? [container.borders.clip] : [];
+            var clip = (container.css('overflow') === "hidden" ||
+                        container.css('overflow') === "scroll") ? [container.borders.clip] : [];
             var cssClip = container.parseClip();
             if (cssClip && ["absolute", "fixed"].indexOf(container.css('position')) !== -1) {
                 clip.push([["rect",
@@ -1997,7 +2133,78 @@ NodeParser.prototype.calculateOverflowClips = function() {
                         cssClip.bottom - cssClip.top
                 ]]);
             }
-            container.clip = hasParentClip(container) ? container.parent.clip.concat(clip) : clip;
+
+            // MCH -->
+            // if the container has a transform, calculate the pre-image of the top left and bottom right
+            // corners of the canvas and apply the inverse transform to the clips of the parent containers
+            var hasTransform = container.hasTransform();
+            var a11, a12, a13, a21, a22, a23, ox, oy;
+            if (hasTransform) {
+                var invTransform = container.inverseTransform();
+                var m = invTransform.matrix;
+                a11 = m[0];
+                a12 = m[2];
+                a13 = m[4];
+                a21 = m[1];
+                a22 = m[3];
+                a23 = m[5];
+                ox = invTransform.origin[0];
+                oy = invTransform.origin[1];
+
+                var b = (container && container.parent && container.parent.canvasBorder) || [0, 0, this.renderer.width, this.renderer.height];
+                container.canvasBorder = [
+                    a11 * (b[0] + ox) + a12 * (b[1] + oy) + a13 - ox,
+                    a21 * (b[0] + ox) + a22 * (b[1] + oy) + a23 - oy,
+                    a11 * (b[2] + ox) + a12 * (b[3] + oy) + a13 - ox,
+                    a21 * (b[2] + ox) + a22 * (b[3] + oy) + a23 - oy
+                ];
+            } else {
+                container.canvasBorder = [0, 0, this.renderer.width, this.renderer.height];
+            }
+
+            if (hasParentClip(container)) {
+                if (hasTransform) {
+                    var len = container.parent.clip.length;
+                    container.clip = [];
+
+                    for (var i = 0; i < len; i++) {
+                        var c = container.parent.clip[i];
+                        var lenClip = c.length;
+                        var transformedClip = [];
+
+                        for (var j = 0; j < lenClip; j++) {
+                            var shape = c[j];
+
+                            //                    [ a11 a12 | a13 ]   [ x + ox ]    [ ox ]
+                            // v' = A*(v+o) - o = [ a21 a22 | a23 ] * [ y + oy ] -  [ oy ]
+                            //                    [   0   0 |   1 ]   [   1    ]    [  0 ]
+                            // x' = a11*(x+ox) + a12*(y+oy) + a13 - ox
+                            // y' = a21*(x+ox) + a22*(y+oy) + a23 - oy
+
+                            var transformedShape = [shape[0]];
+                            var lenShape = shape.length;
+                            for (var k = 1; k < lenShape; k += 2) {
+                                transformedShape.push(
+                                    a11 * (shape[k] + ox) + a12 * (shape[k + 1] + oy) + a13 - ox,
+                                    a21 * (shape[k] + ox) + a22 * (shape[k + 1] + oy) + a23 - oy
+                                );
+                            }
+                            transformedClip.push(transformedShape);
+                        }
+                        container.clip.push(transformedClip);
+                    }
+                    Array.prototype.push.apply(container.clip, clip);
+                } else {
+                    container.clip = container.parent.clip.concat(clip);
+                }
+            } else {
+                container.clip = clip;
+            }
+
+            // original code:
+            // container.clip = hasParentClip(container) ? container.parent.clip.concat(clip) : clip;
+            // <--
+
             container.backgroundClip = (container.css('overflow') !== "hidden") ? container.clip.concat([container.borders.clip]) : container.clip;
             if (isPseudoElement(container)) {
                 container.cleanDOM();
@@ -2070,7 +2277,7 @@ function toCamelCase(str) {
 
 NodeParser.prototype.getPseudoElement = function(container, type) {
     var style = container.computedStyle(type);
-    if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none") {
+    if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none" || style.visibility === "hidden") {
         return null;
     }
 
@@ -2106,7 +2313,14 @@ NodeParser.prototype.getChildren = function(parentContainer) {
 
 NodeParser.prototype.newStackingContext = function(container, hasOwnStacking) {
     var stack = new StackingContext(hasOwnStacking, container.getOpacity(), container.node, container.parent);
+    var opacity = stack.opacity;
     container.cloneTo(stack);
+
+    // MCH -->
+    // "cloneTo" overwrites the opacity
+    stack.opacity = opacity;
+    // <--
+
     var parentStack = hasOwnStacking ? stack.getParentStack(this) : stack.parent.stack;
     parentStack.contexts.push(stack);
     container.stack = stack;
@@ -2114,8 +2328,18 @@ NodeParser.prototype.newStackingContext = function(container, hasOwnStacking) {
 
 NodeParser.prototype.createStackingContexts = function() {
     this.nodes.forEach(function(container) {
-        if (isElement(container) && (this.isRootElement(container) || hasOpacity(container) || isPositionedForStacking(container) || this.isBodyWithTransparentRoot(container) || container.hasTransform())) {
+        if (isElement(container) && (this.isRootElement(container) || hasOpacity(container) || isPositionedForStacking(container, container.parent && container.parent.hasChildWithOwnStacking) || this.isBodyWithTransparentRoot(container) || container.hasTransform())) {
             this.newStackingContext(container, true);
+
+            // MCH -->
+            if (container.parent) {
+                // set a flag on the parent that one of its children has its own stacking context
+                // we use this so that an absolutely (or relatively) positioned node without z-index
+                // following one with a stacking context (e.g., due to a transform on the node)
+                // is positioned correctly (above the previous sibling)
+                container.parent.hasChildWithOwnStacking = true;
+            }
+            // <--
         } else if (isElement(container) && ((isPositioned(container) && zIndex0(container)) || isInlineBlock(container) || isFloating(container))) {
             this.newStackingContext(container, false);
         } else {
@@ -2241,13 +2465,14 @@ NodeParser.prototype.paintNode = function(container) {
 
 NodeParser.prototype.paintElement = function(container) {
     var bounds = container.parseBounds();
+
     this.renderer.clip(container.backgroundClip, function() {
         this.renderer.renderBackground(container, bounds, container.borders.borders.map(getWidth));
-    }, this);
+    }, this, container);
 
-    this.renderer.clip(container.clip, function() {
-        this.renderer.renderBorders(container.borders.borders);
-    }, this);
+    this.renderer.mask(container.backgroundClip, function() {
+        this.renderer.renderShadows(container, container.borders.clip, null, false);
+    }, this, container);
 
     this.renderer.clip(container.backgroundClip, function() {
         switch (container.node.nodeName) {
@@ -2261,11 +2486,11 @@ NodeParser.prototype.paintElement = function(container) {
             }
             break;
         case "IMG":
-            var imageContainer = this.images.get(container.node.src);
+            var imageContainer = this.images.get(container.node.currentSrc || container.node.src);
             if (imageContainer) {
                 this.renderer.renderImage(container, bounds, container.borders, imageContainer);
             } else {
-                log("Error loading <img>", container.node.src);
+                log("Error loading <img>", container.node.currentSrc || container.node.src);
             }
             break;
         case "VIDEO":
@@ -2285,7 +2510,13 @@ NodeParser.prototype.paintElement = function(container) {
             this.paintFormValue(container);
             break;
         }
-    }, this);
+
+        this.renderer.renderShadows(container, container.backgroundClip, container.borders, true);
+    }, this, container);
+
+    this.renderer.clip(container.clip, function() {
+        this.renderer.renderBorders(container.borders.borders);
+    }, this, container);
 };
 
 NodeParser.prototype.paintCheckbox = function(container) {
@@ -2308,7 +2539,7 @@ NodeParser.prototype.paintCheckbox = function(container) {
             this.renderer.font(new Color('#424242'), 'normal', 'normal', 'bold', (size - 3) + "px", 'arial');
             this.renderer.text("\u2714", bounds.left + size / 6, bounds.top + size - 1);
         }
-    }, this);
+    }, this, container);
 };
 
 NodeParser.prototype.paintRadio = function(container) {
@@ -2321,7 +2552,7 @@ NodeParser.prototype.paintRadio = function(container) {
         if (container.node.checked) {
             this.renderer.circle(Math.ceil(bounds.left + size / 4) + 1, Math.ceil(bounds.top + size / 4) + 1, Math.floor(size / 2), new Color('#424242'));
         }
-    }, this);
+    }, this, container);
 };
 
 var getPropertyValue = function(container, propertyName, placeholderRules) {
@@ -2376,9 +2607,13 @@ NodeParser.prototype.paintFormValue = function(container) {
 NodeParser.prototype.paintText = function(container) {
     container.applyTextTransform();
     var characters = punycode.ucs2.decode(container.node.data);
-    var textList = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data) ? getWords(characters) : characters.map(function(character) {
+    var wordRendering = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data);
+    var textList = wordRendering ? getWords(characters) : characters.map(function(character) {
         return punycode.ucs2.encode([character]);
     });
+    if (!wordRendering) {
+        container.parent.node.style.fontVariantLigatures = 'none';
+    }
 
     var weight = container.parent.fontWeight();
     var size = container.parent.css('fontSize');
@@ -2407,7 +2642,7 @@ NodeParser.prototype.paintText = function(container) {
                 this.renderTextDecoration(container.parent, bounds, this.fontMetrics.getMetrics(family, size));
             }
         }, this);
-    }, this);
+    }, this, container.parent);
 };
 
 NodeParser.prototype.renderTextDecoration = function(container, bounds, metrics) {
@@ -2564,31 +2799,52 @@ function calculateCurvePoints(bounds, borderRadius, borders) {
     var x = bounds.left,
         y = bounds.top,
         width = bounds.width,
-        height = bounds.height,
+        height = bounds.height;
 
-        tlh = borderRadius[0][0] < width / 2 ? borderRadius[0][0] : width / 2,
-        tlv = borderRadius[0][1] < height / 2 ? borderRadius[0][1] : height / 2,
-        trh = borderRadius[1][0] < width / 2 ? borderRadius[1][0] : width / 2,
-        trv = borderRadius[1][1] < height / 2 ? borderRadius[1][1] : height / 2,
-        brh = borderRadius[2][0] < width / 2 ? borderRadius[2][0] : width / 2,
-        brv = borderRadius[2][1] < height / 2 ? borderRadius[2][1] : height / 2,
-        blh = borderRadius[3][0] < width / 2 ? borderRadius[3][0] : width / 2,
-        blv = borderRadius[3][1] < height / 2 ? borderRadius[3][1] : height / 2;
+    // https://www.w3.org/TR/css3-background/#corner-overlap:
+    // Corner curves must not overlap: When the sum of any two adjacent border radii exceeds
+    // the size of the border box, UAs must proportionally reduce the used values of all border
+    // radii until none of them overlap. The algorithm for reducing radii is as follows:
+    // Let f = min(L_i/S_i), where i ∈ {top, right, bottom, left}, S_i is the sum of the two
+    // corresponding radii of the corners on side i, and L_top = L_bottom = the width of the box,
+    // and L_left = L_right = the height of the box.
+    // If f < 1, then all corner radii are reduced by multiplying them by f.
 
-    var topWidth = width - trh,
-        rightHeight = height - brv,
-        bottomWidth = width - brh,
-        leftHeight = height - blv;
+    var f = Math.min(
+        1,
+        width / (borderRadius[0][0] + borderRadius[1][0]),
+        height / (borderRadius[1][borderRadius[1][1] === undefined ? 0 : 1] + borderRadius[2][borderRadius[2][1] === undefined ? 0 : 1]),
+        width / (borderRadius[2][0] + borderRadius[3][0]),
+        height / (borderRadius[3][borderRadius[3][1] === undefined ? 0 : 1] + borderRadius[0][borderRadius[0][1] === undefined ? 0 : 1]));
+
+    var h = [],
+        v = [];
+
+    for (var i = 0; i < 4; i++) {
+        if (borderRadius[0][1] === undefined) {
+            var a = f * borderRadius[i][0];
+            h.push(a);
+            v.push(a);
+        } else {
+            h.push(f * borderRadius[i][0]);
+            v.push(f * borderRadius[i][1]);
+        }
+    }
+
+    var topWidth = width - h[1],
+        rightHeight = height - v[2],
+        bottomWidth = width - h[2],
+        leftHeight = height - v[3];
 
     return {
-        topLeftOuter: getCurvePoints(x, y, tlh, tlv).topLeft.subdivide(0.5),
-        topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, tlh - borders[3].width), Math.max(0, tlv - borders[0].width)).topLeft.subdivide(0.5),
-        topRightOuter: getCurvePoints(x + topWidth, y, trh, trv).topRight.subdivide(0.5),
-        topRightInner: getCurvePoints(x + Math.min(topWidth, width + borders[3].width), y + borders[0].width, (topWidth > width + borders[3].width) ? 0 :trh - borders[3].width, trv - borders[0].width).topRight.subdivide(0.5),
-        bottomRightOuter: getCurvePoints(x + bottomWidth, y + rightHeight, brh, brv).bottomRight.subdivide(0.5),
-        bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, brh - borders[1].width),  brv - borders[2].width).bottomRight.subdivide(0.5),
-        bottomLeftOuter: getCurvePoints(x, y + leftHeight, blh, blv).bottomLeft.subdivide(0.5),
-        bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, blh - borders[3].width), blv - borders[2].width).bottomLeft.subdivide(0.5)
+        topLeftOuter: getCurvePoints(x, y, h[0], v[0]).topLeft.subdivide(0.5),
+        topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, h[0] - borders[3].width), Math.max(0, v[0] - borders[0].width)).topLeft.subdivide(0.5),
+        topRightOuter: getCurvePoints(x + topWidth, y, h[1], v[1]).topRight.subdivide(0.5),
+        topRightInner: getCurvePoints(x + Math.min(topWidth, width + borders[3].width), y + borders[0].width, (topWidth > width + borders[3].width) ? 0 :h[1] - borders[3].width, v[1] - borders[0].width).topRight.subdivide(0.5),
+        bottomRightOuter: getCurvePoints(x + bottomWidth, y + rightHeight, h[2], v[2]).bottomRight.subdivide(0.5),
+        bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, h[2] - borders[1].width),  v[2] - borders[2].width).bottomRight.subdivide(0.5),
+        bottomLeftOuter: getCurvePoints(x, y + leftHeight, h[3], v[3]).bottomLeft.subdivide(0.5),
+        bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, h[3] - borders[3].width), v[3] - borders[2].width).bottomLeft.subdivide(0.5)
     };
 }
 
@@ -2698,20 +2954,23 @@ function noLetterSpacing(container) {
 function getBorderRadiusData(container) {
     return ["TopLeft", "TopRight", "BottomRight", "BottomLeft"].map(function(side) {
         var value = container.css('border' + side + 'Radius');
-
         var arr = value.split(" ");
-        if (arr.length <= 1) {
-            arr[1] = arr[0];
-        }
 
-        arr = arr.map(function(radius) {
-            if (typeof radius === 'string' && radius.charAt(radius.length - 1) === '%' && container.bounds && container.bounds.height) {
-                return (parseFloat(radius) / 100) * container.bounds.height;
+        switch (arr.length) {
+        case 0:
+            return [0];
+        case 1:
+            var v = parseFloat(arr[0]);
+            if (typeof arr[0] === 'string' && arr[0].charAt(arr[0].length - 1) === '%') {
+                return [v / 100 * container.bounds.width, v / 100 * container.bounds.height];
             }
-            return radius;
-        });
-
-        return arr.map(asInt);
+            return [v];
+        default:
+            return [
+                typeof arr[0] === 'string' && arr[0].charAt(arr[0].length - 1) === '%' ? parseFloat(arr[0]) / 100 * container.bounds.width : parseFloat(arr[0]),
+                typeof arr[1] === 'string' && arr[1].charAt(arr[1].length - 1) === '%' ? parseFloat(arr[1]) / 100 * container.bounds.height : parseFloat(arr[1])
+            ];
+        }
     });
 }
 
@@ -2719,9 +2978,19 @@ function renderableNode(node) {
     return (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE);
 }
 
-function isPositionedForStacking(container) {
+function isPositionedForStacking(container, hasSiblingWithOwnStacking) {
     var position = container.css("position");
-    var zIndex = (["absolute", "relative", "fixed"].indexOf(position) !== -1) ? container.css("zIndex") : "auto";
+    var isNonStaticPosition = ["absolute", "relative", "fixed"].indexOf(position) !== -1;
+
+    // MCH -->
+    if (hasSiblingWithOwnStacking) {
+        // if container has a sibling with its own stacking, always create an own
+        // stacking context for this container if the node is positioned non-statically
+        return isNonStaticPosition;
+    }
+    // <--
+
+    var zIndex = isNonStaticPosition ? container.css("zIndex") : "auto";
     return zIndex !== "auto";
 }
 
@@ -2764,10 +3033,6 @@ function zIndexSort(contexts) {
 
 function hasOpacity(container) {
     return container.getOpacity() < 1;
-}
-
-function asInt(value) {
-    return parseInt(value, 10);
 }
 
 function getWidth(border) {
@@ -2827,7 +3092,7 @@ function hasUnicode(string) {
 
 module.exports = NodeParser;
 
-},{"./color":4,"./fontmetrics":8,"./log":14,"./nodecontainer":15,"./pseudoelementcontainer":18,"./stackingcontext":21,"./textcontainer":25,"./utils":26,"punycode":1}],17:[function(_dereq_,module,exports){
+},{"./color":4,"./fontmetrics":8,"./log":14,"./nodecontainer":15,"./pseudoelementcontainer":18,"./stackingcontext":24,"./textcontainer":28,"./utils":29,"punycode":1}],17:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var utils = _dereq_('./utils');
 var log = _dereq_('./log');
@@ -2924,7 +3189,7 @@ exports.Proxy = Proxy;
 exports.ProxyURL = ProxyURL;
 exports.loadUrlDocument = loadUrlDocument;
 
-},{"./clone":3,"./log":14,"./utils":26,"./xhr":29}],18:[function(_dereq_,module,exports){
+},{"./clone":3,"./log":14,"./utils":29,"./xhr":32}],18:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function PseudoElementContainer(node, parent, type) {
@@ -2965,7 +3230,81 @@ PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_AFTER = "___html2canv
 module.exports = PseudoElementContainer;
 
 },{"./nodecontainer":15}],19:[function(_dereq_,module,exports){
+var GradientContainer = _dereq_('./gradientcontainer');
+var Color = _dereq_('./color');
+
+function RadialGradientContainer(imageData) {
+    GradientContainer.apply(this, arguments);
+    this.type = GradientContainer.TYPES.RADIAL;
+
+    var m = imageData.args[0].match(RadialGradientContainer.REGEXP_SHAPEDEF);
+    if (m) {
+        this.isCircle =
+            m[1] === 'circle' || // explicit shape specification
+            (m[3] !== undefined && m[5] === undefined); // only one radius coordinate
+
+        this.radius = {
+            descriptor: m[2] || 'farthest-corner'
+        };
+
+        if (m[3] !== undefined) {
+            this.radius.x = {
+                value: parseFloat(m[3]) * (m[4] === '%' ? 0.01 : 1),
+                isRelative: m[4] === '%'
+            };
+        }
+        if (m[5] !== undefined) {
+            this.radius.y = {
+                value: parseFloat(m[5]) * (m[6] === '%' ? 0.01 : 1),
+                isRelative: m[6] === '%'
+            };
+        }
+
+        this.position = {};
+        if (m[7] !== undefined) {
+            this.position.x = {
+                value: parseFloat(m[7]) * (m[8] === '%' ? 0.01 : 1),
+                isRelative: m[8] === '%'
+            };
+        }
+        if (m[9] !== undefined) {
+            this.position.y = {
+                value: parseFloat(m[9]) * (m[10] === '%' ? 0.01 : 1),
+                isRelative: m[10] === '%'
+            };
+        }
+
+        this.parseColorStops(imageData.args.splice(1));
+    } else {
+        this.isCircle = false;
+        this.radius = { descriptor: 'farthest-corner' };
+        this.position = {};
+
+        this.parseColorStops(imageData.args);
+    }
+
+    // set values if not set
+    if (this.position.x === undefined) {
+        // center
+        this.position.x = { value: 0.5, isRelative: true };
+    }
+    if (this.position.y === undefined) {
+        this.position.y = { value: 0.5, isRelative: true };
+    }
+}
+
+RadialGradientContainer.prototype = Object.create(GradientContainer.prototype);
+
+RadialGradientContainer.REGEXP_SHAPEDEF = /^\s*(circle|ellipse)?\s*((?:([\d.]+)(px|%)\s*(?:([\d.]+)(px|%))?)|closest-side|closest-corner|farthest-side|farthest-corner)?\s*(?:at\s*([\d.]+)(px|%)\s+([\d.]+)(px|%))?(?:\s|$)/i;
+
+module.exports = RadialGradientContainer;
+
+},{"./color":4,"./gradientcontainer":10}],20:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
+var LinearGradientContainer = _dereq_('./lineargradientcontainer');
+var RadialGradientContainer = _dereq_('./radialgradientcontainer');
+var RepeatingLinearGradientContainer = _dereq_('./repeatinglineargradientcontainer');
+var RepeatingRadialGradientContainer = _dereq_('./repeatingradialgradientcontainer');
 
 function Renderer(width, height, images, options, document) {
     this.width = width;
@@ -3011,6 +3350,14 @@ Renderer.prototype.renderBackgroundColor = function(container, bounds) {
     }
 };
 
+Renderer.prototype.renderShadows = function(container, shape, borderData, inset) {
+    var boxShadow = container.css('boxShadow');
+    if (boxShadow !== 'none' && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
+        var shadows = boxShadow.split(/,(?![^(]*\))/);
+        this.shadow(shape, shadows, container, inset, borderData && borderData.borders);
+    }
+};
+
 Renderer.prototype.renderBorders = function(borders) {
     borders.forEach(this.renderBorder, this);
 };
@@ -3034,6 +3381,9 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
             }
             break;
         case "linear-gradient":
+        case "radial-gradient":
+        case "repeating-linear-gradient":
+        case "repeating-radial-gradient":
         case "gradient":
             var gradientImage = this.images.get(backgroundImage.value);
             if (gradientImage) {
@@ -3051,32 +3401,242 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
 };
 
 Renderer.prototype.renderBackgroundRepeating = function(container, bounds, imageContainer, index, borderData) {
-    var size = container.parseBackgroundSize(bounds, imageContainer.image, index);
-    var position = container.parseBackgroundPosition(bounds, imageContainer.image, index, size);
+    var backgroundBounds = container.parseBackgroundOrigin(bounds, index);
+    var size = container.parseBackgroundSize(backgroundBounds, imageContainer.image, index);
+    var position = container.parseBackgroundPosition(backgroundBounds, imageContainer.image, index, size);
     var repeat = container.parseBackgroundRepeat(index);
     switch (repeat) {
     case "repeat-x":
     case "repeat no-repeat":
-        this.backgroundRepeatShape(imageContainer, position, size, bounds, bounds.left + borderData[3], bounds.top + position.top + borderData[0], 99999, size.height, borderData);
+        this.backgroundRepeatShape(imageContainer, position, size, backgroundBounds, backgroundBounds.left + borderData[3], backgroundBounds.top + position.top + borderData[0], 99999, size.height, borderData);
         break;
     case "repeat-y":
     case "no-repeat repeat":
-        this.backgroundRepeatShape(imageContainer, position, size, bounds, bounds.left + position.left + borderData[3], bounds.top + borderData[0], size.width, 99999, borderData);
+        this.backgroundRepeatShape(imageContainer, position, size, backgroundBounds, backgroundBounds.left + position.left + borderData[3], backgroundBounds.top + borderData[0], size.width, 99999, borderData);
         break;
     case "no-repeat":
-        this.backgroundRepeatShape(imageContainer, position, size, bounds, bounds.left + position.left + borderData[3], bounds.top + position.top + borderData[0], size.width, size.height, borderData);
+        this.backgroundRepeatShape(imageContainer, position, size, backgroundBounds, backgroundBounds.left + position.left + borderData[3], backgroundBounds.top + position.top + borderData[0], size.width, size.height, borderData);
         break;
     default:
-        this.renderBackgroundRepeat(imageContainer, position, size, {top: bounds.top, left: bounds.left}, borderData[3], borderData[0]);
+        this.renderBackgroundRepeat(imageContainer, position, size, {top: backgroundBounds.top, left: backgroundBounds.left}, borderData[3], borderData[0]);
         break;
     }
 };
 
+Renderer.prototype.renderBackgroundGradient = function(gradientImage, bounds) {
+    var gradient;
+
+    if (gradientImage instanceof LinearGradientContainer) {
+        gradient = this.createLinearGradient(gradientImage, bounds);
+    } else if (gradientImage instanceof RadialGradientContainer) {
+        gradient = this.createRadialGradient(gradientImage, bounds);
+    } else if (gradientImage instanceof RepeatingLinearGradientContainer) {
+        // TODO
+    } else if (gradientImage instanceof RepeatingRadialGradientContainer) {
+        // TODO
+    }
+
+    if (gradient) {
+        this.renderGradient(gradient, bounds);
+    }
+};
+
+Renderer.prototype.createLinearGradient = function(gradientImage, bounds) {
+    // normalize the angle (0 <= alpha < 2π)
+    var alpha = gradientImage.angle % (2 * Math.PI);
+    if (alpha < 0) {
+        alpha += 2 * Math.PI;
+    }
+
+    var d = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height);
+    var beta = Math.atan2(bounds.height, bounds.width);
+    var a, x0, y0, x1, y1;
+
+    if (alpha < Math.PI * 0.5) {
+        // (0,h)
+        a = d * Math.sin(alpha + beta);
+        x0 = bounds.left;
+        y0 = bounds.bottom;
+        x1 = bounds.left + a * Math.sin(alpha);
+        y1 = bounds.bottom - a * Math.cos(alpha);
+    } else if (alpha < Math.PI) {
+        // (0,0)
+        a = d * Math.sin(alpha - beta);
+        x0 = bounds.left;
+        y0 = bounds.top;
+        x1 = bounds.left + a * Math.sin(alpha);
+        y1 = bounds.top - a * Math.cos(alpha);
+    } else if (alpha < Math.PI * 1.5) {
+        // (w,0)
+        a = d * Math.sin(alpha + beta);
+        x0 = bounds.right;
+        y0 = bounds.top;
+        x1 = bounds.right - a * Math.sin(alpha);
+        y1 = bounds.top + a * Math.cos(alpha);
+    } else {
+        // (w,h)
+        a = d * Math.sin(alpha - beta);
+        x0 = bounds.right;
+        y0 = bounds.bottom;
+        x1 = bounds.right - a * Math.sin(alpha);
+        y1 = bounds.bottom + a * Math.cos(alpha);
+    }
+
+    return {
+        type: gradientImage.type,
+        x0: x0,
+        y0: y0,
+        x1: x1,
+        y1: y1,
+        colorStops: gradientImage.colorStops
+    };
+};
+
+function dist(x, y) {
+    return Math.sqrt(x * x + y * y);
+}
+
+function findCorner(bounds, x, y, closest) {
+    var corners = [
+        [bounds.left, bounds.top],
+        [bounds.left, bounds.bottom],
+        [bounds.right, bounds.top],
+        [bounds.right, bounds.bottom]
+    ];
+
+    var distOpt = closest ? Infinity : -Infinity;
+    var idx = -1;
+
+    for (var i = 0; i < corners.length; i++) {
+        var d = dist(x - corners[i][0], y - corners[i][1]);
+        if (closest ? d < distOpt : d > distOpt) {
+            distOpt = d;
+            idx = i;
+        }
+    }
+
+    return corners[idx];
+}
+
+Renderer.prototype.createRadialGradient = function(gradientImage, bounds) {
+    var rx, ry, c, corner;
+    var transform = null;
+
+    var x = gradientImage.position.x.value;
+    if (gradientImage.position.x.isRelative) {
+        x *= bounds.width;
+    }
+    var y = gradientImage.position.y.value;
+    if (gradientImage.position.y.isRelative) {
+        y *= bounds.height;
+    }
+
+    x += bounds.left;
+    y += bounds.top;
+
+    switch (gradientImage.radius.descriptor) {
+    case 'closest-side':
+        // the ending shape is sized so that that it exactly meets the side of the gradient box closest to the gradient’s center
+        // if the shape is an ellipse, it exactly meets the closest side in each dimension
+        if (gradientImage.isCircle) {
+            rx = ry = Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right), Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
+        } else {
+            rx = Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
+            ry = Math.min(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
+        }
+        break;
+
+    case 'closest-corner':
+        // the ending shape is sized so that that it passes through the corner of the gradient box closest to the gradient’s center
+        // if the shape is an ellipse, the ending shape is given the same aspect-ratio it would have if closest-side were specified
+        if (gradientImage.isCircle) {
+            rx = ry = Math.min(
+                dist(x - bounds.left, y - bounds.top),
+                dist(x - bounds.left, y - bounds.bottom),
+                dist(x - bounds.right, y - bounds.top),
+                dist(x - bounds.right, y - bounds.bottom)
+            );
+        } else {
+            // compute the ratio ry/rx (which is to be the same as for "closest-side")
+            c = Math.min(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom)) / Math.min(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
+            corner = findCorner(bounds, x, y, true);
+            rx = Math.sqrt((corner[0] - x) * (corner[0] - x) + (corner[1] - y) * (corner[1] - y) / (c * c));
+            ry = c * rx;
+        }
+        break;
+
+    case 'farthest-side':
+        // same as closest-side, except the ending shape is sized based on the farthest side(s)
+        if (gradientImage.isCircle) {
+            rx = ry = Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right), Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
+        } else {
+            rx = Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
+            ry = Math.max(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom));
+        }
+        break;
+
+    case 'farthest-corner':
+        // same as closest-corner, except the ending shape is sized based on the farthest corner
+        // if the shape is an ellipse, the ending shape is given the same aspect ratio it would have if farthest-side were specified
+        if (gradientImage.isCircle) {
+            rx = ry = Math.max(
+                dist(x - bounds.left, y - bounds.top),
+                dist(x - bounds.left, y - bounds.bottom),
+                dist(x - bounds.right, y - bounds.top),
+                dist(x - bounds.right, y - bounds.bottom)
+            );
+        } else {
+            // compute the ratio ry/rx (which is to be the same as for "farthest-side")
+            c = Math.max(Math.abs(y - bounds.top), Math.abs(y - bounds.bottom)) / Math.max(Math.abs(x - bounds.left), Math.abs(x - bounds.right));
+            corner = findCorner(bounds, x, y, false);
+            rx = Math.sqrt((corner[0] - x) * (corner[0] - x) + (corner[1] - y) * (corner[1] - y) / (c * c));
+            ry = c * rx;
+        }
+        break;
+
+    default:
+        // pixel or percentage values
+        rx = (gradientImage.radius.x && gradientImage.radius.x.value) || 0;
+        ry = (gradientImage.radius.y && gradientImage.radius.y.value) || rx;
+        if (gradientImage.radius.isRelative) {
+            rx *= bounds.width;
+            ry *= bounds.height;
+        }
+        break;
+    }
+
+    if (rx !== ry) {
+        // transforms for elliptical radial gradient
+        var midX = bounds.left + 0.5 * bounds.width;
+        var midY = bounds.top + 0.5 * bounds.height;
+        var f = ry / rx;
+
+        transform = {
+            matrix: [1, 0, 0, f, 0, 0],
+            origin: [midX, midY]
+        };
+
+        var invF = 1 / f;
+        bounds.top = invF * (bounds.top - midY) + midY;
+        bounds.height *= invF;
+    }
+
+    return {
+        type: gradientImage.type,
+        transform: transform,
+        cx: x,
+        cy: y,
+        r: rx,
+        colorStops: gradientImage.colorStops
+    };
+};
+
 module.exports = Renderer;
 
-},{"./log":14}],20:[function(_dereq_,module,exports){
+},{"./lineargradientcontainer":13,"./log":14,"./radialgradientcontainer":19,"./repeatinglineargradientcontainer":22,"./repeatingradialgradientcontainer":23}],21:[function(_dereq_,module,exports){
 var Renderer = _dereq_('../renderer');
-var LinearGradientContainer = _dereq_('../lineargradientcontainer');
+var GradientContainer = _dereq_('../gradientcontainer');
+var utils = _dereq_('../utils');
 var log = _dereq_('../log');
 
 function CanvasRenderer(width, height) {
@@ -3118,6 +3678,102 @@ CanvasRenderer.prototype.circleStroke = function(left, top, size, color, stroke,
     this.ctx.stroke();
 };
 
+CanvasRenderer.prototype.shadow = function(shape, shadows, container, inset, borders) {
+    var context = this.ctx;
+    var shadowShape = inset ? this.createMaskShapes(shape, container) : shape;
+    var shadowShapeOuterRect = inset ? shadowShape[0] : null;
+    var isInsetWithBorders = inset ? borders && (borders[0].width > 0 || borders[1].width > 0 || borders[2].width > 0 || borders[3].width > 0) : false;
+    var infos = [];
+    var isFirst = true;
+    var info;
+
+    // draw shadows without spread
+    for (var i = shadows.length - 1; i >= 0; i--) {
+        info = utils.parseShadow(shadows[i]);
+        infos.push(info);
+
+        if ((info.inset !== null) !== inset || info.spread || isInsetWithBorders) {
+            continue;
+        }
+
+        if (isFirst) {
+            context.save();
+            this.shape(shadowShape);
+            this.setFillStyle('#ffffff');
+            isFirst = false;
+        }
+
+        context.shadowOffsetX = info.x;
+        context.shadowOffsetY = info.y;
+        context.shadowColor = info.color;
+        context.shadowBlur = info.blur;
+        context.fill();
+    }
+
+    if (!isFirst) {
+        context.restore();
+    }
+
+    // draw shadows with spread
+    for (i = 0; i < infos.length; i++) {
+        info = infos[i];
+        var spread = info.spread || 0;
+
+        if (((info.inset !== null) !== inset || !spread) && !isInsetWithBorders) {
+            continue;
+        }
+
+        context.save();
+
+        // create a transform to resize the shape by the amount of the spread
+        var bounds = utils.getShapeBounds(shape);
+        var origWidth = bounds.width;
+
+        if (inset && borders) {
+            bounds.top += borders[0].width;
+            bounds.right -= borders[1].width;
+            bounds.bottom -= borders[2].width;
+            bounds.left += borders[3].width;
+            bounds.width = bounds.right - bounds.left;
+            bounds.height = bounds.bottom - bounds.top;
+        }
+
+        var midX = bounds.left + 0.5 * bounds.width;
+        var midY = bounds.top + 0.5 * bounds.height;
+        var f = (bounds.width + (inset ? -2 : 2) * spread) / origWidth;
+        context.translate(midX, midY);
+        context.transform(f, 0, 0, f, info.x, info.y);
+        context.translate(-midX, -midY);
+
+        // correct the outer rectangle of the mask by the inverse transform
+        if (inset) {
+            var invF = 1 / f;
+            shadowShape[0] = [
+                "rect",
+                invF * (shadowShapeOuterRect[1] - midX) - info.x + midX,
+                invF * (shadowShapeOuterRect[2] - midY) - info.y + midY,
+                invF * shadowShapeOuterRect[3],
+                invF * shadowShapeOuterRect[4]
+            ];
+        }
+
+        if (!info.blur) {
+            context.shadowOffsetX = 0;
+            context.shadowOffsetY = 0;
+            context.shadowColor = info.color;
+            context.shadowBlur = info.blur;
+        } else {
+            // TODO: "filter" is only available in some browsers
+            context.filter = "blur(" + info.blur * 0.3 + "px)";
+        }
+
+        this.shape(shadowShape);
+        this.setFillStyle(info.color);
+        context.fill();
+        context.restore();
+    }
+};
+
 CanvasRenderer.prototype.drawShape = function(shape, color) {
     this.shape(shape);
     this.setFillStyle(color).fill();
@@ -3144,13 +3800,43 @@ CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx
     }
 };
 
-CanvasRenderer.prototype.clip = function(shapes, callback, context) {
+CanvasRenderer.prototype.clip = function(shapes, callback, context, container) {
     this.ctx.save();
     shapes.filter(hasEntries).forEach(function(shape) {
-        this.shape(shape).clip();
+        try {
+            this.shape(shape).clip();
+        } catch(ex) {
+            console.log('Exception clipping shape: ', ex);
+        }
+
     }, this);
     callback.call(context);
     this.ctx.restore();
+};
+
+CanvasRenderer.prototype.createMaskShapes = function(shapes, container) {
+    var shape = shapes[shapes.length-1];
+    var canvasBorderCCW = container.canvasBorder ? [
+            "rect",
+            Math.max(container.canvasBorder[0], container.canvasBorder[2]),
+            Math.min(container.canvasBorder[1], container.canvasBorder[3]),
+            -Math.abs(container.canvasBorder[0] - container.canvasBorder[2]),
+            Math.abs(container.canvasBorder[1] - container.canvasBorder[3])
+        ] : ["rect", this.canvas.width, 0, -this.canvas.width, this.canvas.height];
+
+    return [canvasBorderCCW].concat(shape).concat([shape[0]]);
+};
+
+CanvasRenderer.prototype.mask = function(shapes, callback, context, container) {
+    var borderClip = shapes[shapes.length-1];
+    var maskShapes = shapes;
+
+    if (borderClip && borderClip.length) {
+        maskShapes = shapes.slice(0,-1);
+        maskShapes.push(this.createMaskShapes(shapes, container));
+    }
+
+    this.clip(maskShapes, callback, context, container);
 };
 
 CanvasRenderer.prototype.shape = function(shape) {
@@ -3167,7 +3853,20 @@ CanvasRenderer.prototype.shape = function(shape) {
 };
 
 CanvasRenderer.prototype.font = function(color, style, variant, weight, size, family) {
-    this.setFillStyle(color).font = [style, variant, weight, size, family].join(" ").split(",")[0];
+    variant = /^(normal|small-caps)$/i.test(variant) ? variant : '';
+
+    // MCH -->
+    //
+    // this.setFillStyle(color).font = [style, variant, weight, size, family].join(" ").split(",")[0];
+    //
+    // "split" was introduced here: https://github.com/niklasvh/html2canvas/commit/525b5c4f36d617460e3ba7ed48050cd8fcd1d4c0
+    // Not sure why this would be needed (it certainly also prevents certain sites from rendering correctly, e.g.
+    // YouTube uses 'font-family: "YouTube Noto", Roboto, arial, sans-serif' and doesn't define the font face "YouTube Noto"
+    // (thus, the texts are rendered in Roboto)).
+
+    // use string concatenation instead of the array join: https://jsperf.com/string-concat-vs-array-join-10000/15
+    this.setFillStyle(color).font = style + " " + variant + " " + weight + " " + size + " " + family;
+    // <--
 };
 
 CanvasRenderer.prototype.fontShadow = function(color, offsetX, offsetY, blur) {
@@ -3231,17 +3930,38 @@ CanvasRenderer.prototype.renderBackgroundRepeat = function(imageContainer, backg
     this.ctx.translate(-offsetX, -offsetY);
 };
 
-CanvasRenderer.prototype.renderBackgroundGradient = function(gradientImage, bounds) {
-    if (gradientImage instanceof LinearGradientContainer) {
-        var gradient = this.ctx.createLinearGradient(
-            bounds.left + bounds.width * gradientImage.x0,
-            bounds.top + bounds.height * gradientImage.y0,
-            bounds.left +  bounds.width * gradientImage.x1,
-            bounds.top +  bounds.height * gradientImage.y1);
+CanvasRenderer.prototype.renderGradient = function(gradientImage, bounds) {
+    var gradient;
+
+    switch (gradientImage.type) {
+    case GradientContainer.TYPES.LINEAR:
+        gradient = this.ctx.createLinearGradient(gradientImage.x0, gradientImage.y0, gradientImage.x1, gradientImage.y1);
+        break;
+    case GradientContainer.TYPES.RADIAL:
+        if (gradientImage.transform) {
+            this.ctx.save();
+            this.setTransform(gradientImage.transform);
+        }
+        gradient = this.ctx.createRadialGradient(gradientImage.cx, gradientImage.cy, 0, gradientImage.cx, gradientImage.cy, gradientImage.r);
+        break;
+    case GradientContainer.TYPES.REPEATING_LINEAR:
+        // TODO
+        break;
+    case GradientContainer.TYPES.REPEATING_RADIAL:
+        // TODO
+        break;
+    }
+
+    if (gradient) {
         gradientImage.colorStops.forEach(function(colorStop) {
             gradient.addColorStop(colorStop.stop, colorStop.color.toString());
         });
+
         this.rectangle(bounds.left, bounds.top, bounds.width, bounds.height, gradient);
+    }
+
+    if (gradientImage.transform) {
+        this.ctx.restore();
     }
 };
 
@@ -3265,7 +3985,33 @@ function hasEntries(array) {
 
 module.exports = CanvasRenderer;
 
-},{"../lineargradientcontainer":13,"../log":14,"../renderer":19}],21:[function(_dereq_,module,exports){
+},{"../gradientcontainer":10,"../log":14,"../renderer":20,"../utils":29}],22:[function(_dereq_,module,exports){
+var GradientContainer = _dereq_('./gradientcontainer');
+var LinearGradientContainer = _dereq_('./lineargradientcontainer');
+
+function RepeatingLinearGradientContainer(imageData) {
+    LinearGradientContainer.apply(this, arguments);
+    this.type = GradientContainer.TYPES.REPEATING_LINEAR;
+}
+
+RepeatingLinearGradientContainer.prototype = Object.create(LinearGradientContainer.prototype);
+
+module.exports = RepeatingLinearGradientContainer;
+
+},{"./gradientcontainer":10,"./lineargradientcontainer":13}],23:[function(_dereq_,module,exports){
+var GradientContainer = _dereq_('./gradientcontainer');
+var RadialGradientContainer = _dereq_('./radialgradientcontainer');
+
+function RepeatingRadialGradientContainer(imageData) {
+    RadialGradientContainer.apply(this, arguments);
+    this.type = GradientContainer.TYPES.REPEATING_RADIAL;
+}
+
+RepeatingRadialGradientContainer.prototype = Object.create(RadialGradientContainer.prototype);
+
+module.exports = RepeatingRadialGradientContainer;
+
+},{"./gradientcontainer":10,"./radialgradientcontainer":19}],24:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function StackingContext(hasOwnStacking, opacity, element, parent) {
@@ -3285,7 +4031,7 @@ StackingContext.prototype.getParentStack = function(context) {
 
 module.exports = StackingContext;
 
-},{"./nodecontainer":15}],22:[function(_dereq_,module,exports){
+},{"./nodecontainer":15}],25:[function(_dereq_,module,exports){
 function Support(document) {
     this.rangeBounds = this.testRangeBounds(document);
     this.cors = this.testCORS();
@@ -3338,7 +4084,7 @@ Support.prototype.testSVG = function() {
 
 module.exports = Support;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var decode64 = _dereq_('./utils').decode64;
 
@@ -3365,7 +4111,13 @@ SVGContainer.prototype.inlineFormatting = function(src) {
 };
 
 SVGContainer.prototype.removeContentType = function(src) {
-    return src.replace(/^data:image\/svg\+xml(;base64)?,/,'');
+    if (/^data:image\/svg\+xml(;base64)?,/.test(src)) {
+       return src.replace(/^data:image\/svg\+xml(;base64)?,/,'');
+    }
+    else {
+        var x = decodeURIComponent(src.replace(/^data:image\/svg\+xml.+,/,''));
+        return x;
+    }
 };
 
 SVGContainer.prototype.isInline = function(src) {
@@ -3379,16 +4131,22 @@ SVGContainer.prototype.createCanvas = function(resolve) {
         var canvas = new window.html2canvas.svg.fabric.StaticCanvas(c);
         self.image = canvas.lowerCanvasEl;
 
-        var bb = self.src.getBoundingClientRect();
-        var group = window.html2canvas.svg.fabric.util.groupSVGElements(objects, options);
-        group.set({
-            scaleX: bb.width / options.width,
-            scaleY: bb.height / options.height
-        });
+        var group = window.html2canvas.svg.fabric.util.groupSVGElements(objects, options),
+        bb;
+
+        if (self.src.getBoundingClientRect) {
+            bb = self.src.getBoundingClientRect();
+
+            group.set({
+                scaleX: bb.width / options.width,
+                scaleY: bb.height / options.height
+            });
+        }
+
 
         canvas
-            .setWidth(bb.width)
-            .setHeight(bb.height)
+            .setWidth(bb ? bb.width : options.width)
+            .setHeight(bb ? bb.height : options.height)
             .add(group)
             .renderAll();
         resolve(canvas.lowerCanvasEl);
@@ -3401,7 +4159,7 @@ SVGContainer.prototype.decode64 = function(str) {
 
 module.exports = SVGContainer;
 
-},{"./utils":26,"./xhr":29}],24:[function(_dereq_,module,exports){
+},{"./utils":29,"./xhr":32}],27:[function(_dereq_,module,exports){
 var SVGContainer = _dereq_('./svgcontainer');
 
 function SVGNodeContainer(node, _native) {
@@ -3432,7 +4190,7 @@ SVGNodeContainer.prototype = Object.create(SVGContainer.prototype);
 
 module.exports = SVGNodeContainer;
 
-},{"./svgcontainer":23}],25:[function(_dereq_,module,exports){
+},{"./svgcontainer":26}],28:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function TextContainer(node, parent) {
@@ -3467,7 +4225,7 @@ function capitalize(m, p1, p2) {
 
 module.exports = TextContainer;
 
-},{"./nodecontainer":15}],26:[function(_dereq_,module,exports){
+},{"./nodecontainer":15}],29:[function(_dereq_,module,exports){
 /* global SPECIFICITY: true */
 
 exports.smallImage = function smallImage() {
@@ -3640,6 +4398,79 @@ exports.parseBackgrounds = function(backgroundImage) {
     return results;
 };
 
+exports.parseShadow = function(str) {
+    var propertyFilters = { color: /^(#|rgb|hsl|(?!(inset|initial|inherit))[^\d\-\.]+)/i, inset: /^inset/i, px: /px$/i };
+    var pxPropertyNames = [ 'x', 'y', 'blur', 'spread' ];
+    var properties = str.split(/ (?![^(]*\))/);
+    var info = {};
+    for (var key in propertyFilters) {
+        info[key] = properties.filter(propertyFilters[key].test.bind(propertyFilters[key]));
+        info[key] = info[key].length === 0 ? null : info[key].length === 1 ? info[key][0] : info[key];
+    }
+    for (var i=0; i<info.px.length; i++) {
+        info[pxPropertyNames[i]] = parseInt(info.px[i]);
+    }
+    return info;
+};
+
+exports.matrixInverse = function(m) {
+    // This is programmed specifically for transform matrices, which have a fixed structure.
+    // [ a b | c ]   [ a0 a2 | a4 ]
+    // [ d e | f ] = [ a1 a3 | a5 ]
+    var a = m[0], b = m[2], c = m[4], d = m[1], e = m[3], f = m[5];
+    var detInv = 1 / (a*e - b*d);
+    return [e*detInv, -d*detInv, -b*detInv, a*detInv, (b*f-c*e)*detInv, (c*d-a*f)*detInv];
+};
+
+function getShapeBounds(shape) {
+    var len = shape.length;
+    if (len === 1 && shape[0][0] === 'rect') {
+        return {
+            left: shape[0][1],
+            top: shape[0][2],
+            right: shape[0][1] + shape[0][3],
+            bottom: shape[0][2] + shape[0][4],
+            width: shape[0][3],
+            height: shape[0][4]
+        };
+    }
+
+    var xmin = Infinity;
+    var ymin = Infinity;
+    var xmax = -Infinity;
+    var ymax = -Infinity;
+
+    for (var i = 0; i < len; i++) {
+        var s = shape[i];
+        var x = s[s.length - 2];
+        var y = s[s.length - 1];
+
+        if (typeof x === 'number') {
+            xmin = Math.min(xmin, x);
+            ymin = Math.min(ymin, y);
+            xmax = Math.max(xmax, x);
+            ymax = Math.max(ymax, y);
+        } else {
+            var bounds = getShapeBounds(s);
+            xmin = Math.min(xmin, bounds.left);
+            ymin = Math.min(ymin, bounds.top);
+            xmax = Math.max(xmax, bounds.right);
+            ymax = Math.max(ymax, bounds.bottom);
+        }
+    }
+
+    return {
+        left: xmin,
+        top: ymin,
+        right: xmax,
+        bottom: ymax,
+        width: xmax - xmin,
+        height: ymax - ymin
+    };
+}
+
+exports.getShapeBounds = getShapeBounds;
+
 
 var REGEX_PSEUDO_ELEMENTS = /::?(?:after|before|first-line|first-letter)/;
 
@@ -3723,7 +4554,7 @@ exports.getMatchingRules = function(element, selectorRegex) {
     return matchingRules;
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 function VideoContainer(imageData) {
   this.src = imageData.args[0].src;
 
@@ -3757,7 +4588,7 @@ function VideoContainer(imageData) {
 
 module.exports = VideoContainer;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 
 function WebkitGradientContainer(imageData) {
@@ -3769,7 +4600,7 @@ WebkitGradientContainer.prototype = Object.create(GradientContainer.prototype);
 
 module.exports = WebkitGradientContainer;
 
-},{"./gradientcontainer":10}],29:[function(_dereq_,module,exports){
+},{"./gradientcontainer":10}],32:[function(_dereq_,module,exports){
 function XHR(url) {
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
