@@ -167,7 +167,12 @@ CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx
 CanvasRenderer.prototype.clip = function(shapes, callback, context, container) {
     this.ctx.save();
     shapes.filter(hasEntries).forEach(function(shape) {
-        this.shape(shape).clip();
+        try {
+            this.shape(shape).clip();
+        } catch(ex) {
+            console.log('Exception clipping shape: ', ex);
+        }
+
     }, this);
     callback.call(context);
     this.ctx.restore();
