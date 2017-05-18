@@ -163,10 +163,11 @@ NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
 
 NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index, backgroundSize) {
     var positionX = this.css('backgroundPositionX');
+    var bgPosition = this.css('backgroundPosition');
     var positionY;
     if (positionX === undefined) {
         // the properties "backgroundPositionX" and "backgroundPositionY" don't exist; parse "backgroundPosition"
-        var position = this.css('backgroundPosition').split(/\s+/);
+        var position = bgPosition.split(/\s+/);
         if (position.length === 1) {
             // 1 value syntax:
             // - keyword "top", "left", "bottom", "right" => other dimension is set to "50%"
@@ -199,6 +200,8 @@ NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index,
         left = bounds.width - (backgroundSize || image).width;
     } else if (isPercentage(positionX)){
         left = (bounds.width - (backgroundSize || image).width) * (parseFloat(positionX) / 100);
+    } else if (bgPosition.indexOf('right') === 0) {
+        left = bounds.width - (backgroundSize || image).width - parseInt(positionX, 10);
     } else {
         left = parseInt(positionX, 10);
     }
@@ -213,6 +216,8 @@ NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index,
         top =  bounds.height - (backgroundSize || image).height;
     } else if (isPercentage(positionY)){
         top =  (bounds.height - (backgroundSize || image).height) * parseFloat(positionY) / 100;
+    } else if (bgPosition.indexOf('bottom') !== -1) {
+        top = bounds.height - (backgroundSize || image).height - parseInt(positionY, 10);
     } else {
         top = parseInt(positionY, 10);
     }
