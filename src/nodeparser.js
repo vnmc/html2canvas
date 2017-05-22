@@ -429,6 +429,10 @@ NodeParser.prototype.parse = function(stack) {
 };
 
 NodeParser.prototype.paint = function(container) {
+    if (this.options.canceled) {
+        return;
+    }
+
     try {
         if (container instanceof ClearTransform) {
             this.renderer.ctx.restore();
