@@ -256,6 +256,10 @@ CanvasRenderer.prototype.setOpacity = function(opacity) {
     this.ctx.globalAlpha = opacity;
 };
 
+CanvasRenderer.prototype.setMixBlendMode = function(mixBlendMode) {
+    this.ctx.globalCompositeOperation = mixBlendMode;
+};
+
 CanvasRenderer.prototype.setTransform = function(transform) {
     this.ctx.translate(transform.origin[0], transform.origin[1]);
     this.ctx.transform.apply(this.ctx, transform.matrix);

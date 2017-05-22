@@ -459,8 +459,14 @@ NodeParser.prototype.paintNode = function(container) {
     if (isStackingContext(container)) {
         this.renderer.setOpacity(container.opacity);
         this.renderer.ctx.save();
+
         if (container.hasTransform()) {
             this.renderer.setTransform(container.parseTransform());
+        }
+
+        var mixBlendMode = container.css('mixBlendMode');
+        if (mixBlendMode) {
+            this.renderer.setMixBlendMode(mixBlendMode);
         }
     }
 
