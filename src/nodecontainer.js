@@ -51,6 +51,7 @@ NodeContainer.prototype.isElementVisible = function() {
     return this.node.nodeType === Node.TEXT_NODE ? this.parent.visible : (
         this.css('display') !== "none" &&
         this.css('visibility') !== "hidden" &&
+        (this.css('overflow') === "visible" || (this.cssInt('width') !== 0 && this.cssInt('height') !== 0)) &&
         !this.node.hasAttribute("data-html2canvas-ignore") &&
         (this.node.nodeName !== "INPUT" || this.node.getAttribute("type") !== "hidden")
     );
