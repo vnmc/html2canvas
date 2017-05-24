@@ -10,6 +10,13 @@ function GradientContainer(imageData) {
 GradientContainer.prototype.parseColorStops = function(args) {
     this.colorStops = args.map(function(colorStop) {
         var colorStopMatch = colorStop.match(GradientContainer.REGEXP_COLORSTOP);
+        if (!colorStopMatch) {
+            return {
+                color: "transparent",
+                stop: null
+            };
+        }
+
         var value = +colorStopMatch[2];
         var unit = value === 0 ? "%" : colorStopMatch[3]; // treat "0" as "0%"
         var isTransparent = colorStopMatch[1] === "transparent";
@@ -93,8 +100,11 @@ GradientContainer.TYPES = {
     REPEATING_RADIAL: 4
 };
 
-// TODO: support hsl[a], negative %/length values
+// TODO: negative %/length values
 // TODO: support <angle> (e.g. -?\d{1,3}(?:\.\d+)deg, etc. : https://developer.mozilla.org/docs/Web/CSS/angle )
-GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d{1,3}(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
+//GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d{1,3}(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
+
+// with hsl[a] support
+GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|hsla?\(\s*\d{1,3},\s*\d{1,3}%,\s*\d{1,3}%(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d{1,3}(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
 
 module.exports = GradientContainer;
