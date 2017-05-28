@@ -420,6 +420,7 @@ NodeParser.prototype.parse = function(stack) {
     var positiveZindex = stack.contexts.filter(positiveZIndex); // 7. the child stacking contexts with positive stack levels (least positive first).
     negativeZindex.concat(nonInlineNonPositionedDescendants).concat(nonPositionedFloats)
         .concat(inFlow).concat(stackLevel0).concat(text).concat(positiveZindex).forEach(function(container) {
+//console.log(container.node);
             this.renderQueue.push(container);
             if (isStackingContext(container)) {
                 this.parse(container);

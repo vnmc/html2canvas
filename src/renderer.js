@@ -85,7 +85,57 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
         case "gradient":
             var gradientImage = this.images.get(backgroundImage.value);
             if (gradientImage) {
-                this.renderBackgroundGradient(gradientImage, bounds, borderData);
+                var gradientBounds, gradient;
+                var backgroundBounds = container.parseBackgroundOrigin(bounds, index, true);
+                var backgroundSize = container.parseBackgroundSize(backgroundBounds, backgroundBounds, index);
+                var backgroundSizeStr = container.css("backgroundSize");
+
+                if ((/^auto/i.test(backgroundSizeStr) && /auto$/i.test(backgroundSizeStr) && container.css("backgroundOrigin") !== "content-box") || container.css("backgroundRepeat") === "no-repeat") {
+                    // draw one instance of the gradient
+                    var backgroundPosition = container.parseBackgroundPosition(backgroundBounds, backgroundBounds, index, backgroundSize);
+                    var left = backgroundBounds.left + backgroundPosition.left;
+                    var top = backgroundBounds.top + backgroundPosition.top;
+                    gradientBounds = {
+                        left: left,
+                        top: top,
+                        right: left + backgroundSize.width,
+                        bottom: top + backgroundSize.height,
+                        width: backgroundSize.width,
+                        height: backgroundSize.height
+                    };
+                    gradient = this.createGradient(container, gradientImage, gradientBounds);
+                    if (gradient) {
+                        this.renderGradient(gradient, gradientBounds);
+                    } else {
+                        log("Error creating gradient", backgroundImage.args[0]);
+                    }
+                } else {
+                    // repeated gradient
+                    gradientBounds = {
+                        left: 0,
+                        top: 0,
+                        right: backgroundSize.width,
+                        bottom: backgroundSize.height,
+                        width: backgroundSize.width,
+                        height: backgroundSize.height
+                    };
+                    gradient = this.createGradient(gradientImage, gradientBounds);
+                    if (gradient) {
+                        // copy the options
+                        var options = {};
+                        for (var k in this.options) {
+                            options[k] = this.options[k];
+                        }
+                        // let the renderer create a new canvas
+                        options.canvas = undefined;
+
+                        var renderer = new this.options.renderer(backgroundSize.width, backgroundSize.height, null, options, this.document);
+                        renderer.renderGradient(gradient, gradientBounds);
+                        this.renderBackgroundRepeating(container, bounds, renderer.getImageContainer(), index, borderData);
+                    } else {
+                        log("Error creating gradient", backgroundImage.args[0]);
+                    }
+                }
             } else {
                 log("Error loading background-image", backgroundImage.args[0]);
             }
@@ -121,21 +171,20 @@ Renderer.prototype.renderBackgroundRepeating = function(container, bounds, image
     }
 };
 
-Renderer.prototype.renderBackgroundGradient = function(gradientImage, bounds) {
-    var gradient;
-
+Renderer.prototype.createGradient = function(container, gradientImage, bounds) {
     if (gradientImage instanceof LinearGradientContainer) {
-        gradient = this.createLinearGradient(gradientImage, bounds);
-    } else if (gradientImage instanceof RadialGradientContainer) {
-        gradient = this.createRadialGradient(gradientImage, bounds);
-    } else if (gradientImage instanceof RepeatingLinearGradientContainer) {
-        // TODO
-    } else if (gradientImage instanceof RepeatingRadialGradientContainer) {
-        // TODO
+        return this.createLinearGradient(gradientImage, bounds);
     }
-
-    if (gradient) {
-        this.renderGradient(gradient, bounds);
+    if (gradientImage instanceof RadialGradientContainer) {
+        return this.createRadialGradient(container, gradientImage, bounds);
+    }
+    if (gradientImage instanceof RepeatingLinearGradientContainer) {
+        // TODO
+        return undefined;
+    }
+    if (gradientImage instanceof RepeatingRadialGradientContainer) {
+        // TODO
+        return undefined;
     }
 };
 
@@ -216,7 +265,7 @@ function findCorner(bounds, x, y, closest) {
     return corners[idx];
 }
 
-Renderer.prototype.createRadialGradient = function(gradientImage, bounds) {
+Renderer.prototype.createRadialGradient = function(container, gradientImage, bounds) {
     var rx, ry, c, corner;
     var transform = null;
 

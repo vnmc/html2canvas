@@ -19,6 +19,12 @@ function CanvasRenderer(width, height) {
 
 CanvasRenderer.prototype = Object.create(Renderer.prototype);
 
+CanvasRenderer.prototype.getImageContainer = function() {
+    return {
+        image: this.canvas
+    };
+};
+
 CanvasRenderer.prototype.setFillStyle = function(fillStyle) {
     this.ctx.fillStyle = typeof(fillStyle) === "object" && !!fillStyle.isColor ? fillStyle.toString() : fillStyle;
     return this.ctx;
