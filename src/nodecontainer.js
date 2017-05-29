@@ -51,6 +51,7 @@ NodeContainer.prototype.isElementVisible = function() {
     return this.node.nodeType === Node.TEXT_NODE ? this.parent.visible : (
         this.css('display') !== "none" &&
         this.css('visibility') !== "hidden" &&
+        (this.css('overflow') === "visible" || (this.cssInt('width') !== 0 && this.cssInt('height') !== 0)) &&
         !this.node.hasAttribute("data-html2canvas-ignore") &&
         (this.node.nodeName !== "INPUT" || this.node.getAttribute("type") !== "hidden")
     );
@@ -229,11 +230,14 @@ NodeContainer.prototype.parseBackgroundPosition = function(bounds, image, index,
     return {left: left, top: top};
 };
 
-NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
+NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index, includeBorder) {
     var borderLeft = this.cssInt('borderLeftWidth');
     var borderRight = this.cssInt('borderRightWidth');
     var borderTop = this.cssInt('borderTopWidth');
     var borderBottom = this.cssInt('borderBottomWidth');
+
+    var borderOffsetLeft = includeBorder ? borderLeft : 0;
+    var borderOffsetTop = includeBorder ? borderTop : 0;
 
     switch (this.css("backgroundOrigin")) {
     case "content-box":
@@ -243,8 +247,8 @@ NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
         var paddingBottom = this.cssInt('paddingBottom');
 
         return {
-            left: bounds.left + paddingLeft,
-            top: bounds.top + paddingTop,
+            left: bounds.left + paddingLeft + borderOffsetLeft,
+            top: bounds.top + paddingTop + borderOffsetTop,
             right: bounds.right - paddingRight,
             bottom: bounds.bottom - paddingBottom,
             width: bounds.width - paddingLeft - paddingRight - borderLeft - borderRight,
@@ -253,8 +257,8 @@ NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
 
     case "padding-box":
         return {
-            left: bounds.left,
-            top: bounds.top,
+            left: bounds.left + borderOffsetLeft,
+            top: bounds.top + borderOffsetTop,
             right: bounds.right,
             bottom: bounds.bottom,
             width: bounds.width - borderLeft - borderRight,
@@ -263,8 +267,8 @@ NodeContainer.prototype.parseBackgroundOrigin = function(bounds, index) {
 
     case "border-box":
         return {
-            left: bounds.left - borderLeft,
-            top: bounds.top - borderTop,
+            left: bounds.left - borderLeft + borderOffsetLeft,
+            top: bounds.top - borderTop + borderOffsetTop,
             right: bounds.right + borderRight,
             bottom: bounds.bounds + borderBottom,
             width: bounds.width,

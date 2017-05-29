@@ -49,15 +49,15 @@ ImageLoader.prototype.findImages = function(nodes) {
 };
 
 ImageLoader.prototype.findBackgroundImage = function(images, container) {
-    container.parseBackgroundImages().filter(this.hasImageBackground).forEach(this.addImage(images, this.loadImage), this);
+    container.parseBackgroundImages().filter(this.hasImageBackground).forEach(this.addImage(images, this.loadImage, container), this);
     return images;
 };
 
-ImageLoader.prototype.addImage = function(images, callback) {
+ImageLoader.prototype.addImage = function(images, callback, container) {
     return function(newImage) {
         newImage.args.forEach(function(image) {
             if (!this.imageExists(images, image)) {
-                images.splice(0, 0, callback.call(this, newImage));
+                images.splice(0, 0, callback.call(this, newImage, container));
                 log('Added image #' + (images.length), typeof(image) === "string" ? image.substring(0, 100) : image);
             }
         }, this);
@@ -68,7 +68,11 @@ ImageLoader.prototype.hasImageBackground = function(imageData) {
     return imageData.method !== "none";
 };
 
-ImageLoader.prototype.loadImage = function(imageData) {
+ImageLoader.prototype.loadImage = function(imageData, container) {
+    if (this.options.cancel) {
+        return;
+    }
+
     if (imageData.method === "url") {
         var src = imageData.args[0];
         if (this.isSVG(src) && !this.support.svg && !this.options.allowTaint) {
@@ -87,11 +91,11 @@ ImageLoader.prototype.loadImage = function(imageData) {
     } else if (imageData.method === "linear-gradient") {
         return new LinearGradientContainer(imageData);
     } else if (imageData.method === "radial-gradient") {
-        return new RadialGradientContainer(imageData);
+        return new RadialGradientContainer(imageData, container);
     } else if (imageData.method === "repeating-linear-gradient") {
         return new RepeatingLinearGradientContainer(imageData);
     } else if (imageData.method === "repeating-radial-gradient") {
-        return new RepeatingRadialGradientContainer(imageData);
+        return new RepeatingRadialGradientContainer(imageData, container);
     } else if (imageData.method === "gradient") {
         return new WebkitGradientContainer(imageData);
     } else if (imageData.method === "svg") {

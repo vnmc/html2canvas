@@ -420,6 +420,7 @@ NodeParser.prototype.parse = function(stack) {
     var positiveZindex = stack.contexts.filter(positiveZIndex); // 7. the child stacking contexts with positive stack levels (least positive first).
     negativeZindex.concat(nonInlineNonPositionedDescendants).concat(nonPositionedFloats)
         .concat(inFlow).concat(stackLevel0).concat(text).concat(positiveZindex).forEach(function(container) {
+//console.log(container.node);
             this.renderQueue.push(container);
             if (isStackingContext(container)) {
                 this.parse(container);
@@ -429,6 +430,10 @@ NodeParser.prototype.parse = function(stack) {
 };
 
 NodeParser.prototype.paint = function(container) {
+    if (this.options.canceled) {
+        return;
+    }
+
     try {
         if (container instanceof ClearTransform) {
             this.renderer.ctx.restore();
@@ -455,8 +460,14 @@ NodeParser.prototype.paintNode = function(container) {
     if (isStackingContext(container)) {
         this.renderer.setOpacity(container.opacity);
         this.renderer.ctx.save();
+
         if (container.hasTransform()) {
             this.renderer.setTransform(container.parseTransform());
+        }
+
+        var mixBlendMode = container.css('mixBlendMode');
+        if (mixBlendMode) {
+            this.renderer.setMixBlendMode(mixBlendMode);
         }
     }
 

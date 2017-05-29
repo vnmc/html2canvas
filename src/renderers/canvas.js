@@ -19,6 +19,12 @@ function CanvasRenderer(width, height) {
 
 CanvasRenderer.prototype = Object.create(Renderer.prototype);
 
+CanvasRenderer.prototype.getImageContainer = function() {
+    return {
+        image: this.canvas
+    };
+};
+
 CanvasRenderer.prototype.setFillStyle = function(fillStyle) {
     this.ctx.fillStyle = typeof(fillStyle) === "object" && !!fillStyle.isColor ? fillStyle.toString() : fillStyle;
     return this.ctx;
@@ -254,6 +260,10 @@ CanvasRenderer.prototype.clearShadow = function() {
 
 CanvasRenderer.prototype.setOpacity = function(opacity) {
     this.ctx.globalAlpha = opacity;
+};
+
+CanvasRenderer.prototype.setMixBlendMode = function(mixBlendMode) {
+    this.ctx.globalCompositeOperation = mixBlendMode;
 };
 
 CanvasRenderer.prototype.setTransform = function(transform) {
