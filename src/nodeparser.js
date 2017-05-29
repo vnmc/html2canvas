@@ -615,6 +615,10 @@ NodeParser.prototype.paintFormValue = function(container) {
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
         wrapper.textContent = value;
+        if (wrapper.style.lineHeight === 'normal') {
+            wrapper.style.lineHeight = container.computedStyles.height;
+        }
+
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, new NodeContainer(wrapper, container)));
         document.body.removeChild(wrapper);
