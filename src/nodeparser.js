@@ -63,7 +63,9 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     this.nodes = flatten(allNodes
         .filter(function(container) { return container.visible; })
         .map(this.getPseudoElements, this)
+        .map(this.applyInlineStylesToSvg, this)
     );
+
     // <--
 
     /*
@@ -274,6 +276,35 @@ NodeParser.prototype.getPseudoElements = function(container) {
     }
     return flatten(nodes);
 };
+
+/* applyInlineStylesToSvgs' workhorse */
+function applyInlineStylesRecursive(node) {
+    var cStyle = getComputedStyle(node);
+
+    for (var j = cStyle.length-1; j >= 0; j--) {
+        var property = toCamelCase(cStyle.item(j));
+        node.style[property] = cStyle[property];
+    }
+
+    var childNodes = node.childNodes, len = childNodes.length;
+    for (var i = 0; i < len; i++) {
+        var childNode = childNodes[i];
+        if (childNode.nodeType === 1) {
+            applyInlineStylesRecursive(childNode);
+        }
+    }
+}
+
+/* Make sure we apply all styles as inline styles of svg and any contained elements so that fabric renders the properly */
+NodeParser.prototype.applyInlineStylesToSvg = function(container) {
+    var n = container[0].node;
+    if (n.nodeType === 1 && n.tagName === "svg") {
+        applyInlineStylesRecursive(n);
+    }
+    return container;
+
+};
+
 
 function toCamelCase(str) {
     return str.replace(/(\-[a-z])/g, function(match){
