@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			video {
+				width: auto;
+				height: 300px;
+			}
+		</style>
+	</head>
+	<body>
+		<video src="https://images.apple.com/media/us/ipad-9.7/2017/168d8c51_6a7f_4a64_b192_f177401ea25c/continuity/medium_2x.mp4" autoplay></video>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '400px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

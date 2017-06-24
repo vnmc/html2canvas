@@ -3,6 +3,7 @@ var ImageContainer = require('./imagecontainer');
 var VideoContainer = require('./videocontainer');
 var DummyImageContainer = require('./dummyimagecontainer');
 var ProxyImageContainer = require('./areion_proxyimagecontainer');
+var ProxyVideoContainer = require('./areion_proxyvideocontainer');
 var FrameContainer = require('./framecontainer');
 var SVGContainer = require('./svgcontainer');
 var SVGNodeContainer = require('./svgnodecontainer');
@@ -103,7 +104,12 @@ ImageLoader.prototype.loadImage = function(imageData, container) {
     } else if (imageData.method === "IFRAME") {
         return new FrameContainer(imageData.args[0], this.isSameOrigin(imageData.args[0].src), this.options);
     } else if (imageData.method === "VIDEO") {
-        return new VideoContainer(imageData);
+        var videoSrc = imageData.args[0].currentSrc || imageData.args[0].src;
+        if (this.isSameOrigin(videoSrc) || this.options.allowTaint === true) {
+            return new VideoContainer(imageData);
+        } else {
+            return new ProxyVideoContainer(imageData);
+        }
     } else {
         return new DummyImageContainer(imageData);
     }
