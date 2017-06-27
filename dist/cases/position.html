@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			.d1 {
+				position: fixed;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 200px;
+				background-color: teal;
+			}
+
+			.d2 {
+				position: absolute;
+				overflow: hidden;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 1000px;
+				margin-top: 200px;
+				background-color: pink;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="d1">Fixed</div>
+		<div class="d2">Absolute</div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '0';
+					canvas.style.padding = '0';
+					canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

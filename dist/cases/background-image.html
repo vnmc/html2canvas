@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			div {
+				display: inline-block;
+				width: 100px;
+				height: 100px;
+				padding: 10px;
+				border: 1px solid black;
+				background-repeat: no-repeat;
+			}
+		</style>
+	</head>
+	<body>
+		<div style="background-image: url(profiler/img1.png); background-size:60px; background-position:20px 30px"></div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '350px';
+					canvas.style.padding = '0';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

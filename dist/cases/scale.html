@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			div {
+				position: absolute;
+				width: 100px;
+				height: 100px;
+				background-color: dodgerblue;
+			}
+
+			.d1 {
+				left: 50px;
+				top: 50px;
+				transform: scale(0.5);
+			}
+
+			.d2 {
+				left: 150px;
+				top: 150px;
+				transform: scale(1, 2);
+			}
+
+			.d3 {
+				left: 250px;
+				top: 250px;
+				transform: scale(-1, 1);
+			}
+
+			.d3::after {
+				content: 'Pseudo';
+				display: block;
+				position: absolute;
+				left: 50px;
+				top: 50px;
+				width: 100px;
+				height: 100px;
+				background-color: deeppink;
+				transform: scale(1, -1);
+			}
+
+			a {
+				position: absolute;
+				display: table;
+				left: 100px;
+				top: 300px;
+				width: 50px;
+			}
+
+			a span {
+				display: table-cell;
+				background-color: yellow;
+			}
+
+			a::before, a::after {
+				content: 'abc';
+				display: table-cell;
+				width: 20px;
+				height: 30px;
+				/*
+				background-image: url("data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2048%2055%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M0%2C0%20c10%2C1%2018%2C0%2023.5%2C15%20l14.5%2C33%20c1%2C2%205%2C7%2010%2C7%20l-48%2C0%20Z%22%2F%3E%3C%2Fsvg%3E");*/
+			}
+
+			a::before {
+				transform: scale(-1, 1);
+				/*transform-origin: 0 0;*/
+			}
+
+			.d4 {
+				display: table;
+			}
+			.d4 span {
+				display: table-cell;
+			}
+			.d4 span:first-child,
+			.d4 span:last-child {
+				background-color: aquamarine;
+			}
+			.d4 span:first-child {
+				transform: scale(-1, 1);
+			}
+		</style>
+	</head>
+	<body>
+		<!--<div class="d1">Hello World</div>
+		<div class="d2">Hello World</div>
+		<div class="d3">Hello World</div>
+	-->
+
+		<a><span>XOXOX</span></a>
+
+		<!--
+		<div class="d4">
+			<span>abc</span>
+			<span>XOXOX</span>
+			<span>abc</span>
+		</div>
+	-->
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '400px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>
