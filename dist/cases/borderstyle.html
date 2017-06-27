@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			div {
+				display: inline-block;
+				width: 100px;
+				height: 100px;
+				background-color: dodgerblue;
+				border: 10px solid goldenrod;
+			}
+		</style>
+	</head>
+	<body>
+		<div></div>
+		<div style="border-style: dotted"></div>
+		<div style="border-style: dashed"></div>
+		<div style="border-style: dotted; border-radius: 20px;"></div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion',
+						logging: true,
+						async: false
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '400px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

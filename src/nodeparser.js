@@ -1302,19 +1302,6 @@ function calculateCurvePoints(bounds, borderRadius, borders) {
         bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, h[2] - borders[1].width),  v[2] - borders[2].width).bottomRight.subdivide(0.5),
         bottomLeftOuter: getCurvePoints(x, y + leftHeight, h[3], v[3]).bottomLeft.subdivide(0.5),
         bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, h[3] - borders[3].width), v[3] - borders[2].width).bottomLeft.subdivide(0.5)
-
-
-        /*
-        topLeftOuter: getCurvePoints(x, y, tlh, tlv).topLeft.subdivide(0.5),
-        topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, tlh - borders[3].width), Math.max(0, tlv - borders[0].width)).topLeft.subdivide(0.5),
-        topRightOuter: getCurvePoints(x + topWidth, y, trh, trv).topRight.subdivide(0.5),
-        topRightInner: getCurvePoints(x + Math.min(topWidth, width + borders[3].width), y + borders[0].width, (topWidth > width + borders[3].width) ? 0 :trh - borders[3].width, trv - borders[0].width).topRight.subdivide(0.5),
-        bottomRightOuter: getCurvePoints(x + bottomWidth, y + rightHeight, brh, brv).bottomRight.subdivide(0.5),
-        bottomRightInner: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width), y + Math.min(rightHeight, height + borders[0].width), Math.max(0, brh - borders[1].width),  brv - borders[2].width).bottomRight.subdivide(0.5),
-        bottomLeftOuter: getCurvePoints(x, y + leftHeight, blh, blv).bottomLeft.subdivide(0.5),
-        bottomLeftInner: getCurvePoints(x + borders[3].width, y + leftHeight, Math.max(0, blh - borders[3].width), blv - borders[2].width).bottomLeft.subdivide(0.5)
->>>>>>> a145247ee3af997887022b3f510b2964716b7eb6
-        */
     };
 }
 
