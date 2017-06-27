@@ -49,8 +49,8 @@ Renderer.prototype.renderBackgroundColor = function(container, bounds) {
 };
 
 Renderer.prototype.renderShadows = function(container, shape, borderData, inset) {
-    var boxShadow = container.css('boxShadow');
-    if (boxShadow !== 'none' && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
+    var boxShadow = container.css("boxShadow");
+    if (boxShadow && boxShadow !== "none" && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
         var shadows = boxShadow.split(/,(?![^(]*\))/);
         this.shadow(shape, shadows, container, inset, borderData && borderData.borders);
     }
@@ -146,6 +146,62 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
             log("Unknown background-image type", backgroundImage.args[0]);
         }
     }, this);
+};
+
+Renderer.prototype.renderListStyleImage = function(container, bounds, isOutside) {
+    if (!container.listStyleImage) {
+        return;
+    }
+
+    switch(container.listStyleImage.method) {
+    case "url":
+        var image = this.images.get(container.listStyleImage.args[0]);
+        if (image) {
+            var width = image.image && (image.image.naturalWidth || image.image.width);
+            var height = image.image && (image.image.naturalHeight || image.image.height);
+            this.renderImage(container, {
+                left: isOutside ? bounds.left - width - 7 : bounds.left,
+                top: bounds.top,
+                right: isOutside ? bounds.left - 7 : bounds.left + width,
+                bottom: bounds.bottom,
+                width: width,
+                height: height           
+            }, container.borders, image);
+        } else {
+            log("Error loading background-image", container.listStyleImage.args[0]);
+        }
+        break;
+    case "linear-gradient":
+    case "radial-gradient":
+    case "repeating-linear-gradient":
+    case "repeating-radial-gradient":
+    case "gradient":
+        var gradientImage = this.images.get(container.listStyleImage.value);
+        if (gradientImage) {
+            var size = parseInt(container.css("fontSize"), 10) * 0.5;
+            var gradientBounds = {
+                left: isOutside ? bounds.left - size - 7 : bounds.left,
+                top: bounds.bottom - 1.5 * size,
+                right: isOutside ? bounds.left - 7 : bounds.left + size,
+                bottom: bounds.bottom - 0.5 * size,
+                width: size,
+                height: size
+            };
+            var gradient = this.createGradient(container, gradientImage, gradientBounds);
+            if (gradient) {
+                this.renderGradient(gradient, gradientBounds);
+            } else {
+                log("Error creating gradient", container.listStyleImage.args[0]);
+            }
+        } else {
+            log("Error loading background-image", container.listStyleImage.args[0]);
+        }
+        break;
+    case "none":
+        break;
+    default:
+        log("Unknown background-image type", container.listStyleImage.args[0]);
+    }
 };
 
 Renderer.prototype.renderBackgroundRepeating = function(container, bounds, imageContainer, index, borderData) {

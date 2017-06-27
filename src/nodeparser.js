@@ -7,6 +7,8 @@ var FontMetrics = require('./fontmetrics');
 var Color = require('./color');
 var StackingContext = require('./stackingcontext');
 var utils = require('./utils');
+var ListStyleTypeFormatter = require('liststyletype-formatter');
+
 var bind = utils.bind;
 var getBounds = utils.getBounds;
 var parseBackgrounds = utils.parseBackgrounds;
@@ -33,6 +35,9 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     parent.visibile = parent.isElementVisible();
     this.createPseudoHideStyles(element.ownerDocument);
     this.disableAnimations(element.ownerDocument);
+
+    this.counters = {};
+    this.resolvePseudoContent(element);
 
     // MCH -->
     var width = window.innerWidth || document.documentElement.clientWidth;
@@ -302,7 +307,6 @@ NodeParser.prototype.applyInlineStylesToSvg = function(container) {
         applyInlineStylesRecursive(n);
     }
     return container;
-
 };
 
 
@@ -312,32 +316,303 @@ function toCamelCase(str) {
     });
 }
 
+NodeParser.prototype.resolvePseudoContent = function(element) {
+    var style = getComputedStyle(element);
+    var counterReset = style.counterReset;
+    var counters = [];
+    var i;
+
+    if (counterReset && counterReset !== "none") {
+        var counterResets = counterReset.split(/\s*,\s*/);
+        var lenCounterResets = counterResets.length;
+
+        for (i = 0; i < lenCounterResets; i++) {
+            var parts = counterResets[i].split(/\s+/);
+            counters.push(parts[0]);
+            var counter = this.counters[parts[0]];
+            if (!counter) {
+                counter = this.counters[parts[0]] = [];
+            }
+            counter.push(parseInt(parts[1] || 0, 10));
+        }
+    }
+
+    // handle the ::before pseudo element
+    element._contentBefore = this.resolvePseudoContentInternal(element, getComputedStyle(element, ":before"));
+
+    // handle children
+    var children = element.childNodes;
+    var len = children.length;
+    for (i = 0; i < len; i++) {
+        var child = children[i];
+        if (child.nodeType === 1) {
+            this.resolvePseudoContent(children[i]);
+        }
+    }
+
+    // handle the ::after pseudo element
+    element._contentAfter = this.resolvePseudoContentInternal(element, getComputedStyle(element, ":after"));
+
+    var lenCounters = counters.length;
+    for (i = 0; i < lenCounters; i++) {
+        this.counters[counters[i]].pop();
+    }
+};
+
+NodeParser.prototype.resolvePseudoContentInternal = function(element, style) {
+    if (!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none") {
+        return null;
+    }
+
+    var tokens = NodeParser.parsePseudoContent(style.content);
+    var len = tokens.length;
+    var ret = [];
+    var s = "";
+
+    // increment the counter (if there is a "counter-increment" declaration)
+    var counterIncrement = style.counterIncrement;
+    if (counterIncrement && counterIncrement !== "none") {
+        var parts = counterIncrement.split(/\s+/);
+        var ctr = this.counters[parts[0]];
+        if (ctr) {
+            ctr[ctr.length - 1] += parts[1] === undefined ? 1 : parseInt(parts[1], 10);
+        }
+    }
+
+    // build the content string
+    for (var i = 0; i < len; i++) {
+        var token = tokens[i];
+        switch (token.type) {
+        case "string":
+            s += token.value;
+            break;
+
+        case "attr":
+            break;
+
+        case "counter":
+            var counter = this.counters[token.name];
+            if (counter) {
+                s += this.formatCounterValue([counter[counter.length - 1]], '', token.format);
+            }
+            break;
+
+        case "counters":
+            var counters = this.counters[token.name];
+            if (counters) {
+                s += this.formatCounterValue(counters, token.glue, token.format);
+            }
+            break;
+
+        case "url":
+            if (s) {
+                ret.push({ type: "string", value: s });
+                s = "";
+            }
+            ret.push({ type: "image", url: token.href });
+            break;
+        }
+    }
+
+    if (s) {
+        ret.push({ type: "string", value: s });
+    }
+
+    return ret;
+};
+
+NodeParser.prototype.formatCounterValue = function(counter, glue, format) {
+    var ret = '';
+    var len = counter.length;
+
+    for (var i = 0; i < len; i++) {
+        if (i > 0) {
+            ret += glue;
+        }
+        ret += ListStyleTypeFormatter.format(counter[i], format, false);
+    }
+
+    return ret;
+};
+
+var _parsedContent = {};
+
+NodeParser.parsePseudoContent = function(content) {
+    if (_parsedContent[content]) {
+        return _parsedContent[content];
+    }
+
+    var tokens = [];
+    var len = content.length;
+    var isString = false;
+    var isEscaped = false;
+    var isFunction = false;
+    var str = "";
+    var functionName = "";
+    var args = [];
+
+    for (var i = 0; i < len; i++) {
+        var c = content.charAt(i);
+
+        switch (c) {
+        case "'":
+        case "\"":
+            if (isEscaped) {
+                str += c;
+            } else {
+                isString = !isString;
+                if (!isFunction && !isString) {
+                    tokens.push({ type: "string", value: str });
+                    str = "";
+                }
+            }
+            break;
+
+        case "\\":
+            if (isEscaped) {
+                str += c;
+                isEscaped = false;
+            } else {
+                isEscaped = true;
+            }
+            break;
+
+        case "(":
+            if (isString) {
+                str += c;
+            } else {
+                isFunction = true;
+                functionName = str;
+                str = "";
+                args = [];
+            }
+            break;
+
+        case ")":
+            if (isString) {
+                str += c;
+            } else if (isFunction) {
+                if (str) {
+                    args.push(str);
+                }
+
+                switch (functionName) {
+                case "attr":
+                    if (args.length > 0) {
+                        tokens.push({ type: "attr", attr: args[0] });
+                    }
+                    break;
+
+                case "counter":
+                    if (args.length > 0) {
+                        var counter = {
+                            type: "counter",
+                            name: args[0]
+                        };
+                        if (args.length > 1) {
+                            counter.format = args[1];
+                        }
+                        tokens.push(counter);
+                    }
+                    break;
+
+                case "counters":
+                    if (args.length > 0) {
+                        var counters = {
+                            type: "counters",
+                            name: args[0]
+                        };
+                        if (args.length > 1) {
+                            counters.glue = args[1];
+                        }
+                        if (args.length > 2) {
+                            counters.format = args[2];
+                        }
+                        tokens.push(counters);
+                    }
+                    break;
+
+                case "url":
+                    if (args.length > 0) {
+                        tokens.push({ type: "url", href: args[0] });
+                    }
+                    break;
+                }
+
+                isFunction = false;
+                str = "";
+            }
+            break;
+
+        case ",":
+            if (isString) {
+                str += c;
+            } else if (isFunction) {
+                args.push(str);
+                str = "";
+            }
+            break;
+
+        case " ":
+        case "\t":
+            if (isString) {
+                str += c;
+            }
+            break;
+
+        default:
+            str += c;
+        }
+
+        if (c !== "\\") {
+            isEscaped = false;
+        }
+    }
+
+    _parsedContent[content] = tokens;
+    return tokens;
+};
+
 NodeParser.prototype.getPseudoElement = function(container, type) {
     var style = container.computedStyle(type);
     if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none" || style.visibility === "hidden") {
         return null;
     }
 
-    var content = stripQuotes(style.content);
-    var isImage = content.substr(0, 3) === 'url';
-    var pseudoNode = document.createElement(isImage ? 'img' : 'html2canvaspseudoelement');
+    var content = type === ":before" ? container.node._contentBefore : container.node._contentAfter;
+    var len = content.length;
+
+    var pseudoNode = document.createElement("html2canvaspseudoelement");
     var pseudoContainer = new PseudoElementContainer(pseudoNode, container, type);
 
-    for (var i = style.length-1; i >= 0; i--) {
-        var property = toCamelCase(style.item(i));
-        pseudoNode.style[property] = style[property];
+    for (var j = style.length - 1; j >= 0; j--) {
+        var property = toCamelCase(style.item(j));
+        if (property !== "content") {
+            pseudoNode.style[property] = style[property];
+        }
     }
 
     pseudoNode.className = PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_BEFORE + " " + PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_AFTER;
 
-    if (isImage) {
-        pseudoNode.src = parseBackgrounds(content)[0].args[0];
-        return [pseudoContainer];
-    } else {
-        var text = document.createTextNode(content);
-        pseudoNode.appendChild(text);
-        return [pseudoContainer, new TextContainer(text, pseudoContainer)];
+    var ret = [pseudoContainer];
+
+    for (var i = 0; i < len; i++) {
+        var item = content[i];
+
+        if (item.type === "image") {
+            var img = document.createElement("img");
+            img.src = parseBackgrounds("url(" + item.url + ")")[0].args[0];
+            img.style.opacity = "1";
+            pseudoNode.appendChild(img);
+            ret.push(new NodeContainer(img, pseudoContainer));
+        } else {
+            var text = document.createTextNode(item.value);
+            pseudoNode.appendChild(text);
+            ret.push(new TextContainer(text, pseudoContainer));
+        }
     }
+
+    return ret;
 };
 
 
@@ -466,18 +741,21 @@ NodeParser.prototype.paint = function(container) {
     }
 
     try {
+        var isParentPseudoElement = container.parent && isPseudoElement(container.parent);
+        if (isParentPseudoElement) {
+            container.parent.appendToDOM();
+        }
+
         if (container instanceof ClearTransform) {
             this.renderer.ctx.restore();
         } else if (isTextNode(container)) {
-            if (isPseudoElement(container.parent)) {
-                container.parent.appendToDOM();
-            }
             this.paintText(container);
-            if (isPseudoElement(container.parent)) {
-                container.parent.cleanDOM();
-            }
         } else {
             this.paintNode(container);
+        }
+
+        if (isParentPseudoElement) {
+            container.parent.cleanDOM();
         }
     } catch(e) {
         log(e);
@@ -496,7 +774,7 @@ NodeParser.prototype.paintNode = function(container) {
             this.renderer.setTransform(container.parseTransform());
         }
 
-        var mixBlendMode = container.css('mixBlendMode');
+        var mixBlendMode = container.css("mixBlendMode");
         if (mixBlendMode) {
             this.renderer.setMixBlendMode(mixBlendMode);
         }
@@ -512,6 +790,7 @@ NodeParser.prototype.paintNode = function(container) {
 };
 
 NodeParser.prototype.paintElement = function(container) {
+//console.log(container.node);
     var bounds = container.parseBounds();
 
     this.renderer.clip(container.backgroundClip, function() {
@@ -522,7 +801,15 @@ NodeParser.prototype.paintElement = function(container) {
         this.renderer.renderShadows(container, container.borders.clip, null, false);
     }, this, container);
 
-    this.renderer.clip(container.backgroundClip, function() {
+    var clip = container.backgroundClip;
+    if (container.node.nodeName === "LI") {
+        var parent = this.getParentOfType(container, ["OL", "UL"]);
+        clip = parent.css("overflow") !== "visible" ? parent.backgroundClip : null;
+    } else if (container.node.nodeName === "IMG" && isPseudoElement(container.parent)) {
+        clip = null;
+    }
+
+    this.renderer.clip(clip, function() {
         switch (container.node.nodeName) {
         case "svg":
         case "IFRAME":
@@ -551,6 +838,9 @@ NodeParser.prototype.paintElement = function(container) {
             break;
         case "CANVAS":
             this.renderer.renderImage(container, bounds, container.borders, {image: container.node});
+            break;
+        case "LI":
+            this.paintListItem(container);
             break;
         case "SELECT":
         case "INPUT":
@@ -618,16 +908,17 @@ var getPropertyValue = function(container, propertyName, placeholderRules) {
     return container.css(propertyName);
 };
 
-NodeParser.prototype.paintFormValue = function(container) {
-    var value = container.getValue();
-    var isPlaceholder = container.isPlaceholderShown();
+NodeParser.prototype.paintIntrinsicTextNode = function(container, value, canHavePlaceholder, isOutside) {
+    var isPlaceholder = canHavePlaceholder ? container.isPlaceholderShown() : false;
     if (value.length > 0) {
         var document = container.node.ownerDocument;
         var wrapper = document.createElement('html2canvaswrapper');
-        var properties = ['lineHeight', 'textAlign', 'fontFamily', 'fontWeight', 'fontSize', 'color',
+        var properties = [
+            'lineHeight', 'textAlign', 'fontFamily', 'fontWeight', 'fontSize', 'color',
             'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
             'width', 'height', 'borderLeftStyle', 'borderTopStyle', 'borderLeftWidth', 'borderTopWidth',
-            'boxSizing', 'whiteSpace', 'wordWrap'];
+            'boxSizing', 'whiteSpace', 'wordWrap'
+        ];
         var lenProperties = properties.length;
         var placeholderRules = isPlaceholder ? getMatchingRules(container.node, /::placeholder|::-webkit-input-placeholder|::?-moz-placeholder|:-ms-input-placeholder/) : null;
 
@@ -642,10 +933,22 @@ NodeParser.prototype.paintFormValue = function(container) {
         }
 
         var bounds = container.parseBounds();
+
         wrapper.style.position = "fixed";
-        wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
+
+        if (isOutside) {
+            // paint the text outside the box, i.e., right-aligned to the left of the box
+            wrapper.style.left = 'auto';
+            var windowWidth = window.innerWidth || document.documentElement.clientWidth;
+            wrapper.style.right = (windowWidth - bounds.left + 4) + "px";
+            wrapper.style.textAlign = 'right';
+        } else {
+            wrapper.style.left = bounds.left + "px";
+        }
+
         wrapper.textContent = value;
+
         if (wrapper.style.lineHeight === 'normal') {
             wrapper.style.lineHeight = container.computedStyles.height;
         }
@@ -653,6 +956,75 @@ NodeParser.prototype.paintFormValue = function(container) {
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, new NodeContainer(wrapper, container)));
         document.body.removeChild(wrapper);
+    }
+};
+
+NodeParser.prototype.paintFormValue = function(container) {
+    var value = container.getValue();
+    this.paintIntrinsicTextNode(container, container.getValue(), true, false);
+};
+
+NodeParser.prototype.getParentOfType = function(container, parentTypes) {
+    var parent = container.parent;
+
+    while (parentTypes.indexOf(parent.node.tagName) < 0) {
+        parent = parent.parent;
+        if (!parent) {
+            return null;
+        }
+    }
+
+    return parent;
+};
+
+NodeParser.prototype.getParentNodeOfType = function(node, parentTypes) {
+    var parent = node.parentNode;
+
+    while (parentTypes.indexOf(parent.tagName) < 0) {
+        parent = parent.parentNode;
+        if (!parent) {
+            return null;
+        }
+    }
+
+    return parent;
+};
+
+NodeParser.prototype.paintListItem = function(container) {
+    var isOutside = container.css("listStylePosition") === "outside";
+    if (container.listStyleImage && container.listStyleImage.method !== "none") {
+        // image enumeration symbol
+        this.renderer.renderListStyleImage(container, container.parseBounds(), isOutside);
+    } else {
+        // textual enumeration symbol/number
+
+        // find the parent OL/UL
+        var listTypes = ["OL", "UL"];
+        var listContainer = this.getParentOfType(container, listTypes);
+
+        if (listContainer) {
+            // compute the enumeration number
+            var value = 1;
+            var start = listContainer && listContainer.node.getAttribute("start");
+            if (start !== null) {
+                value = parseInt(start, 10);
+            }
+            
+            var listItems = listContainer.node.querySelectorAll("li");
+            var lenListItems = listItems.length;
+            for (var i = 0; i < lenListItems; i++) {
+                var li = listItems[i];
+                if (container.node === li) {
+                    break;
+                }
+                if (this.getParentNodeOfType(li, listTypes) === listContainer.node) {
+                    ++value;
+                }
+            }
+
+            // paint the text
+            this.paintIntrinsicTextNode(container, ListStyleTypeFormatter.format(value, container.css("listStyleType")), false, isOutside);
+        }
     }
 };
 
@@ -1099,10 +1471,11 @@ function flatten(arrays) {
     return [].concat.apply([], arrays);
 }
 
+/*
 function stripQuotes(content) {
     var first = content.substr(0, 1);
     return (first === content.substr(content.length - 1) && first.match(/'|"/)) ? content.substr(1, content.length - 2) : content;
-}
+}*/
 
 function getWords(characters) {
     var words = [], i = 0, onWordBoundary = false, word;

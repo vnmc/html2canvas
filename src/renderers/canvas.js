@@ -171,17 +171,21 @@ CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx
 };
 
 CanvasRenderer.prototype.clip = function(shapes, callback, context, container) {
-    this.ctx.save();
-    shapes.filter(hasEntries).forEach(function(shape) {
-        try {
-            this.shape(shape).clip();
-        } catch(ex) {
-            console.log('Exception clipping shape: ', ex);
-        }
+    if (shapes) {
+        this.ctx.save();
+        shapes.filter(hasEntries).forEach(function(shape) {
+            try {
+                this.shape(shape).clip();
+            } catch(ex) {
+                console.log('Exception clipping shape: ', ex);
+            }
 
-    }, this);
-    callback.call(context);
-    this.ctx.restore();
+        }, this);
+        callback.call(context);
+        this.ctx.restore();
+    } else {
+        callback.call(context);
+    }
 };
 
 CanvasRenderer.prototype.createMaskShapes = function(shapes, container) {

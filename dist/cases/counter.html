@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			ol.list1 {
+				counter-reset: c1 3;
+			}
+
+			ol.list1 li::before {
+				content: "«\"" counter(c1) "\»";
+				counter-increment: c1 -1;
+				margin-right: 6px;
+			}
+
+			ol.list2 {
+				list-style-type: none;
+				counter-reset: c2;
+			}
+
+			ol.list2 li::before {
+				content: "["counters(c2, " < ") ']';
+				counter-increment: c2 2;
+				margin-right: 6px;
+			}
+
+			ol.list2 li::after {
+				content: counter(c2, upper-roman);
+				counter-increment: c2 1;
+			}
+
+			.div1::before {
+				/*
+				display: block;
+				width: 100px;
+				height: 100px;
+				background-color: red;
+				*/
+
+				content: "Hello" url(border.png) "World" url(border.png);
+				/*content: "XX" url(border.png);*/
+				/*content: "BLA" "BLU";*/
+				/*content: url(border.png);*/
+			}
+
+			.list3 {
+				list-style-position: outside;
+				list-style-type: disc;
+				/*list-style-image: url(border.png);*/
+				list-style-image: linear-gradient(90deg, blue, red);
+			}
+
+			.list4 {
+				list-style-image: url(border.png);
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+		<dl>
+			<dt>Def 1</dt>
+			<dd>Is awesome</dd>
+			<dt>Def 2</dt>
+			<dd>Is OK!</dd>
+		</dl>-->
+
+		<ol class="list1">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list3" start="5">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list4">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list2">
+			<li>Alpha</li>
+			<li>Beta</li>
+			<li>Gamma
+				<ol class="list2">
+					<li>Aleph</li>
+					<li>Beth</li>
+					<li>Gimel
+						<ol class="list2">
+							<li>A</li>
+							<li>B</li>
+							<li>C
+								<ol class="list2">
+									<li>a</li>
+									<li>b</li>
+									<li>c</li>
+								</ol>
+							</li>
+						</ol>
+					</li>
+				</ol>
+			</li>
+		</ol>
+		
+		<img src="border.png">
+		<div class="div1"></div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion',
+						logging: true,
+						async: false
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '500px';
+					canvas.style.top = '0';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

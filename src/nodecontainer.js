@@ -19,6 +19,7 @@ function NodeContainer(node, parent) {
     this.colors = {};
     this.styles = {};
     this.backgroundImages = null;
+    this.listStyleImage = undefined;
     this.transformData = null;
     this.transformMatrix = null;
     this.isPseudoElement = false;
@@ -39,7 +40,22 @@ NodeContainer.prototype.cloneTo = function(stack) {
 };
 
 NodeContainer.prototype.getOpacity = function() {
-    return this.opacity === null ? (this.opacity = this.cssFloat('opacity')) : this.opacity;
+    if (this.opacity == null) {
+        var opacity = parseFloat(this.css("opacity"));
+        var container = this;
+        while (isNaN(opacity)) {
+            container = container.parent;
+            if (!container) {
+                opacity = 1;
+                break;
+            }
+            opacity = parseFloat(container.css("opacity"));
+        }
+
+        this.opacity = opacity;
+    }
+
+    return this.opacity;
 };
 
 NodeContainer.prototype.assignStack = function(stack) {
@@ -57,7 +73,18 @@ NodeContainer.prototype.isElementVisible = function() {
     );
 };
 
-NodeContainer.prototype.css = function(attribute) {
+NodeContainer.prototype.css = function(attribute, forceGetFromComputedStyle) {
+    // MCH -->
+    // return the property value from the computed style in the element itself
+    // used to fix the problem with transform-origin on pseudo elements
+    if (forceGetFromComputedStyle) {
+        var val = this.computedStyle(null)[attribute];
+        if (val) {
+            return val;
+        }
+    }
+    // <--
+
     if (!this.computedStyles) {
         this.computedStyles = this.isPseudoElement ? this.parent.computedStyle(this.before ? ":before" : ":after") : this.computedStyle(null);
     }
@@ -65,12 +92,12 @@ NodeContainer.prototype.css = function(attribute) {
     return this.styles[attribute] || (this.styles[attribute] = this.computedStyles[attribute]);
 };
 
-NodeContainer.prototype.prefixedCss = function(attribute) {
+NodeContainer.prototype.prefixedCss = function(attribute, forceGetFromComputedStyle) {
     var prefixes = ["webkit", "moz", "ms", "o"];
-    var value = this.css(attribute);
+    var value = this.css(attribute, forceGetFromComputedStyle);
     if (value === undefined) {
         prefixes.some(function(prefix) {
-            value = this.css(prefix + attribute.substr(0, 1).toUpperCase() + attribute.substr(1));
+            value = this.css(prefix + attribute.substr(0, 1).toUpperCase() + attribute.substr(1), forceGetFromComputedStyle);
             return value !== undefined;
         }, this);
     }
@@ -125,6 +152,18 @@ NodeContainer.prototype.parseBackgroundImages = function() {
     return this.backgroundImages || (this.backgroundImages = parseBackgrounds(this.css("backgroundImage")));
 };
 
+NodeContainer.prototype.parseListStyleImage = function() {
+    if (this.listStyleImage === undefined) {
+        var images = parseBackgrounds(this.css("listStyleImage"));
+        if (images && images.length > 0) {
+            this.listStyleImage = images[0];
+        } else {
+            this.listStyleImage = null;
+        }
+    }
+
+    return this.listStyleImage;
+};
 
 NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
     var size = (this.css("backgroundSize") || '').split(',');
@@ -304,9 +343,10 @@ NodeContainer.prototype.parseTransform = function() {
     if (!this.transformData) {
         if (this.hasTransform()) {
             var offset = this.parseBounds();
-            var origin = this.prefixedCss("transformOrigin").split(" ").map(removePx).map(asFloat);
+            var origin = this.prefixedCss("transformOrigin", true).split(" ").map(removePx).map(asFloat);
             origin[0] += offset.left;
             origin[1] += offset.top;
+
             this.transformData = {
                 origin: origin,
                 matrix: this.parseTransformMatrix()

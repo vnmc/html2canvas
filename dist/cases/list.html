@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			body {
+				font-family: sans-serif;
+			}
+
+			ol {
+				padding-left: 150px;
+				list-style-type: lower-latin;
+			}
+
+			li {
+				float: left;
+				width: 150px;
+			}
+		</style>
+	</head>
+	<body>
+		<ol id="list" start="-3">
+		</ol>
+
+		<script>
+			var ol = document.getElementById('list');
+			for (var i = 0; i < 255; i++)
+			{
+				var li = document.createElement('li');
+				li.textContent = i;
+				ol.appendChild(li);
+			}
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '400px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

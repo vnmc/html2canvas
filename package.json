@@ -19,6 +19,9 @@
   "bugs": {
     "url": "https://github.com/niklasvh/html2canvas/issues"
   },
+  "dependencies": {
+    "liststyletype-formatter": "latest"
+  },
   "devDependencies": {
     "base64-arraybuffer": "^0.1.5",
     "bluebird": "^3.0.6",

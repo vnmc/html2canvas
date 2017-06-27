@@ -51,6 +51,12 @@ ImageLoader.prototype.findImages = function(nodes) {
 
 ImageLoader.prototype.findBackgroundImage = function(images, container) {
     container.parseBackgroundImages().filter(this.hasImageBackground).forEach(this.addImage(images, this.loadImage, container), this);
+
+    var image = container.parseListStyleImage();
+    if (image) {
+        this.addImage(images, this.loadImage, container).call(this, image);
+    }
+
     return images;
 };
 
