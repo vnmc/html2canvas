@@ -37,6 +37,7 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     this.disableAnimations(element.ownerDocument);
 
     this.counters = {};
+    this.quoteDepth = 0;
     this.resolvePseudoContent(element);
 
     // MCH -->
@@ -359,6 +360,18 @@ NodeParser.prototype.resolvePseudoContent = function(element) {
     }
 };
 
+NodeParser.prototype.getQuote = function(style, isOpening) {
+    var quotes = style.quotes ? style.quotes.split(/\s+/) : [ "'\"'", "'\"'" ];
+    var idx = this.quoteDepth * 2;
+    if (idx >= quotes.length) {
+        idx = quotes.length - 2;
+    }
+    if (!isOpening) {
+        ++idx;
+    }
+    return quotes[idx].replace(/^["']|["']$/g, "");
+};
+
 NodeParser.prototype.resolvePseudoContentInternal = function(element, style) {
     if (!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none") {
         return null;
@@ -402,6 +415,16 @@ NodeParser.prototype.resolvePseudoContentInternal = function(element, style) {
             if (counters) {
                 s += this.formatCounterValue(counters, token.glue, token.format);
             }
+            break;
+
+        case "open-quote":
+            s += this.getQuote(style, true);
+            ++this.quoteDepth;
+            break;
+
+        case "close-quote":
+            --this.quoteDepth;
+            s += this.getQuote(style, false);
             break;
 
         case "url":
@@ -557,6 +580,9 @@ NodeParser.parsePseudoContent = function(content) {
         case "\t":
             if (isString) {
                 str += c;
+            } else if (str) {
+                tokens.push({ type: str });
+                str = "";
             }
             break;
 
@@ -567,6 +593,10 @@ NodeParser.parsePseudoContent = function(content) {
         if (c !== "\\") {
             isEscaped = false;
         }
+    }
+
+    if (str) {
+        tokens.push({ type: str });
     }
 
     _parsedContent[content] = tokens;

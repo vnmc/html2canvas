@@ -87,4 +87,23 @@ describe('NodeParser.parsePseudoContent', function() {
             { type: 'url', href: 'http://www.abc.ch/d/e.png' }
         ]);
     });
+
+    it('should parse open-quote', function() {
+        NodeParser.parsePseudoContent('open-quote').should.eql([
+            { type: 'open-quote' }
+        ]);
+    });
+
+    it('should parse close-quote', function() {
+        NodeParser.parsePseudoContent('close-quote').should.eql([
+            { type: 'close-quote' }
+        ]);
+    });
+
+    it('should parse open-quote and string', function() {
+        NodeParser.parsePseudoContent('open-quote "!"').should.eql([
+            { type: 'open-quote' },
+            { type: 'string', value: '!' }
+        ]);
+    });
 });
