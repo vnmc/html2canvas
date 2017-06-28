@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			img {
+				max-height: 30px;
+				display: block;
+    			max-width: 300%;
+			}
+		</style>
+	</head>
+	<body>
+		<a href="/de" tabindex="-1" class="">
+			<img alt="Corporate logo" class="mobile-logo" src="logo.svg" width="150">
+		</a>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion',
+						logging: true,
+						async: false
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '400px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>
