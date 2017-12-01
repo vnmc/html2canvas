@@ -3116,6 +3116,9 @@ if (typeof console !== 'undefined') {
           y = el.getAttribute('y') || 0,
           elInDoc = elementById(doc, xlink) || elementById(document, xlink),
           el2 = elInDoc ? elInDoc.cloneNode(true) : null,
+          rect = el.parentElement && el.parentElement.getBoundingClientRect(),
+          attrWidth = el2.getAttribute('width'),
+          attrHeight = el2.getAttribute('height'),
           currentTrans = el2 ? (el2.getAttribute('transform') || '') + ' translate(' + x + ', ' + y + ')' : '',
           parentNode, oldLength = nodelist.length, attr, j, attrs, l;
 
@@ -3124,6 +3127,13 @@ if (typeof console !== 'undefined') {
             i++;
           }
           continue;
+      }
+
+      if (rect && (attrWidth === null || attrWidth === '100%')) {
+        el2.setAttribute('width', rect.width);
+      }
+      if (rect && (attrHeight === null || attrHeight === '100%')) {
+        el2.setAttribute('height', rect.height);
       }
 
       applyViewboxTransform(el2);
@@ -3148,13 +3158,13 @@ if (typeof console !== 'undefined') {
 
         if (attr.nodeName === 'transform') {
           currentTrans = attr.nodeValue + ' ' + currentTrans;
-        }
-        else {
+        } else {
           el2.setAttribute(attr.nodeName, attr.nodeValue);
         }
       }
 
       el2.setAttribute('transform', currentTrans);
+      //el2.style.transform = currentTrans;
       el2.setAttribute('instantiated_by_use', '1');
       el2.removeAttribute('id');
       parentNode = el.parentNode;
@@ -3261,7 +3271,10 @@ if (typeof console !== 'undefined') {
     }
     else {
       el = element;
-      matrix = el.getAttribute('transform') + matrix;
+      var transform = el.getAttribute('transform');
+      if (transform) {
+        matrix = transform + matrix;
+      }
     }
 
     el.setAttribute('transform', matrix);

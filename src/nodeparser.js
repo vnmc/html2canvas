@@ -283,16 +283,21 @@ NodeParser.prototype.getPseudoElements = function(container) {
     return flatten(nodes);
 };
 
-/* applyInlineStylesToSvgs' workhorse */
+/**
+ * applyInlineStylesToSvgs' workhorse.
+ */
 function applyInlineStylesRecursive(node) {
-    var cStyle = getComputedStyle(node);
-
-    for (var j = cStyle.length-1; j >= 0; j--) {
-        var property = toCamelCase(cStyle.item(j));
-        node.style[property] = cStyle[property];
+    if (node.nodeName !== "use" && node.nodeName !== "symbol") {
+        var cStyle = getComputedStyle(node);
+        for (var j = cStyle.length - 1; j >= 0; j--) {
+            var property = toCamelCase(cStyle.item(j));
+            node.style[property] = cStyle[property];
+        }
     }
 
-    var childNodes = node.childNodes, len = childNodes.length;
+    var childNodes = node.childNodes;
+    var len = childNodes.length;
+
     for (var i = 0; i < len; i++) {
         var childNode = childNodes[i];
         if (childNode.nodeType === 1) {
@@ -301,7 +306,10 @@ function applyInlineStylesRecursive(node) {
     }
 }
 
-/* Make sure we apply all styles as inline styles of svg and any contained elements so that fabric renders the properly */
+/**
+ * Make sure we apply all styles as inline styles of SVG and any
+ * contained elements so that fabric renders the properly.
+ */
 NodeParser.prototype.applyInlineStylesToSvg = function(container) {
     var n = container[0].node;
     if (n.nodeType === 1 && n.tagName === "svg") {

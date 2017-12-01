@@ -6,6 +6,735 @@
 */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.html2canvas = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+function toAlphabetic(value, alphabet)
+{
+    // make the value 0-based, and don't do anything for value <= 0
+    --value;
+    if (value < 0)
+        return null;
+
+    // determine the number of "digits" and the offset for the place-value system
+    var lenAlphabet = alphabet.length;
+    var numDigits = 1;
+    var offset = 0;
+
+    for ( ; ; numDigits++)
+    {
+        var newOffset = (offset + 1) * lenAlphabet;
+        if (value < newOffset)
+            break;
+
+        offset = newOffset;
+    }
+
+    // use value - offset to convert to a "number" in the place-value system with base lenAlphabet
+    value -= offset;
+    var ret = '';
+
+    for (var i = 0; i < numDigits; i++)
+    {
+        ret = alphabet.charAt(value % lenAlphabet) + ret;
+        value = Math.floor(value / lenAlphabet);
+    }
+
+    return ret;
+}
+
+module.exports.toAlphabetic = toAlphabetic;
+
+
+var ALPHABET = {
+    LOWER_LATIN: 'abcdefghijklmnopqrstuvwxyz',
+    UPPER_LATIN: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    LOWER_GREEK: 'αβγδεζηθικλμνξοπρστυφχψω',
+    UPPER_GREEK: 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+    HIRAGANA: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわゐゑをん',
+    HIRAGANA_IROHA: 'いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす',
+    KATAKANA: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン',
+    KATAKANA_IROHA: 'イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス'
+};
+
+module.exports.ALPHABET = ALPHABET;
+
+
+module.exports.toLowerLatin = function(value) { return toAlphabetic(value, ALPHABET.LOWER_LATIN); };
+module.exports.toUpperLatin = function(value) { return toAlphabetic(value, ALPHABET.UPPER_LATIN); };
+module.exports.toLowerGreek = function(value) { return toAlphabetic(value, ALPHABET.LOWER_GREEK); };
+module.exports.toUpperGreek = function(value) { return toAlphabetic(value, ALPHABET.UPPER_GREEK); };
+module.exports.toHiragana = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA); };
+module.exports.toHiraganaIroha = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA_IROHA); };
+module.exports.toKatakana = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA); };
+module.exports.toKatakanaIroha = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA_IROHA); };
+
+},{}],2:[function(_dereq_,module,exports){
+function toCJK(value, digits, multipliers, negativeSign, tenHasCoefficient, tenHasCoefficientIfHighNumber, hundredHasCoefficient, usesZero)
+{
+    if (value <= 0 && !negativeSign)
+        return null;
+
+    var val = Math.abs(Math.floor(value));
+
+    if (val === 0)
+        return digits.charAt(0);
+
+    var ret = '';
+    var maxExponent = multipliers.length;
+    var exponent = 0;
+
+    for (var exponent = 0; val > 0 && exponent <= maxExponent; exponent++)
+    {
+        var coeff = val % 10;
+
+        if (coeff === 0 && usesZero && ret !== '')
+            ret = digits.charAt(coeff) + ret;
+        else if (coeff > 1 ||
+            (coeff === 1 && exponent === 0) ||
+            (coeff === 1 && exponent === 1 && tenHasCoefficient) ||
+            (coeff === 1 && exponent === 1 && tenHasCoefficientIfHighNumber && value > 100) ||
+            (coeff === 1 && exponent > 1 && hundredHasCoefficient))
+        {
+            ret = digits.charAt(coeff) + (exponent > 0 ? multipliers.charAt(exponent - 1) : '') + ret;
+        }
+        else if (coeff === 1 && exponent > 0)
+            ret = multipliers.charAt(exponent - 1) + ret;
+
+        val = Math.floor(val / 10);
+    }
+
+    return (value < 0 ? negativeSign : '') + ret;
+};
+
+module.exports.toCJK = toCJK;
+
+
+var NUMERAL = {
+    CJK_IDEOGRAPHIC: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '負'
+    },
+
+    TRAD_CHINESE_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '負'
+    },
+
+    TRAD_CHINESE_FORMAL: {
+        DIGITS: '零壹貳參肆伍陸柒捌玖',
+        MULTIPLIERS: '拾佰仟萬',
+        NEGATIVE: '負'
+    },
+
+    SIMP_CHINESE_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '负'
+    },
+
+    SIMP_CHINESE_FORMAL: {
+        DIGITS: '零壹贰叁肆伍陆柒捌玖',
+        MULTIPLIERS: '拾佰仟萬',
+        NEGATIVE: '负'
+    },
+
+    JAPANESE_INFORMAL: {
+        DIGITS: '〇一二三四五六七八九',
+        MULTIPLIERS: '十百千万',
+        NEGATIVE: 'マイナス'
+    },
+
+    JAPANESE_FORMAL: {
+        DIGITS: '零壱弐参四伍六七八九',
+        MULTIPLIERS: '拾百千万',
+        NEGATIVE: 'マイナス'
+    },
+
+    KOREAN_HANGUL: {
+        DIGITS: '영일이삼사오육칠팔구',
+        MULTIPLIERS: '십백천만',
+        NEGATIVE: '마이너스'
+    },
+
+    KOREAN_HANJA_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '마이너스'
+    },
+
+    KOREAN_HANJA_FORMAL: {
+        //DIGITS: ' 壹貳參肆伍陸柒捌玖',
+        DIGITS: '零壹貳參四五六七八九',
+        //MULTIPLIERS: '拾佰仟'
+        MULTIPLIERS: '拾百千',
+        NEGATIVE: '마이너스'
+    }
+};
+
+module.exports.NUMERAL = NUMERAL;
+
+
+module.exports.toCJKIdeographic = function(value) { return toCJK(value, NUMERAL.CJK_IDEOGRAPHIC.DIGITS, NUMERAL.CJK_IDEOGRAPHIC.MULTIPLIERS, NUMERAL.CJK_IDEOGRAPHIC.NEGATIVE, false, true, true, true); };
+module.exports.toTraditionalChineseInformal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_INFORMAL.DIGITS, NUMERAL.TRAD_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
+module.exports.toTraditionalChineseFormal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_FORMAL.DIGITS, NUMERAL.TRAD_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
+module.exports.toSimplifiedChineseInformal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_INFORMAL.DIGITS, NUMERAL.SIMP_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
+module.exports.toSimplifiedChineseFormal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_FORMAL.DIGITS, NUMERAL.SIMP_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
+module.exports.toJapaneseInformal = function(value) { return toCJK(value, NUMERAL.JAPANESE_INFORMAL.DIGITS, NUMERAL.JAPANESE_INFORMAL.MULTIPLIERS, NUMERAL.JAPANESE_INFORMAL.NEGATIVE, false, false, false, false); };
+module.exports.toJapaneseFormal = function(value) { return toCJK(value, NUMERAL.JAPANESE_FORMAL.DIGITS, NUMERAL.JAPANESE_FORMAL.MULTIPLIERS, NUMERAL.JAPANESE_FORMAL.NEGATIVE, true, true, true, false); };
+module.exports.toKoreanHangul = function(value) { return toCJK(value, NUMERAL.KOREAN_HANGUL.DIGITS, NUMERAL.KOREAN_HANGUL.MULTIPLIERS, NUMERAL.KOREAN_HANGUL.NEGATIVE, true, true, true, false); };
+module.exports.toKoreanHanjaInformal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_INFORMAL.DIGITS, NUMERAL.KOREAN_HANJA_INFORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_INFORMAL.NEGATIVE, false, false, false, false); };
+module.exports.toKoreanHanjaFormal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_FORMAL.DIGITS, NUMERAL.KOREAN_HANJA_FORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_FORMAL.NEGATIVE, true, true, true, false); };
+
+},{}],3:[function(_dereq_,module,exports){
+function toLetterSystem(value, letters)
+{
+    if (value <= 0)
+        return null;
+
+    var ret = '';
+
+    for (var b in letters)
+    {
+        var num = letters[b];
+        var q = Math.floor(value / num);
+        value -= q * num;
+
+        for (var i = 0; i < q; i++)
+            ret += b;
+    }
+
+    return ret;
+}
+
+module.exports.toLetterSystem = toLetterSystem;
+
+
+var LETTER_SYSTEM = {
+    ROMAN_UPPER: {
+        M: 1000,
+        CM: 900,
+        D: 500,
+        CD: 400,
+        C: 100,
+        XC: 90,
+        L: 50,
+        XL: 40,
+        X: 10,
+        IX: 9,
+        V: 5,
+        IV: 4,
+        I: 1
+    },
+
+    ROMAN_LOWER: {
+        m: 1000,
+        cm: 900,
+        d: 500,
+        cd: 400,
+        c: 100,
+        xc: 90,
+        l: 50,
+        xl: 40,
+        x: 10,
+        ix: 9,
+        v: 5,
+        iv: 4,
+        i: 1
+    },
+
+    HEBREW: {
+        'א׳א׳': 1000000,
+        'א׳ק': 100000,
+        'א׳י': 10000,
+        'ט׳': 9000,
+        'ח׳': 8000,
+        'ז׳': 7000,
+        'ו׳': 6000,
+        'ה׳': 5000,
+        'ד׳': 4000,
+        'ג׳': 3000,
+        'ב׳': 2000,
+        'א׳': 1000,
+        'ת': 400,
+        'ש': 300,
+        'ר': 200,
+        'ק': 100,
+        'צ': 90,
+        'פ': 80,
+        'ע': 70,
+        'ס': 60,
+        'נ': 50,
+        'מ‎': 40,
+        'ל': 30,
+        'כ': 20,
+        'טז': 16,
+        'טו': 15,
+        'י': 10,
+        'ט': 9,
+        'ח‎': 8,
+        'ז': 7,
+        'ו': 6,
+        'ה': 5,
+        'ד': 4,
+        'ג': 3,
+        'ב': 2,
+        'א': 1
+    },
+
+    GEORGIAN: {
+        'ჵ': 10000,
+        'ჰ': 9000,
+        'ჯ': 8000,
+        'ჴ': 7000,
+        'ხ': 6000,
+        'ჭ': 5000,
+        'წ': 4000,
+        'ძ': 3000,
+        'ც': 2000,
+        'ჩ': 1000,
+        'შ': 900,
+        'ყ': 800,
+        'ღ': 700,
+        'ქ': 600,
+        'ფ': 500,
+        'ჳ': 400,
+        'ტ': 300,
+        'ს': 200,
+        'რ': 100,
+        'ჟ': 90,
+        'პ': 80,
+        'ო': 70,
+        'ჲ': 60,
+        'ნ': 50,
+        'მ': 40,
+        'ლ': 30,
+        'კ': 20,
+        'ი': 10,
+        'თ': 9,
+        'ჱ': 8,
+        'ზ': 7,
+        'ვ': 6,
+        'ე': 5,
+        'დ': 4,
+        'გ': 3,
+        'ბ': 2,
+        'ა': 1
+    },
+
+    ARMENIAN_UPPER: {
+        'Ք': 9000,
+        'Փ': 8000,
+        'Ւ': 7000,
+        'Ց': 6000,
+        'Ր': 5000,
+        'Տ': 4000,
+        'Վ': 3000,
+        'Ս': 2000,
+        'Ռ': 1000,
+        'Ջ': 900,
+        'Պ': 800,
+        'Չ': 700,
+        'Ո': 600,
+        'Շ': 500,
+        'Ն': 400,
+        'Յ': 300,
+        'Մ': 200,
+        'Ճ': 100,
+        'Ղ': 90,
+        'Ձ': 80,
+        'Հ': 70,
+        'Կ': 60,
+        'Ծ': 50,
+        'Խ': 40,
+        'Լ': 30,
+        'Ի': 20,
+        'Ժ': 10,
+        'Թ': 9,
+        'Ը': 8,
+        'Է': 7,
+        'Զ': 6,
+        'Ե': 5,
+        'Դ': 4,
+        'Գ': 3,
+        'Բ': 2,
+        'Ա': 1
+    },
+
+    ARMENIAN_LOWER: {
+        'ք': 9000,
+        'փ': 8000,
+        'ւ': 7000,
+        'ց': 6000,
+        'ր': 5000,
+        'տ': 4000,
+        'վ': 3000,
+        'ս': 2000,
+        'ռ': 1000,
+        'ջ': 900,
+        'պ': 800,
+        'չ': 700,
+        'ո': 600,
+        'շ': 500,
+        'ն': 400,
+        'յ': 300,
+        'մ': 200,
+        'ճ': 100,
+        'ղ': 90,
+        'ձ': 80,
+        'հ': 70,
+        'կ': 60,
+        'ծ': 50,
+        'խ': 40,
+        'լ': 30,
+        'ի': 20,
+        'ժ': 10,
+        'թ': 9,
+        'ը': 8,
+        'է': 7,
+        'զ': 6,
+        'ե': 5,
+        'դ': 4,
+        'գ': 3,
+        'բ': 2,
+        'ա': 1
+    }
+};
+
+module.exports.LETTER_SYSTEM = LETTER_SYSTEM;
+
+
+module.exports.toUpperRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_UPPER); };
+module.exports.toLowerRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_LOWER); };
+module.exports.toHebrew = function(value) { return toLetterSystem(value, LETTER_SYSTEM.HEBREW); };
+module.exports.toGeorgian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.GEORGIAN); };
+module.exports.toUpperArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_UPPER); };
+module.exports.toLowerArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_LOWER); };
+
+},{}],4:[function(_dereq_,module,exports){
+function toPlaceValue(value, digits, hasNegativeNumbers, minusSign)
+{
+    if (hasNegativeNumbers === false && value < 0)
+        return null;
+
+    if (!minusSign)
+        minusSign = '-';
+
+    var sign = '';
+    if (value < 0)
+        sign = minusSign;
+
+    if (-1 < value && value < 1)
+        return sign + digits.charAt(0);
+
+    var ret = '';
+    var numDigits = digits.length;
+    value = Math.abs(value);
+
+    while (value)
+    {
+        ret = digits.charAt(value % numDigits) + ret;
+        value = Math.floor(value / numDigits);
+    }
+
+    return sign + ret;
+};
+
+module.exports.toPlaceValue = toPlaceValue;
+
+
+function toOneBasedPlaceValue(value, digits)
+{
+    if (value <= 0)
+        return null;
+
+    var ret = '';
+    var numDigits = digits.length;
+
+    while (value)
+    {
+        var v = value % numDigits;
+        ret = digits.charAt(v === 0 ? numDigits - 1 : v - 1) + ret;
+        value = Math.floor(value / numDigits) - (v === 0 ? 1 : 0);
+    }
+
+    return ret;
+};
+
+
+var DIGITS = {
+    ARABIC_INDIC: '٠١٢٣٤٥٦٧٨٩',
+    BENGALI: '০১২৩৪৫৬৭৮৯',
+    CJK_DECIMAL: '〇一二三四五六七八九',
+    CJK_EARTHLY_BRANCH: '子丑寅卯辰巳午未申酉戌亥',
+    CJK_HEAVENLY_STEM: '甲乙丙丁戊己庚辛壬癸',
+    DEVANAGARI: '०१२३४५६७८९',
+    GUJARATI: '૦૧૨૩૪૫૬૭૮૯',
+    GURMUKHI: '੦੧੨੩੪੫੬੭੮੯',
+    KANNADA: '೦೧೨೩೪೫೬೭೮೯',
+    KHMER: '០១២៣៤៥៦៧៨៩',
+    LAO: '໐໑໒໓໔໕໖໗໘໙',
+    MALAYALAM: '൦൧൨൩൪൫൬൭൮൯',
+    MONGILIAN: '᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙',
+    MYANMAR: '၀၁၂၃၄၅၆၇၈၉',
+    ORIYA: '୦୧୨୩୪୫୬୭୮୯',
+    PERSIAN: '۰۱۲۳۴۵۶۷۸۹',
+    TAMIL: '௦௧௨௩௪௫௬௭௮௯',
+    TELUGU: '౦౧౨౩౪౫౬౭౮౯',
+    THAI: '๐๑๒๓๔๕๖๗๘๙',
+    TIBETAN: '༠༡༢༣༤༥༦༧༨༩'
+};
+
+module.exports.DIGITS = DIGITS;
+
+
+module.exports.toArabicIndic = function(v) { return toPlaceValue(v, DIGITS.ARABIC_INDIC); };
+module.exports.toBengali = function(v) { return toPlaceValue(v, DIGITS.BENGALI); };
+module.exports.toCJKDecimal = function(v) { return toPlaceValue(v, DIGITS.CJK_DECIMAL, false); };
+module.exports.toCJKEarthlyBranch = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_EARTHLY_BRANCH); };
+module.exports.toCJKHeavenlyStem = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_HEAVENLY_STEM); };
+module.exports.toDevanagari = function(v) { return toPlaceValue(v, DIGITS.DEVANAGARI); };
+module.exports.toGujarati = function(v) { return toPlaceValue(v, DIGITS.GUJARATI); };
+module.exports.toGurmukhi = function(v) { return toPlaceValue(v, DIGITS.GURMUKHI); };
+module.exports.toKannada = function(v) { return toPlaceValue(v, DIGITS.KANNADA); };
+module.exports.toKhmer = function(v) { return toPlaceValue(v, DIGITS.KHMER); };
+module.exports.toLao = function(v) { return toPlaceValue(v, DIGITS.LAO); };
+module.exports.toMalayalam = function(v) { return toPlaceValue(v, DIGITS.MALAYALAM); };
+module.exports.toMongolian = function(v) { return toPlaceValue(v, DIGITS.MONGILIAN); };
+module.exports.toMyanmar = function(v) { return toPlaceValue(v, DIGITS.MYANMAR); };
+module.exports.toOriya = function(v) { return toPlaceValue(v, DIGITS.ORIYA); };
+module.exports.toPersian = function(v) { return toPlaceValue(v, DIGITS.PERSIAN); };
+module.exports.toTamil = function(v) { return toPlaceValue(v, DIGITS.TAMIL); };
+module.exports.toTelugu = function(v) { return toPlaceValue(v, DIGITS.TELUGU); };
+module.exports.toThai = function(v) { return toPlaceValue(v, DIGITS.THAI); };
+module.exports.toTibetan = function(v) { return toPlaceValue(v, DIGITS.TIBETAN); };
+
+},{}],5:[function(_dereq_,module,exports){
+/**
+ * http://www.geez.org/Numerals/
+ * http://metaappz.com/Geez_Numbers_Converter/Default.aspx
+ */
+module.exports.toEthiopic = function(value)
+{
+    if (value <= 0)
+        return null;
+
+    var ONES = '፩፪፫፬፭፮፯፰፱';
+    var TENS = '፲፳፴፵፶፷፸፹፺';
+    var HUNDRED = '፻';
+    var TENTHOUSAND = '፼';
+
+    var ret = '';
+    var sep = '';
+
+    value = Math.floor(value);
+
+    for (var i = 0; value > 0; i++)
+    {
+        var one = value % 10;
+        var ten = Math.floor(value / 10) % 10;
+
+        if ((one === 1 && ten === 0 && i > 0) || (one === 0 && ten === 0 && i > 1))
+            ret = sep + ret;
+        else if (one > 0 || ten > 0)
+        {
+            ret =
+                (ten > 0 ? TENS.charAt(ten - 1) : '') +
+                (one > 0 ? ONES.charAt(one - 1) : '') +
+                sep + ret;
+        }
+
+        value = Math.floor(value / 100);
+        sep = i % 2 ? TENTHOUSAND : HUNDRED;
+    }
+
+    return ret;
+};
+
+},{}],6:[function(_dereq_,module,exports){
+///////////////////////////////////////////////////////////////////////////////
+// Import Packages
+
+var Alpha = _dereq_('./converters/alpha');
+var Letter = _dereq_('./converters/letter');
+var PlaceValue = _dereq_('./converters/placevalue');
+var CJK = _dereq_('./converters/cjk');
+var Special = _dereq_('./converters/special');
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Private Functions
+
+function addDot(s, dot)
+{
+    if (dot === undefined)
+        dot = '.';
+    return s === null ? s : s + dot;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Module Constants
+
+// formatter specifications
+var formatters = {
+    'none': '',
+    'disc': '•',
+    'circle': '◦',
+    'square': '￭',
+
+    'decimal': Math.floor,
+    'cjk-decimal': { function: PlaceValue.toCJKDecimal, dot: '、' },
+
+    'decimal-leading-zero': function(v)
+    {
+        v = Math.floor(v);
+        if (0 <= v && v < 10)
+            return '0' + v;
+        if (-10 < v && v < 0)
+            return '-0' + Math.abs(v);
+        return v;
+    },
+
+    'lower-roman': Letter.toLowerRoman,
+    'upper-roman': Letter.toUpperRoman,
+    'lower-greek': Alpha.toLowerGreek,
+    'lower-alpha': Alpha.toLowerLatin,
+    'upper-alpha': Alpha.toUpperLatin,
+    'arabic-indic': PlaceValue.toArabicIndic,
+    'armenian': Letter.toUpperArmenian,
+    'bengali': PlaceValue.toBengali,
+    'cambodian': PlaceValue.toKhmer,
+    'cjk-earthly-branch': { function: PlaceValue.toCJKEarthlyBranch, dot: '、' },
+    'cjk-heavenly-stem': { function: PlaceValue.toCJKHeavenlyStem, dot: '、' },
+    'cjk-ideographic': { function: CJK.toCJKIdeographic, dot: '、' },
+    'devanagari': PlaceValue.toDevanagari,
+    'ethiopic-numeric': { function: Special.toEthiopic, dot: '' },
+    'georgian': Letter.toGeorgian,
+    'gujarati': PlaceValue.toGujarati,
+    'gurmukhi': PlaceValue.toGurmukhi,
+    'hebrew': Letter.toHebrew,
+    'hiragana': Alpha.toHiragana,
+    'hiragana-iroha': Alpha.toHiraganaIroha,
+    'japanese-formal': { function: CJK.toJapaneseFormal, dot: '、' },
+    'japanese-informal': { function: CJK.toJapaneseInformal, dot: '、' },
+    'kannada': PlaceValue.toKannada,
+    'katakana': Alpha.toKatakana,
+    'katakana-iroha': Alpha.toKatakanaIroha,
+    'khmer': PlaceValue.toKhmer,
+    'korean-hangul-formal': { function: CJK.toKoreanHangul, dot: '、' },
+    'korean-hanja-formal': { function: CJK.toKoreanHanjaFormal, dot: '、' },
+    'korean-hanja-informal': { function: CJK.toKoreanHanjaInformal, dot: '、' },
+    'lao': PlaceValue.toLao,
+    'lower-armenian': Letter.toLowerArmenian,
+    'malayalam': PlaceValue.toMalayalam,
+    'mongolian': PlaceValue.toMongolian,
+    'myanmar': PlaceValue.toMyanmar,
+    'oriya': PlaceValue.toOriya,
+    'persian': PlaceValue.toPersian,
+    'simp-chinese-formal': { function: CJK.toSimplifiedChineseFormal, dot: '、' },
+    'simp-chinese-informal': { function: CJK.toSimplifiedChineseInformal, dot: '、' },
+    'tamil': PlaceValue.toTamil,
+    'telugu': PlaceValue.toTelugu,
+    'thai': PlaceValue.toThai,
+    'tibetan': PlaceValue.toTibetan,
+    'trad-chinese-formal': { function: CJK.toTraditionalChineseFormal, dot: '、' },
+    'trad-chinese-informal': { function: CJK.toTraditionalChineseInformal, dot: '、' },
+    'upper-armenian': Letter.toUpperArmenian
+};
+
+// define aliases
+formatters['lower-latin'] = formatters['lower-alpha'];
+formatters['upper-latin'] = formatters['upper-alpha'];
+formatters['-moz-arabic-indic'] = formatters['arabic-indic'];
+formatters['-moz-bengali'] = formatters['bengali'];
+formatters['-moz-cjk-earthly-branch'] = formatters['cjk-earthly-branch'];
+formatters['-moz-cjk-heavenly-stem'] = formatters['cjk-heavenly-stem'];
+formatters['-moz-devanagari'] = formatters['devanagari'];
+formatters['-moz-gujarati'] = formatters['gujarati'];
+formatters['-moz-gurmukhi'] = formatters['gurmukhi'];
+formatters['-moz-kannada'] = formatters['kannada'];
+formatters['-moz-khmer'] = formatters['khmer'];
+formatters['-moz-lao'] = formatters['lao'];
+formatters['-moz-malayalam'] = formatters['malayalam'];
+formatters['-moz-myanmar'] = formatters['myanmar'];
+formatters['-moz-oriya'] = formatters['oriya'];
+formatters['-moz-persian'] = formatters['persian'];
+formatters['-moz-tamil'] = formatters['tamil'];
+formatters['-moz-telugu'] = formatters['telugu'];
+formatters['-moz-thai'] = formatters['thai'];
+
+// set the default formatter
+var defaultFormatter = formatters.decimal;
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation
+
+function formatInternal(value, formatter, appendDot)
+{
+    switch (typeof formatter)
+    {
+    case 'function':
+        return appendDot ?
+            addDot(formatter(value)) :
+            formatter(value);
+
+    case 'object':
+        return appendDot ?
+            addDot(formatter.function(value), formatter.dot) :
+            formatter.function(value);
+
+    case 'string':
+        return formatter;
+    }
+
+    return undefined;
+}
+
+/**
+ * Formats the number "value" according to the CSS list-style-type format "format".
+ * https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
+ *
+ * @param value
+ *    The number to format
+ *
+ * @param format
+ *    The format string to use, the ones listed here:
+ *    https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
+ *
+ * @param appendDot
+ *    Optional flag indicating if an enumeration symbol (typically, a dot) is to be
+ *    appended to the formatted number.
+ *    Defaults to true.
+ */
+module.exports.format = function(value, format, appendDot /* optional */)
+{
+    if (appendDot === undefined)
+        appendDot = true;
+
+    var ret = formatInternal(
+        value,
+        format in formatters ? formatters[format] : defaultFormatter,
+        appendDot
+    );
+
+    return (ret === null || ret === undefined) ?
+        formatInternal(value, defaultFormatter, appendDot) :
+        ret;
+};
+
+
+/**
+ * Export a global object in the browser.
+ */
+if (typeof window !== 'undefined')
+{    
+    window.ListStyleTypeFormatter = {
+        format: module.exports.format
+    };
+}
+
+},{"./converters/alpha":1,"./converters/cjk":2,"./converters/letter":3,"./converters/placevalue":4,"./converters/special":5}],7:[function(_dereq_,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -542,7 +1271,7 @@
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],2:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 /* global Areion: true */
 
 function ProxyImageContainer(src, proxy) {
@@ -565,7 +1294,49 @@ function ProxyImageContainer(src, proxy) {
 
 module.exports = ProxyImageContainer;
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
+/* global Areion: true */
+
+function ProxyVideoContainer(imageData) {
+    var video = imageData.args[0];
+    this.src = video.currentSrc || video.src;
+
+    // Adding index to identify the video element as <video> can have multiple child <source>.
+    this.videoIndex = imageData.videoIndex;
+    video.videoIndex = imageData.videoIndex;
+    this.image = video;
+
+    video.src = Areion.rewriteUrl(this.src);
+
+    this.promise = new Promise(function(resolve, reject) {
+        video.muted = true;
+        var originalVideos = document.getElementsByTagName('video');
+
+        if (originalVideos.length !== 0 && originalVideos[imageData.videoIndex]) {
+            var originalVideo = originalVideos[imageData.videoIndex];
+            if (originalVideo.currentTime) {
+                video.currentTime = originalVideo.currentTime;
+            }
+
+            if (!video.paused) {
+                resolve();
+            } else {
+                var playPromise = video.play();
+                if (playPromise) {
+                    playPromise.then(resolve, reject);
+                } else {
+                    resolve();
+                }
+            }
+        } else {
+            resolve();
+        }
+    });
+}
+
+module.exports = ProxyVideoContainer;
+
+},{}],10:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 
 function restoreOwnerScroll(ownerDocument, x, y) {
@@ -689,7 +1460,7 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
     });
 };
 
-},{"./log":14}],4:[function(_dereq_,module,exports){
+},{"./log":21}],11:[function(_dereq_,module,exports){
 // http://dev.w3.org/csswg/css-color/
 
 function Color(value) {
@@ -1051,7 +1822,7 @@ var colors = {
 
 module.exports = Color;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 var Support = _dereq_('./support');
 var CanvasRenderer = _dereq_('./renderers/canvas');
 var ImageLoader = _dereq_('./imageloader');
@@ -1208,7 +1979,7 @@ function absoluteUrl(url) {
     return link;
 }
 
-},{"./clone":3,"./imageloader":12,"./log":14,"./nodecontainer":15,"./nodeparser":16,"./proxy":17,"./renderers/canvas":21,"./support":25,"./utils":29}],6:[function(_dereq_,module,exports){
+},{"./clone":10,"./imageloader":19,"./log":21,"./nodecontainer":22,"./nodeparser":23,"./proxy":24,"./renderers/canvas":28,"./support":32,"./utils":36}],13:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var smallImage = _dereq_('./utils').smallImage;
 
@@ -1232,7 +2003,7 @@ function DummyImageContainer(src) {
 
 module.exports = DummyImageContainer;
 
-},{"./log":14,"./utils":29}],7:[function(_dereq_,module,exports){
+},{"./log":21,"./utils":36}],14:[function(_dereq_,module,exports){
 var smallImage = _dereq_('./utils').smallImage;
 
 function Font(family, size) {
@@ -1286,7 +2057,7 @@ function Font(family, size) {
 
 module.exports = Font;
 
-},{"./utils":29}],8:[function(_dereq_,module,exports){
+},{"./utils":36}],15:[function(_dereq_,module,exports){
 var Font = _dereq_('./font');
 
 function FontMetrics() {
@@ -1302,7 +2073,7 @@ FontMetrics.prototype.getMetrics = function(family, size) {
 
 module.exports = FontMetrics;
 
-},{"./font":7}],9:[function(_dereq_,module,exports){
+},{"./font":14}],16:[function(_dereq_,module,exports){
 var utils = _dereq_('./utils');
 var getBounds = utils.getBounds;
 var loadUrlDocument = _dereq_('./proxy').loadUrlDocument;
@@ -1335,7 +2106,7 @@ FrameContainer.prototype.proxyLoad = function(proxy, bounds, options) {
 
 module.exports = FrameContainer;
 
-},{"./core":5,"./proxy":17,"./utils":29}],10:[function(_dereq_,module,exports){
+},{"./core":12,"./proxy":24,"./utils":36}],17:[function(_dereq_,module,exports){
 var Color = _dereq_('./color');
 
 function GradientContainer(imageData) {
@@ -1345,7 +2116,7 @@ function GradientContainer(imageData) {
     this.promise = Promise.resolve(true);
 }
 
-GradientContainer.prototype.parseColorStops = function(args) {
+GradientContainer.prototype.parseColorStops = function(args, size) {
     this.colorStops = args.map(function(colorStop) {
         var colorStopMatch = colorStop.match(GradientContainer.REGEXP_COLORSTOP);
         if (!colorStopMatch) {
@@ -1443,11 +2214,11 @@ GradientContainer.TYPES = {
 //GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d{1,3}(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
 
 // with hsl[a] support
-GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|hsla?\(\s*\d{1,3},\s*\d{1,3}%,\s*\d{1,3}%(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d{1,3}(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
+GradientContainer.REGEXP_COLORSTOP = /^\s*(rgba?\(\s*\d{1,3},\s*\d{1,3},\s*\d{1,3}(?:,\s*[0-9\.]+)?\s*\)|hsla?\(\s*\d{1,3},\s*[\d\.]+%,\s*[\d\.]+%(?:,\s*[0-9\.]+)?\s*\)|[a-z]{3,20}|#[a-f0-9]{3,6})(?:\s+(\d+(?:\.\d+)?)(%|px)?)?(?:\s|$)/i;
 
 module.exports = GradientContainer;
 
-},{"./color":4}],11:[function(_dereq_,module,exports){
+},{"./color":11}],18:[function(_dereq_,module,exports){
 function ImageContainer(src, cors) {
     this.src = src;
     this.image = new Image();
@@ -1468,12 +2239,13 @@ function ImageContainer(src, cors) {
 
 module.exports = ImageContainer;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var ImageContainer = _dereq_('./imagecontainer');
 var VideoContainer = _dereq_('./videocontainer');
 var DummyImageContainer = _dereq_('./dummyimagecontainer');
 var ProxyImageContainer = _dereq_('./areion_proxyimagecontainer');
+var ProxyVideoContainer = _dereq_('./areion_proxyvideocontainer');
 var FrameContainer = _dereq_('./framecontainer');
 var SVGContainer = _dereq_('./svgcontainer');
 var SVGNodeContainer = _dereq_('./svgnodecontainer');
@@ -1521,6 +2293,12 @@ ImageLoader.prototype.findImages = function(nodes) {
 
 ImageLoader.prototype.findBackgroundImage = function(images, container) {
     container.parseBackgroundImages().filter(this.hasImageBackground).forEach(this.addImage(images, this.loadImage, container), this);
+
+    var image = container.parseListStyleImage();
+    if (image) {
+        this.addImage(images, this.loadImage, container).call(this, image);
+    }
+
     return images;
 };
 
@@ -1574,14 +2352,19 @@ ImageLoader.prototype.loadImage = function(imageData, container) {
     } else if (imageData.method === "IFRAME") {
         return new FrameContainer(imageData.args[0], this.isSameOrigin(imageData.args[0].src), this.options);
     } else if (imageData.method === "VIDEO") {
-        return new VideoContainer(imageData);
+        var videoSrc = imageData.args[0].currentSrc || imageData.args[0].src;
+        if (this.isSameOrigin(videoSrc) || this.options.allowTaint === true) {
+            return new VideoContainer(imageData);
+        } else {
+            return new ProxyVideoContainer(imageData);
+        }
     } else {
         return new DummyImageContainer(imageData);
     }
 };
 
 ImageLoader.prototype.isSVG = function(src) {
-    return src.substring(src.length - 3).toLowerCase() === "svg" || SVGContainer.prototype.isInline(src);
+    return /\.svg(?:$|\?|#)/i.test(src) || SVGContainer.prototype.isInline(src);
 };
 
 ImageLoader.prototype.imageExists = function(images, src) {
@@ -1657,7 +2440,7 @@ ImageLoader.prototype.timeout = function(container, timeout) {
 
 module.exports = ImageLoader;
 
-},{"./areion_proxyimagecontainer":2,"./dummyimagecontainer":6,"./framecontainer":9,"./imagecontainer":11,"./lineargradientcontainer":13,"./log":14,"./radialgradientcontainer":19,"./repeatinglineargradientcontainer":22,"./repeatingradialgradientcontainer":23,"./svgcontainer":26,"./svgnodecontainer":27,"./utils":29,"./videocontainer":30,"./webkitgradientcontainer":31}],13:[function(_dereq_,module,exports){
+},{"./areion_proxyimagecontainer":8,"./areion_proxyvideocontainer":9,"./dummyimagecontainer":13,"./framecontainer":16,"./imagecontainer":18,"./lineargradientcontainer":20,"./log":21,"./radialgradientcontainer":26,"./repeatinglineargradientcontainer":29,"./repeatingradialgradientcontainer":30,"./svgcontainer":33,"./svgnodecontainer":34,"./utils":36,"./videocontainer":37,"./webkitgradientcontainer":38}],20:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var Color = _dereq_('./color');
 
@@ -1718,7 +2501,7 @@ LinearGradientContainer.ANGLES = {
 
 module.exports = LinearGradientContainer;
 
-},{"./color":4,"./gradientcontainer":10}],14:[function(_dereq_,module,exports){
+},{"./color":11,"./gradientcontainer":17}],21:[function(_dereq_,module,exports){
 var logger = function() {
     if (logger.options.logging && window.console && window.console.log) {
         Function.prototype.bind.call(window.console.log, (window.console)).apply(window.console, [(Date.now() - logger.options.start) + "ms", "html2canvas:"].concat([].slice.call(arguments, 0)));
@@ -1728,7 +2511,7 @@ var logger = function() {
 logger.options = {logging: false};
 module.exports = logger;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 var Color = _dereq_('./color');
 var utils = _dereq_('./utils');
 var getBounds = utils.getBounds;
@@ -1750,6 +2533,7 @@ function NodeContainer(node, parent) {
     this.colors = {};
     this.styles = {};
     this.backgroundImages = null;
+    this.listStyleImage = undefined;
     this.transformData = null;
     this.transformMatrix = null;
     this.isPseudoElement = false;
@@ -1770,7 +2554,22 @@ NodeContainer.prototype.cloneTo = function(stack) {
 };
 
 NodeContainer.prototype.getOpacity = function() {
-    return this.opacity === null ? (this.opacity = this.cssFloat('opacity')) : this.opacity;
+    if (this.opacity == null) {
+        var opacity = parseFloat(this.css("opacity"));
+        var container = this;
+        while (isNaN(opacity)) {
+            container = container.parent;
+            if (!container) {
+                opacity = 1;
+                break;
+            }
+            opacity = parseFloat(container.css("opacity"));
+        }
+
+        this.opacity = opacity;
+    }
+
+    return this.opacity;
 };
 
 NodeContainer.prototype.assignStack = function(stack) {
@@ -1788,7 +2587,18 @@ NodeContainer.prototype.isElementVisible = function() {
     );
 };
 
-NodeContainer.prototype.css = function(attribute) {
+NodeContainer.prototype.css = function(attribute, forceGetFromComputedStyle) {
+    // MCH -->
+    // return the property value from the computed style in the element itself
+    // used to fix the problem with transform-origin on pseudo elements
+    if (forceGetFromComputedStyle) {
+        var val = this.computedStyle(null)[attribute];
+        if (val) {
+            return val;
+        }
+    }
+    // <--
+
     if (!this.computedStyles) {
         this.computedStyles = this.isPseudoElement ? this.parent.computedStyle(this.before ? ":before" : ":after") : this.computedStyle(null);
     }
@@ -1796,12 +2606,12 @@ NodeContainer.prototype.css = function(attribute) {
     return this.styles[attribute] || (this.styles[attribute] = this.computedStyles[attribute]);
 };
 
-NodeContainer.prototype.prefixedCss = function(attribute) {
+NodeContainer.prototype.prefixedCss = function(attribute, forceGetFromComputedStyle) {
     var prefixes = ["webkit", "moz", "ms", "o"];
-    var value = this.css(attribute);
+    var value = this.css(attribute, forceGetFromComputedStyle);
     if (value === undefined) {
         prefixes.some(function(prefix) {
-            value = this.css(prefix + attribute.substr(0, 1).toUpperCase() + attribute.substr(1));
+            value = this.css(prefix + attribute.substr(0, 1).toUpperCase() + attribute.substr(1), forceGetFromComputedStyle);
             return value !== undefined;
         }, this);
     }
@@ -1856,6 +2666,18 @@ NodeContainer.prototype.parseBackgroundImages = function() {
     return this.backgroundImages || (this.backgroundImages = parseBackgrounds(this.css("backgroundImage")));
 };
 
+NodeContainer.prototype.parseListStyleImage = function() {
+    if (this.listStyleImage === undefined) {
+        var images = parseBackgrounds(this.css("listStyleImage"));
+        if (images && images.length > 0) {
+            this.listStyleImage = images[0];
+        } else {
+            this.listStyleImage = null;
+        }
+    }
+
+    return this.listStyleImage;
+};
 
 NodeContainer.prototype.parseBackgroundSize = function(bounds, image, index) {
     var size = (this.css("backgroundSize") || '').split(',');
@@ -2035,9 +2857,10 @@ NodeContainer.prototype.parseTransform = function() {
     if (!this.transformData) {
         if (this.hasTransform()) {
             var offset = this.parseBounds();
-            var origin = this.prefixedCss("transformOrigin").split(" ").map(removePx).map(asFloat);
+            var origin = this.prefixedCss("transformOrigin", true).split(" ").map(removePx).map(asFloat);
             origin[0] += offset.left;
             origin[1] += offset.top;
+
             this.transformData = {
                 origin: origin,
                 matrix: this.parseTransformMatrix()
@@ -2129,7 +2952,7 @@ function asFloat(str) {
 
 module.exports = NodeContainer;
 
-},{"./color":4,"./utils":29}],16:[function(_dereq_,module,exports){
+},{"./color":11,"./utils":36}],23:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var punycode = _dereq_('punycode');
 var NodeContainer = _dereq_('./nodecontainer');
@@ -2139,6 +2962,8 @@ var FontMetrics = _dereq_('./fontmetrics');
 var Color = _dereq_('./color');
 var StackingContext = _dereq_('./stackingcontext');
 var utils = _dereq_('./utils');
+var ListStyleTypeFormatter = _dereq_('liststyletype-formatter');
+
 var bind = utils.bind;
 var getBounds = utils.getBounds;
 var parseBackgrounds = utils.parseBackgrounds;
@@ -2165,6 +2990,10 @@ function NodeParser(element, renderer, support, imageLoader, options) {
     parent.visibile = parent.isElementVisible();
     this.createPseudoHideStyles(element.ownerDocument);
     this.disableAnimations(element.ownerDocument);
+
+    this.counters = {};
+    this.quoteDepth = 0;
+    this.resolvePseudoContent(element);
 
     // MCH -->
     var width = window.innerWidth || document.documentElement.clientWidth;
@@ -2411,11 +3240,12 @@ NodeParser.prototype.getPseudoElements = function(container) {
 
 /* applyInlineStylesToSvgs' workhorse */
 function applyInlineStylesRecursive(node) {
-    var cStyle = getComputedStyle(node);
-
-    for (var j = cStyle.length-1; j >= 0; j--) {
-        var property = toCamelCase(cStyle.item(j));
-        node.style[property] = cStyle[property];
+    if (node.nodeName !== "use" && node.nodeName !== "symbol") {
+        var cStyle = getComputedStyle(node);
+        for (var j = cStyle.length-1; j >= 0; j--) {
+            var property = toCamelCase(cStyle.item(j));
+            node.style[property] = cStyle[property];
+        }
     }
 
     var childNodes = node.childNodes, len = childNodes.length;
@@ -2434,7 +3264,6 @@ NodeParser.prototype.applyInlineStylesToSvg = function(container) {
         applyInlineStylesRecursive(n);
     }
     return container;
-
 };
 
 
@@ -2444,32 +3273,332 @@ function toCamelCase(str) {
     });
 }
 
+NodeParser.prototype.resolvePseudoContent = function(element) {
+    var style = getComputedStyle(element);
+    var counterReset = style.counterReset;
+    var counters = [];
+    var i;
+
+    if (counterReset && counterReset !== "none") {
+        var counterResets = counterReset.split(/\s*,\s*/);
+        var lenCounterResets = counterResets.length;
+
+        for (i = 0; i < lenCounterResets; i++) {
+            var parts = counterResets[i].split(/\s+/);
+            counters.push(parts[0]);
+            var counter = this.counters[parts[0]];
+            if (!counter) {
+                counter = this.counters[parts[0]] = [];
+            }
+            counter.push(parseInt(parts[1] || 0, 10));
+        }
+    }
+
+    // handle the ::before pseudo element
+    element._contentBefore = this.resolvePseudoContentInternal(element, getComputedStyle(element, ":before"));
+
+    // handle children
+    var children = element.childNodes;
+    var len = children.length;
+    for (i = 0; i < len; i++) {
+        var child = children[i];
+        if (child.nodeType === 1) {
+            this.resolvePseudoContent(children[i]);
+        }
+    }
+
+    // handle the ::after pseudo element
+    element._contentAfter = this.resolvePseudoContentInternal(element, getComputedStyle(element, ":after"));
+
+    var lenCounters = counters.length;
+    for (i = 0; i < lenCounters; i++) {
+        this.counters[counters[i]].pop();
+    }
+};
+
+NodeParser.prototype.getQuote = function(style, isOpening) {
+    var quotes = style.quotes ? style.quotes.split(/\s+/) : [ "'\"'", "'\"'" ];
+    var idx = this.quoteDepth * 2;
+    if (idx >= quotes.length) {
+        idx = quotes.length - 2;
+    }
+    if (!isOpening) {
+        ++idx;
+    }
+    return quotes[idx].replace(/^["']|["']$/g, "");
+};
+
+NodeParser.prototype.resolvePseudoContentInternal = function(element, style) {
+    if (!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none") {
+        return null;
+    }
+
+    var tokens = NodeParser.parsePseudoContent(style.content);
+    var len = tokens.length;
+    var ret = [];
+    var s = "";
+
+    // increment the counter (if there is a "counter-increment" declaration)
+    var counterIncrement = style.counterIncrement;
+    if (counterIncrement && counterIncrement !== "none") {
+        var parts = counterIncrement.split(/\s+/);
+        var ctr = this.counters[parts[0]];
+        if (ctr) {
+            ctr[ctr.length - 1] += parts[1] === undefined ? 1 : parseInt(parts[1], 10);
+        }
+    }
+
+    // build the content string
+    for (var i = 0; i < len; i++) {
+        var token = tokens[i];
+        switch (token.type) {
+        case "string":
+            s += token.value;
+            break;
+
+        case "attr":
+            break;
+
+        case "counter":
+            var counter = this.counters[token.name];
+            if (counter) {
+                s += this.formatCounterValue([counter[counter.length - 1]], '', token.format);
+            }
+            break;
+
+        case "counters":
+            var counters = this.counters[token.name];
+            if (counters) {
+                s += this.formatCounterValue(counters, token.glue, token.format);
+            }
+            break;
+
+        case "open-quote":
+            s += this.getQuote(style, true);
+            ++this.quoteDepth;
+            break;
+
+        case "close-quote":
+            --this.quoteDepth;
+            s += this.getQuote(style, false);
+            break;
+
+        case "url":
+            if (s) {
+                ret.push({ type: "string", value: s });
+                s = "";
+            }
+            ret.push({ type: "image", url: token.href });
+            break;
+        }
+    }
+
+    if (s) {
+        ret.push({ type: "string", value: s });
+    }
+
+    return ret;
+};
+
+NodeParser.prototype.formatCounterValue = function(counter, glue, format) {
+    var ret = '';
+    var len = counter.length;
+
+    for (var i = 0; i < len; i++) {
+        if (i > 0) {
+            ret += glue;
+        }
+        ret += ListStyleTypeFormatter.format(counter[i], format, false);
+    }
+
+    return ret;
+};
+
+var _parsedContent = {};
+
+NodeParser.parsePseudoContent = function(content) {
+    if (_parsedContent[content]) {
+        return _parsedContent[content];
+    }
+
+    var tokens = [];
+    var len = content.length;
+    var isString = false;
+    var isEscaped = false;
+    var isFunction = false;
+    var str = "";
+    var functionName = "";
+    var args = [];
+
+    for (var i = 0; i < len; i++) {
+        var c = content.charAt(i);
+
+        switch (c) {
+        case "'":
+        case "\"":
+            if (isEscaped) {
+                str += c;
+            } else {
+                isString = !isString;
+                if (!isFunction && !isString) {
+                    tokens.push({ type: "string", value: str });
+                    str = "";
+                }
+            }
+            break;
+
+        case "\\":
+            if (isEscaped) {
+                str += c;
+                isEscaped = false;
+            } else {
+                isEscaped = true;
+            }
+            break;
+
+        case "(":
+            if (isString) {
+                str += c;
+            } else {
+                isFunction = true;
+                functionName = str;
+                str = "";
+                args = [];
+            }
+            break;
+
+        case ")":
+            if (isString) {
+                str += c;
+            } else if (isFunction) {
+                if (str) {
+                    args.push(str);
+                }
+
+                switch (functionName) {
+                case "attr":
+                    if (args.length > 0) {
+                        tokens.push({ type: "attr", attr: args[0] });
+                    }
+                    break;
+
+                case "counter":
+                    if (args.length > 0) {
+                        var counter = {
+                            type: "counter",
+                            name: args[0]
+                        };
+                        if (args.length > 1) {
+                            counter.format = args[1];
+                        }
+                        tokens.push(counter);
+                    }
+                    break;
+
+                case "counters":
+                    if (args.length > 0) {
+                        var counters = {
+                            type: "counters",
+                            name: args[0]
+                        };
+                        if (args.length > 1) {
+                            counters.glue = args[1];
+                        }
+                        if (args.length > 2) {
+                            counters.format = args[2];
+                        }
+                        tokens.push(counters);
+                    }
+                    break;
+
+                case "url":
+                    if (args.length > 0) {
+                        tokens.push({ type: "url", href: args[0] });
+                    }
+                    break;
+                }
+
+                isFunction = false;
+                str = "";
+            }
+            break;
+
+        case ",":
+            if (isString) {
+                str += c;
+            } else if (isFunction) {
+                args.push(str);
+                str = "";
+            }
+            break;
+
+        case " ":
+        case "\t":
+            if (isString) {
+                str += c;
+            } else if (str) {
+                tokens.push({ type: str });
+                str = "";
+            }
+            break;
+
+        default:
+            str += c;
+        }
+
+        if (c !== "\\") {
+            isEscaped = false;
+        }
+    }
+
+    if (str) {
+        tokens.push({ type: str });
+    }
+
+    _parsedContent[content] = tokens;
+    return tokens;
+};
+
 NodeParser.prototype.getPseudoElement = function(container, type) {
     var style = container.computedStyle(type);
     if(!style || !style.content || style.content === "none" || style.content === "-moz-alt-content" || style.display === "none" || style.visibility === "hidden") {
         return null;
     }
 
-    var content = stripQuotes(style.content);
-    var isImage = content.substr(0, 3) === 'url';
-    var pseudoNode = document.createElement(isImage ? 'img' : 'html2canvaspseudoelement');
+    var content = type === ":before" ? container.node._contentBefore : container.node._contentAfter;
+    var len = content.length;
+
+    var pseudoNode = document.createElement("html2canvaspseudoelement");
     var pseudoContainer = new PseudoElementContainer(pseudoNode, container, type);
 
-    for (var i = style.length-1; i >= 0; i--) {
-        var property = toCamelCase(style.item(i));
-        pseudoNode.style[property] = style[property];
+    for (var j = style.length - 1; j >= 0; j--) {
+        var property = toCamelCase(style.item(j));
+        if (property !== "content") {
+            pseudoNode.style[property] = style[property];
+        }
     }
 
     pseudoNode.className = PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_BEFORE + " " + PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_AFTER;
 
-    if (isImage) {
-        pseudoNode.src = parseBackgrounds(content)[0].args[0];
-        return [pseudoContainer];
-    } else {
-        var text = document.createTextNode(content);
-        pseudoNode.appendChild(text);
-        return [pseudoContainer, new TextContainer(text, pseudoContainer)];
+    var ret = [pseudoContainer];
+
+    for (var i = 0; i < len; i++) {
+        var item = content[i];
+
+        if (item.type === "image") {
+            var img = document.createElement("img");
+            img.src = parseBackgrounds("url(" + item.url + ")")[0].args[0];
+            img.style.opacity = "1";
+            pseudoNode.appendChild(img);
+            ret.push(new NodeContainer(img, pseudoContainer));
+        } else {
+            var text = document.createTextNode(item.value);
+            pseudoNode.appendChild(text);
+            ret.push(new TextContainer(text, pseudoContainer));
+        }
     }
+
+    return ret;
 };
 
 
@@ -2598,18 +3727,21 @@ NodeParser.prototype.paint = function(container) {
     }
 
     try {
+        var isParentPseudoElement = container.parent && isPseudoElement(container.parent);
+        if (isParentPseudoElement) {
+            container.parent.appendToDOM();
+        }
+
         if (container instanceof ClearTransform) {
             this.renderer.ctx.restore();
         } else if (isTextNode(container)) {
-            if (isPseudoElement(container.parent)) {
-                container.parent.appendToDOM();
-            }
             this.paintText(container);
-            if (isPseudoElement(container.parent)) {
-                container.parent.cleanDOM();
-            }
         } else {
             this.paintNode(container);
+        }
+
+        if (isParentPseudoElement) {
+            container.parent.cleanDOM();
         }
     } catch(e) {
         log(e);
@@ -2628,7 +3760,7 @@ NodeParser.prototype.paintNode = function(container) {
             this.renderer.setTransform(container.parseTransform());
         }
 
-        var mixBlendMode = container.css('mixBlendMode');
+        var mixBlendMode = container.css("mixBlendMode");
         if (mixBlendMode) {
             this.renderer.setMixBlendMode(mixBlendMode);
         }
@@ -2644,6 +3776,7 @@ NodeParser.prototype.paintNode = function(container) {
 };
 
 NodeParser.prototype.paintElement = function(container) {
+//console.log(container.node);
     var bounds = container.parseBounds();
 
     this.renderer.clip(container.backgroundClip, function() {
@@ -2654,7 +3787,15 @@ NodeParser.prototype.paintElement = function(container) {
         this.renderer.renderShadows(container, container.borders.clip, null, false);
     }, this, container);
 
-    this.renderer.clip(container.backgroundClip, function() {
+    var clip = container.backgroundClip;
+    if (container.node.nodeName === "LI") {
+        var parent = this.getParentOfType(container, ["OL", "UL"]);
+        clip = parent.css("overflow") !== "visible" ? parent.backgroundClip : null;
+    } else if (container.node.nodeName === "IMG" && isPseudoElement(container.parent)) {
+        clip = null;
+    }
+
+    this.renderer.clip(clip, function() {
         switch (container.node.nodeName) {
         case "svg":
         case "IFRAME":
@@ -2683,6 +3824,9 @@ NodeParser.prototype.paintElement = function(container) {
             break;
         case "CANVAS":
             this.renderer.renderImage(container, bounds, container.borders, {image: container.node});
+            break;
+        case "LI":
+            this.paintListItem(container);
             break;
         case "SELECT":
         case "INPUT":
@@ -2750,16 +3894,17 @@ var getPropertyValue = function(container, propertyName, placeholderRules) {
     return container.css(propertyName);
 };
 
-NodeParser.prototype.paintFormValue = function(container) {
-    var value = container.getValue();
-    var isPlaceholder = container.isPlaceholderShown();
+NodeParser.prototype.paintIntrinsicTextNode = function(container, value, canHavePlaceholder, isOutside) {
+    var isPlaceholder = canHavePlaceholder ? container.isPlaceholderShown() : false;
     if (value.length > 0) {
         var document = container.node.ownerDocument;
         var wrapper = document.createElement('html2canvaswrapper');
-        var properties = ['lineHeight', 'textAlign', 'fontFamily', 'fontWeight', 'fontSize', 'color',
+        var properties = [
+            'lineHeight', 'textAlign', 'fontFamily', 'fontWeight', 'fontSize', 'color',
             'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
             'width', 'height', 'borderLeftStyle', 'borderTopStyle', 'borderLeftWidth', 'borderTopWidth',
-            'boxSizing', 'whiteSpace', 'wordWrap'];
+            'boxSizing', 'whiteSpace', 'wordWrap'
+        ];
         var lenProperties = properties.length;
         var placeholderRules = isPlaceholder ? getMatchingRules(container.node, /::placeholder|::-webkit-input-placeholder|::?-moz-placeholder|:-ms-input-placeholder/) : null;
 
@@ -2774,10 +3919,22 @@ NodeParser.prototype.paintFormValue = function(container) {
         }
 
         var bounds = container.parseBounds();
+
         wrapper.style.position = "fixed";
-        wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
+
+        if (isOutside) {
+            // paint the text outside the box, i.e., right-aligned to the left of the box
+            wrapper.style.left = 'auto';
+            var windowWidth = window.innerWidth || document.documentElement.clientWidth;
+            wrapper.style.right = (windowWidth - bounds.left + 4) + "px";
+            wrapper.style.textAlign = 'right';
+        } else {
+            wrapper.style.left = bounds.left + "px";
+        }
+
         wrapper.textContent = value;
+
         if (wrapper.style.lineHeight === 'normal') {
             wrapper.style.lineHeight = container.computedStyles.height;
         }
@@ -2785,6 +3942,75 @@ NodeParser.prototype.paintFormValue = function(container) {
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, new NodeContainer(wrapper, container)));
         document.body.removeChild(wrapper);
+    }
+};
+
+NodeParser.prototype.paintFormValue = function(container) {
+    var value = container.getValue();
+    this.paintIntrinsicTextNode(container, container.getValue(), true, false);
+};
+
+NodeParser.prototype.getParentOfType = function(container, parentTypes) {
+    var parent = container.parent;
+
+    while (parentTypes.indexOf(parent.node.tagName) < 0) {
+        parent = parent.parent;
+        if (!parent) {
+            return null;
+        }
+    }
+
+    return parent;
+};
+
+NodeParser.prototype.getParentNodeOfType = function(node, parentTypes) {
+    var parent = node.parentNode;
+
+    while (parentTypes.indexOf(parent.tagName) < 0) {
+        parent = parent.parentNode;
+        if (!parent) {
+            return null;
+        }
+    }
+
+    return parent;
+};
+
+NodeParser.prototype.paintListItem = function(container) {
+    var isOutside = container.css("listStylePosition") === "outside";
+    if (container.listStyleImage && container.listStyleImage.method !== "none") {
+        // image enumeration symbol
+        this.renderer.renderListStyleImage(container, container.parseBounds(), isOutside);
+    } else {
+        // textual enumeration symbol/number
+
+        // find the parent OL/UL
+        var listTypes = ["OL", "UL"];
+        var listContainer = this.getParentOfType(container, listTypes);
+
+        if (listContainer) {
+            // compute the enumeration number
+            var value = 1;
+            var start = listContainer && listContainer.node.getAttribute("start");
+            if (start !== null) {
+                value = parseInt(start, 10);
+            }
+            
+            var listItems = listContainer.node.querySelectorAll("li");
+            var lenListItems = listItems.length;
+            for (var i = 0; i < lenListItems; i++) {
+                var li = listItems[i];
+                if (container.node === li) {
+                    break;
+                }
+                if (this.getParentNodeOfType(li, listTypes) === listContainer.node) {
+                    ++value;
+                }
+            }
+
+            // paint the text
+            this.paintIntrinsicTextNode(container, ListStyleTypeFormatter.format(value, container.css("listStyleType")), false, isOutside);
+        }
     }
 };
 
@@ -2868,6 +4094,8 @@ NodeParser.prototype.parseBorders = function(container) {
         return {
             width: container.cssInt('border' + side + 'Width'),
             color: colorTransform ? color[colorTransform[0]](colorTransform[1]) : color,
+            style: style,
+            pathArgs: null,
             args: null
         };
     });
@@ -2880,6 +4108,12 @@ NodeParser.prototype.parseBorders = function(container) {
 };
 
 function calculateBorders(borders, nodeBounds, borderPoints, radius) {
+    var pathBounds = {
+        top: nodeBounds.top + borders[0].width/2,
+        right: nodeBounds.right - borders[1].width/2,
+        bottom: nodeBounds.bottom - borders[2].width/2,
+        left: nodeBounds.left + borders[3].width/2
+    };
     return borders.map(function(border, borderSide) {
         if (border.width > 0) {
             var bx = nodeBounds.left;
@@ -2898,6 +4132,11 @@ function calculateBorders(borders, nodeBounds, borderPoints, radius) {
                         c4: [bx + borders[3].width, by + bh]
                     }, radius[0], radius[1],
                     borderPoints.topLeftOuter, borderPoints.topLeftInner, borderPoints.topRightOuter, borderPoints.topRightInner);
+                border.pathArgs = drawSidePath({
+                        c1: [pathBounds.left, pathBounds.top],
+                        c2: [pathBounds.right, pathBounds.top]
+                    }, radius[0], radius[1],
+                    borderPoints.topLeft, borderPoints.topRight);
                 break;
             case 1:
                 // right border
@@ -2911,6 +4150,11 @@ function calculateBorders(borders, nodeBounds, borderPoints, radius) {
                         c4: [bx, by + borders[0].width]
                     }, radius[1], radius[2],
                     borderPoints.topRightOuter, borderPoints.topRightInner, borderPoints.bottomRightOuter, borderPoints.bottomRightInner);
+                border.pathArgs = drawSidePath({
+                        c1: [pathBounds.right, pathBounds.top],
+                        c2: [pathBounds.right, pathBounds.bottom]
+                    }, radius[1], radius[2],
+                    borderPoints.topRight, borderPoints.bottomRight);
                 break;
             case 2:
                 // bottom border
@@ -2923,6 +4167,11 @@ function calculateBorders(borders, nodeBounds, borderPoints, radius) {
                         c4: [bx + bw - borders[3].width, by]
                     }, radius[2], radius[3],
                     borderPoints.bottomRightOuter, borderPoints.bottomRightInner, borderPoints.bottomLeftOuter, borderPoints.bottomLeftInner);
+                border.pathArgs = drawSidePath({
+                        c1: [pathBounds.right, pathBounds.bottom],
+                        c2: [pathBounds.left, pathBounds.bottom]
+                    }, radius[2], radius[3],
+                    borderPoints.bottomRight, borderPoints.bottomLeft);
                 break;
             case 3:
                 // left border
@@ -2934,6 +4183,11 @@ function calculateBorders(borders, nodeBounds, borderPoints, radius) {
                         c4: [bx + bw, by + bh]
                     }, radius[3], radius[0],
                     borderPoints.bottomLeftOuter, borderPoints.bottomLeftInner, borderPoints.topLeftOuter, borderPoints.topLeftInner);
+                border.pathArgs = drawSidePath({
+                        c1: [pathBounds.left, pathBounds.bottom],
+                        c2: [pathBounds.left, pathBounds.top]
+                    }, radius[3], radius[0],
+                    borderPoints.bottomLeft, borderPoints.topLeft);
                 break;
             }
         }
@@ -3021,6 +4275,11 @@ function calculateCurvePoints(bounds, borderRadius, borders) {
         leftHeight = height - v[3];
 
     return {
+        topLeft: getCurvePoints(x + borders[3].width/2, y + borders[0].width/2, Math.max(0, h[0] - borders[3].width/2), Math.max(0, v[0] - borders[0].width/2)).topLeft.subdivide(0.5),
+        topRight: getCurvePoints(x + Math.min(topWidth, width + borders[3].width/2), y + borders[0].width/2, (topWidth > width + borders[3].width/2) ? 0 : h[1] - borders[3].width/2, v[1] - borders[0].width/2).topRight.subdivide(0.5),
+        bottomRight: getCurvePoints(x + Math.min(bottomWidth, width - borders[3].width/2), y + Math.min(rightHeight, height + borders[0].width/2), Math.max(0, h[2] - borders[1].width/2),  v[2] - borders[2].width/2).bottomRight.subdivide(0.5),
+        bottomLeft: getCurvePoints(x + borders[3].width/2, y + leftHeight, Math.max(0, h[3] - borders[3].width/2), v[3] - borders[2].width/2).bottomLeft.subdivide(0.5),
+
         topLeftOuter: getCurvePoints(x, y, h[0], v[0]).topLeft.subdivide(0.5),
         topLeftInner: getCurvePoints(x + borders[3].width, y + borders[0].width, Math.max(0, h[0] - borders[3].width), Math.max(0, v[0] - borders[0].width)).topLeft.subdivide(0.5),
         topRightOuter: getCurvePoints(x + topWidth, y, h[1], v[1]).topRight.subdivide(0.5),
@@ -3088,6 +4347,24 @@ function drawSide(borderData, radius1, radius2, outer1, inner1, outer2, inner2) 
         inner1[1].curveToReversed(borderArgs);
     } else {
         borderArgs.push(["line", borderData.c4[0], borderData.c4[1]]);
+    }
+
+    return borderArgs;
+}
+
+function drawSidePath(borderData, radius1, radius2, curve1, curve2) {
+    var borderArgs = [];
+    if (radius1[0] > 0 || radius1[1] > 0) {
+        borderArgs.push(["line", curve1[1].start.x, curve1[1].start.y]);
+        curve1[1].curveTo(borderArgs);
+    } else {
+        borderArgs.push([ "line", borderData.c1[0], borderData.c1[1]]);
+    }
+    if (radius2[0] > 0 || radius2[1] > 0) {
+        borderArgs.push(["line", curve2[0].start.x, curve2[0].start.y]);
+        curve2[0].curveTo(borderArgs);
+    } else {
+        borderArgs.push([ "line", borderData.c2[0], borderData.c2[1]]);
     }
 
     return borderArgs;
@@ -3231,10 +4508,11 @@ function flatten(arrays) {
     return [].concat.apply([], arrays);
 }
 
+/*
 function stripQuotes(content) {
     var first = content.substr(0, 1);
     return (first === content.substr(content.length - 1) && first.match(/'|"/)) ? content.substr(1, content.length - 2) : content;
-}
+}*/
 
 function getWords(characters) {
     var words = [], i = 0, onWordBoundary = false, word;
@@ -3276,7 +4554,7 @@ function hasUnicode(string) {
 
 module.exports = NodeParser;
 
-},{"./color":4,"./fontmetrics":8,"./log":14,"./nodecontainer":15,"./pseudoelementcontainer":18,"./stackingcontext":24,"./textcontainer":28,"./utils":29,"punycode":1}],17:[function(_dereq_,module,exports){
+},{"./color":11,"./fontmetrics":15,"./log":21,"./nodecontainer":22,"./pseudoelementcontainer":25,"./stackingcontext":31,"./textcontainer":35,"./utils":36,"liststyletype-formatter":6,"punycode":7}],24:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var utils = _dereq_('./utils');
 var log = _dereq_('./log');
@@ -3373,7 +4651,7 @@ exports.Proxy = Proxy;
 exports.ProxyURL = ProxyURL;
 exports.loadUrlDocument = loadUrlDocument;
 
-},{"./clone":3,"./log":14,"./utils":29,"./xhr":32}],18:[function(_dereq_,module,exports){
+},{"./clone":10,"./log":21,"./utils":36,"./xhr":39}],25:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function PseudoElementContainer(node, parent, type) {
@@ -3413,7 +4691,7 @@ PseudoElementContainer.prototype.PSEUDO_HIDE_ELEMENT_CLASS_AFTER = "___html2canv
 
 module.exports = PseudoElementContainer;
 
-},{"./nodecontainer":15}],19:[function(_dereq_,module,exports){
+},{"./nodecontainer":22}],26:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var Color = _dereq_('./color');
 
@@ -3540,7 +4818,7 @@ RadialGradientContainer.REGEXP_SHAPEDEF = /^\s*(circle|ellipse)?\s*((?:([\d.]+)(
 
 module.exports = RadialGradientContainer;
 
-},{"./color":4,"./gradientcontainer":10}],20:[function(_dereq_,module,exports){
+},{"./color":11,"./gradientcontainer":17}],27:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 var LinearGradientContainer = _dereq_('./lineargradientcontainer');
 var RadialGradientContainer = _dereq_('./radialgradientcontainer');
@@ -3592,8 +4870,8 @@ Renderer.prototype.renderBackgroundColor = function(container, bounds) {
 };
 
 Renderer.prototype.renderShadows = function(container, shape, borderData, inset) {
-    var boxShadow = container.css('boxShadow');
-    if (boxShadow !== 'none' && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
+    var boxShadow = container.css("boxShadow");
+    if (boxShadow && boxShadow !== "none" && /(?:^|\s+)inset(?:$|\s+)/i.test(boxShadow) === inset) {
         var shadows = boxShadow.split(/,(?![^(]*\))/);
         this.shadow(shape, shadows, container, inset, borderData && borderData.borders);
     }
@@ -3605,7 +4883,16 @@ Renderer.prototype.renderBorders = function(borders) {
 
 Renderer.prototype.renderBorder = function(data) {
     if (!data.color.isTransparent() && data.args !== null) {
-        this.drawShape(data.args, data.color);
+        if (data.style === 'dashed' || data.style === 'dotted') {
+            var dash = (data.style === 'dashed') ? 3 : data.width;
+            this.ctx.setLineDash([dash]);
+            this.path(data.pathArgs);
+            this.ctx.strokeStyle = data.color;
+            this.ctx.lineWidth = data.width;
+            this.ctx.stroke();
+        } else {
+            this.drawShape(data.args, data.color);
+        }
     }
 };
 
@@ -3689,6 +4976,62 @@ Renderer.prototype.renderBackgroundImage = function(container, bounds, borderDat
             log("Unknown background-image type", backgroundImage.args[0]);
         }
     }, this);
+};
+
+Renderer.prototype.renderListStyleImage = function(container, bounds, isOutside) {
+    if (!container.listStyleImage) {
+        return;
+    }
+
+    switch(container.listStyleImage.method) {
+    case "url":
+        var image = this.images.get(container.listStyleImage.args[0]);
+        if (image) {
+            var width = image.image && (image.image.naturalWidth || image.image.width);
+            var height = image.image && (image.image.naturalHeight || image.image.height);
+            this.renderImage(container, {
+                left: isOutside ? bounds.left - width - 7 : bounds.left,
+                top: bounds.top,
+                right: isOutside ? bounds.left - 7 : bounds.left + width,
+                bottom: bounds.bottom,
+                width: width,
+                height: height           
+            }, container.borders, image);
+        } else {
+            log("Error loading background-image", container.listStyleImage.args[0]);
+        }
+        break;
+    case "linear-gradient":
+    case "radial-gradient":
+    case "repeating-linear-gradient":
+    case "repeating-radial-gradient":
+    case "gradient":
+        var gradientImage = this.images.get(container.listStyleImage.value);
+        if (gradientImage) {
+            var size = parseInt(container.css("fontSize"), 10) * 0.5;
+            var gradientBounds = {
+                left: isOutside ? bounds.left - size - 7 : bounds.left,
+                top: bounds.bottom - 1.5 * size,
+                right: isOutside ? bounds.left - 7 : bounds.left + size,
+                bottom: bounds.bottom - 0.5 * size,
+                width: size,
+                height: size
+            };
+            var gradient = this.createGradient(container, gradientImage, gradientBounds);
+            if (gradient) {
+                this.renderGradient(gradient, gradientBounds);
+            } else {
+                log("Error creating gradient", container.listStyleImage.args[0]);
+            }
+        } else {
+            log("Error loading background-image", container.listStyleImage.args[0]);
+        }
+        break;
+    case "none":
+        break;
+    default:
+        log("Unknown background-image type", container.listStyleImage.args[0]);
+    }
 };
 
 Renderer.prototype.renderBackgroundRepeating = function(container, bounds, imageContainer, index, borderData) {
@@ -3923,7 +5266,7 @@ Renderer.prototype.createRadialGradient = function(container, gradientImage, bou
 
 module.exports = Renderer;
 
-},{"./lineargradientcontainer":13,"./log":14,"./radialgradientcontainer":19,"./repeatinglineargradientcontainer":22,"./repeatingradialgradientcontainer":23}],21:[function(_dereq_,module,exports){
+},{"./lineargradientcontainer":20,"./log":21,"./radialgradientcontainer":26,"./repeatinglineargradientcontainer":29,"./repeatingradialgradientcontainer":30}],28:[function(_dereq_,module,exports){
 var Renderer = _dereq_('../renderer');
 var GradientContainer = _dereq_('../gradientcontainer');
 var utils = _dereq_('../utils');
@@ -4097,17 +5440,21 @@ CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx
 };
 
 CanvasRenderer.prototype.clip = function(shapes, callback, context, container) {
-    this.ctx.save();
-    shapes.filter(hasEntries).forEach(function(shape) {
-        try {
-            this.shape(shape).clip();
-        } catch(ex) {
-            console.log('Exception clipping shape: ', ex);
-        }
+    if (shapes) {
+        this.ctx.save();
+        shapes.filter(hasEntries).forEach(function(shape) {
+            try {
+                this.shape(shape).clip();
+            } catch(ex) {
+                console.log('Exception clipping shape: ', ex);
+            }
 
-    }, this);
-    callback.call(context);
-    this.ctx.restore();
+        }, this);
+        callback.call(context);
+        this.ctx.restore();
+    } else {
+        callback.call(context);
+    }
 };
 
 CanvasRenderer.prototype.createMaskShapes = function(shapes, container) {
@@ -4145,6 +5492,18 @@ CanvasRenderer.prototype.shape = function(shape) {
         }
     }, this);
     this.ctx.closePath();
+    return this.ctx;
+};
+
+CanvasRenderer.prototype.path = function(shape) {
+    this.ctx.beginPath();
+    shape.forEach(function(point, index) {
+        if (point[0] === "rect") {
+            this.ctx.rect.apply(this.ctx, point.slice(1));
+        } else {
+            this.ctx[(index === 0) ? "moveTo" : point[0] + "To" ].apply(this.ctx, point.slice(1));
+        }
+    }, this);
     return this.ctx;
 };
 
@@ -4289,7 +5648,7 @@ function hasEntries(array) {
 
 module.exports = CanvasRenderer;
 
-},{"../gradientcontainer":10,"../log":14,"../renderer":20,"../utils":29}],22:[function(_dereq_,module,exports){
+},{"../gradientcontainer":17,"../log":21,"../renderer":27,"../utils":36}],29:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var LinearGradientContainer = _dereq_('./lineargradientcontainer');
 
@@ -4302,7 +5661,7 @@ RepeatingLinearGradientContainer.prototype = Object.create(LinearGradientContain
 
 module.exports = RepeatingLinearGradientContainer;
 
-},{"./gradientcontainer":10,"./lineargradientcontainer":13}],23:[function(_dereq_,module,exports){
+},{"./gradientcontainer":17,"./lineargradientcontainer":20}],30:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 var RadialGradientContainer = _dereq_('./radialgradientcontainer');
 
@@ -4315,7 +5674,7 @@ RepeatingRadialGradientContainer.prototype = Object.create(RadialGradientContain
 
 module.exports = RepeatingRadialGradientContainer;
 
-},{"./gradientcontainer":10,"./radialgradientcontainer":19}],24:[function(_dereq_,module,exports){
+},{"./gradientcontainer":17,"./radialgradientcontainer":26}],31:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function StackingContext(hasOwnStacking, opacity, element, parent) {
@@ -4335,7 +5694,7 @@ StackingContext.prototype.getParentStack = function(context) {
 
 module.exports = StackingContext;
 
-},{"./nodecontainer":15}],25:[function(_dereq_,module,exports){
+},{"./nodecontainer":22}],32:[function(_dereq_,module,exports){
 function Support(document) {
     this.rangeBounds = this.testRangeBounds(document);
     this.cors = this.testCORS();
@@ -4388,7 +5747,7 @@ Support.prototype.testSVG = function() {
 
 module.exports = Support;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var decode64 = _dereq_('./utils').decode64;
 
@@ -4463,7 +5822,7 @@ SVGContainer.prototype.decode64 = function(str) {
 
 module.exports = SVGContainer;
 
-},{"./utils":29,"./xhr":32}],27:[function(_dereq_,module,exports){
+},{"./utils":36,"./xhr":39}],34:[function(_dereq_,module,exports){
 var SVGContainer = _dereq_('./svgcontainer');
 
 function SVGNodeContainer(node, _native) {
@@ -4494,7 +5853,7 @@ SVGNodeContainer.prototype = Object.create(SVGContainer.prototype);
 
 module.exports = SVGNodeContainer;
 
-},{"./svgcontainer":26}],28:[function(_dereq_,module,exports){
+},{"./svgcontainer":33}],35:[function(_dereq_,module,exports){
 var NodeContainer = _dereq_('./nodecontainer');
 
 function TextContainer(node, parent) {
@@ -4529,7 +5888,7 @@ function capitalize(m, p1, p2) {
 
 module.exports = TextContainer;
 
-},{"./nodecontainer":15}],29:[function(_dereq_,module,exports){
+},{"./nodecontainer":22}],36:[function(_dereq_,module,exports){
 /* global SPECIFICITY: true */
 
 exports.smallImage = function smallImage() {
@@ -4858,7 +6217,7 @@ exports.getMatchingRules = function(element, selectorRegex) {
     return matchingRules;
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 function VideoContainer(imageData) {
   this.src = imageData.args[0].src;
 
@@ -4892,7 +6251,7 @@ function VideoContainer(imageData) {
 
 module.exports = VideoContainer;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 var GradientContainer = _dereq_('./gradientcontainer');
 
 function WebkitGradientContainer(imageData) {
@@ -4904,7 +6263,7 @@ WebkitGradientContainer.prototype = Object.create(GradientContainer.prototype);
 
 module.exports = WebkitGradientContainer;
 
-},{"./gradientcontainer":10}],32:[function(_dereq_,module,exports){
+},{"./gradientcontainer":17}],39:[function(_dereq_,module,exports){
 function XHR(url) {
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
@@ -4928,5 +6287,5 @@ function XHR(url) {
 
 module.exports = XHR;
 
-},{}]},{},[5])(5)
+},{}]},{},[12])(12)
 });

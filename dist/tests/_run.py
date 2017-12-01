@@ -36,7 +36,7 @@ if (len(sys.argv) > 1):
 		if (sys.argv[1] in f):
 			process_file(browser, f)
 else:
-	for f in os.listdir('.'):
+	for f in sorted(os.listdir('.')):
 		if (f[0] != '.' and f[0] != '_' and f.endswith('.html')):
 			process_file(browser, f)
 
