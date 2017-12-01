@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+	<head>
+		<title>srcset</title>
+
+        <script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+	    <script src="../html2canvas.js"></script>
+	    <script src="../fabric.js"></script>
+
+	    <style>
+	    	img {
+	    		width: 100%;
+	    		height: auto;
+	    	}
+	    </style>
+	</head>
+	<body>
+		<img srcset="https://photos.smugmug.com/Landscapes/Zion-Subway-Narrows-Fall-Color/i-RDGHMDm/0/XL/Zion_Museum_View_Alternate_Towers_Virgin_2579-XL.jpg 320w, 
+			https://photos.smugmug.com/Landscapes/Zion-Subway-Narrows-Fall-Color/i-RDGHMDm/0/XL/Zion_Museum_View_Alternate_Towers_Virgin_2579-XL.jpg 480w, 
+			https://photos.smugmug.com/Landscapes/Zion-Subway-Narrows-Fall-Color/i-XzBWtL4/0/L/Zion_Fantasy_Narrows%20b-L.jpg 640w, 
+			https://photos.smugmug.com/Landscapes/Zion-Subway-Narrows-Fall-Color/i-FWNVkn9/0/XL/Zi%20Vi%20sh%20b-XL.jpg 750w, 
+			https://photos.smugmug.com/Landscapes/Valley-of-Fire-Nevada/i-pD4WfL8/0/L/Valley_of_Fire_Rainbow_Vista_View_3401%20b%20warm%20hili-L.jpg 960w, 
+			https://photos.smugmug.com/Landscapes/California-Oaks/i-qm9xh6z/0/XL/Whipple_Yucca_Santa_Clara_River_Valley_Panorama-XL.jpg 1080w, 
+			https://photos.smugmug.com/Landscapes/California-Oaks/i-p4cVQzB/0/L/Grapevine_Lupine_California_3059-L.jpg 1136w">
+
+		<script>
+            setTimeout(function()
+            {
+                html2canvas(
+                    //document.body,
+                    document.documentElement,
+                    {
+                        background: '#ffffff',
+                        type: 'view',
+                        letterRendering: true,
+                        javascriptEnabled: true,
+                        proxy: 'areion'
+                    }
+                ).then(function(canvas)
+                {
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '0';
+                    canvas.style.top = '0';
+                    canvas.style.padding = '0';
+                    canvas.style.opacity = '0.5';
+                    canvas.style.zIndex = '1000000';
+
+                    document.body.appendChild(canvas);
+                });
+            }, 2000);
+    	</script>
+   	</body>
+ </html>

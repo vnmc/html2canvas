@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<style>
+			img {
+				margin: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="border.png" style="filter: blur(3px)">
+		<img src="border.png" style="filter: brightness(200%)">
+		<img src="border.png" style="filter: contrast(20%)">
+		<img src="border.png" style="filter: drop-shadow(1px 5px 3px royalblue)">
+		<img src="border.png" style="filter: grayscale(1)">
+		<img src="border.png" style="filter: hue-rotate(30deg)">
+		<img src="border.png" style="filter: invert(0.8)">
+		<img src="border.png" style="filter: opacity(0.2)">
+		<img src="border.png" style="filter: sepia(60%)">
+		<img src="border.png" style="filter: saturate(300%)">
+		<img src="border.png" style="filter: saturate(300%) blur(4px) invert(0.9) hue-rotate(20deg)">
+
+		<script>
+			// canvas filters:
+			// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/filter
+			// correspond to CSS filters (https://developer.mozilla.org/en-US/docs/Web/CSS/filter)
+
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '350px';
+					canvas.style.padding = '0';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

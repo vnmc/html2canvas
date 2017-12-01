@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: white;
+			}
+
+            <style type="text/css">
+                @charset "UTF-8";
+.Intro li,
+.Intro ul,
+body,
+html {
+    display: block;
+    margin: 0;
+    padding: 0
+}
+.Intro,
+.Intro+* {
+    position: relative
+}
+* {
+    box-sizing: border-box
+}
+body,
+html {
+    min-height: 100%
+}
+.Intro {
+    width: 100%;
+    height: 90vh
+}
+.Intro+* {
+    z-index: 1;
+    margin-top: 0
+}
+.Intro-sponsors-wrapper {
+    padding: 2% 5%;
+    color: #fff;
+    background-color: #1f2a44;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    display: table
+}
+.Intro-sponsorsLimiter {
+    max-width: 42rem;
+    margin: auto
+}
+.Intro-sponsors {
+    margin: auto;
+    display: table-cell;
+    vertical-align: bottom
+}
+.Intro-sponsorGroup {
+    display: inline-block
+}
+.Intro-sponsorGroup h2 {
+    font-size: 10px;
+    margin: 0;
+    font-family: 'Calibre Medium', sans-serif;
+    font-weight: 400;
+    letter-spacing: .015em;
+    padding-right: 10%
+}
+.Intro-sponsorGroup ul {
+    list-style: none
+}
+.Intro-sponsorLogo {
+    display: table;
+    width: 100%
+}
+.Intro-sponsorLink {
+    display: table-cell;
+    vertical-align: middle;
+    height: 2.5rem
+}
+.Intro-sponsorLink img {
+    width: 80%;
+    max-width: 5.6rem;
+    height: auto;
+    border: none
+}
+.Intro-sponsorLink:active,
+.Intro-sponsorLink:focus,
+.Intro-sponsorLink:hover,
+.Intro-sponsorLink:link,
+.Intro-sponsorLink:visited {
+    text-decoration: none;
+    border: none
+}
+.Intro-sponsorLink:active,
+.Intro-sponsorLink:focus,
+.Intro-sponsorLink:hover {
+    outline: 0
+}
+.Intro-sponsorLink:focus img {
+    outline: #00e600 solid .35rem
+}
+.Intro-sponsorLink--tooSmall img {
+    width: 100%
+}
+.Intro-sponsorGroup {
+    width: 50%;
+    margin-right: -.2rem
+}
+.Intro-sponsorGroup--threeLogos {
+    width: 100%
+}
+.Intro-sponsorGroup--threeLogos .Intro-sponsorLogo {
+    width: 33.33333%;
+    float: left
+}
+@media (min-aspect-ratio: 1 / 1),
+(min-width: 35rem) {
+    .Intro-sponsorGroup {
+        width: 20%
+    }
+    .Intro-sponsorGroup--threeLogos {
+        width: 60%
+    }
+    .Intro-sponsorLink {
+        height: 3rem
+    }
+}
+.Intro-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 90vh;
+    color: #fff;
+    background: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-320@1x.jpg) center top no-repeat #000;
+    background-size: cover
+}
+@media (min-width: 321px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-400@1x.jpg)
+    }
+}
+@media (min-width: 401px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-500@1x.jpg)
+    }
+}
+@media (min-width: 501px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-600@1x.jpg)
+    }
+}
+@media (min-width: 601px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-800@1x.jpg)
+    }
+}
+@media (min-width: 801px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-1000@1x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6),
+(min-resolution: 1.6dppx) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-320@2x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 321px),
+(min-resolution: 1.6dppx) and (min-width: 321px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-400@2x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 401px),
+(min-resolution: 1.6dppx) and (min-width: 401px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-500@2x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 501px),
+(min-resolution: 1.6dppx) and (min-width: 501px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-600@2x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 601px),
+(min-resolution: 1.6dppx) and (min-width: 601px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-800@2x.jpg)
+    }
+}
+@media (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 801px),
+(min-resolution: 1.6dppx) and (min-width: 801px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2portrait-1000@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-480@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 481px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-600@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 601px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-800@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 801px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1000@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 1001px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1200@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 1201px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1500@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (min-width: 1501px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-2000@1x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-480@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 481px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 481px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-600@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 601px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 601px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-800@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 801px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 801px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1000@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 1001px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 1001px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1200@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 1201px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 1201px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-1500@2x.jpg)
+    }
+}
+@media (min-aspect-ratio: 1 / 1) and (-webkit-min-device-pixel-ratio: 1.6) and (min-width: 1501px),
+(min-aspect-ratio: 1 / 1) and (min-resolution: 1.6dppx) and (min-width: 1501px) {
+    .Intro-background {
+        background-image: url(//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/intro/17q2landscape-2000@2x.jpg)
+    }
+}
+body {
+    background-color: transparent
+}
+main {
+    background-color: #fff
+}
+
+		</style>
+        <style type="text/css">
+
+        .Intro {
+            width: 500px !important;
+        }
+        </style>
+	</head>
+	<body>
+		<div id="thspintro" class="Intro" role="banner"> <div class="Intro-background" style="width:500px;"></div> <h1 class="sr-only">Zürcher Theater Spektakel, 17.8. - 3.9.2017</h1> <div class="Intro-sponsors-wrapper"> <div class="Intro-sponsors"> <div class="Intro-sponsorsLimiter"> <div class="Intro-sponsorGroup"> <h2>Veranstalterin</h2> <div class="Intro-sponsorLogo"> <a href="http://www.stadt-zuerich.ch/kultur/de/index.html" class="Intro-sponsorLink"> <img src="//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/logo-sponsoren-white-stadt-zuerich-kultur.svg" width="114" height="34" alt="Stadt Zürich"> </a> </div> </div> <div class="Intro-sponsorGroup"> <h2>Medienpartner</h2> <div class="Intro-sponsorLogo"> <a href="http://www.tagesanzeiger.ch/" class="Intro-sponsorLink"> <img src="//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/logo-sponsoren-white-tages-anzeiger.svg" width="84" height="34" alt="TagesAnzeiger"> </a> </div> </div> <div class="Intro-sponsorGroup Intro-sponsorGroup--threeLogos"> <h2>Hauptpartner</h2> <ul> <li class="Intro-sponsorLogo"> <a href="http://www.fachstellekultur.zh.ch/internet/justiz_inneres/kultur/de/home.html" class="Intro-sponsorLink Intro-sponsorLink--tooSmall"> <img src="//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/logo-sponsoren-white-kanton-zuerich-kultur.svg" width="115" height="34" alt="Kanton Zürich Fachstelle Kultur" class="header-sponsoren-logo"> </a> </li> <li class="Intro-sponsorLogo"> <a href="http://www.swissre.com/" class="Intro-sponsorLink"> <img src="//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/logo-sponsoren-white-swiss-re.svg" width="93" height="34" alt="Swiss Re" class="header-sponsoren-logo"> </a> </li> <li class="Intro-sponsorLogo"> <a href="https://www.zkb.ch/" class="Intro-sponsorLink"> <img src="//zhts-75b9.kxcdn.com/fileadmin/templates/Resources/Public/img/logo-sponsoren-white-zuercher-kantonalbank.svg" width="99" height="34" alt="Zürcher Kantonalbank" class="header-sponsoren-logo"> </a> </li> </ul> </div> </div> </div> </div> </div>
+
+        <main style="width:500px; overflow: hidden;">  <div class="container thsp-container"> <div id="content"> <div id="news" class="layout layout-masonry"> <div class="row"> <div class="col-xs-12"> <div class="h1-wrapper"><h1 class="h1 hyphenate text type1" lang="de">Ak&shy;tu&shy;ell</h1></div> </div> </div> <div class="row"> <div class="col-xs-12"> <div id="masonry" style="position: relative; height: 882.885px;"> <div class="gutter-sizer"></div> <article class="masonry-brick" style="position: absolute; left: 0px; top: 0px;"> <a class="brick-inner teaser" href="/news/netzwerk-kultur-inklusiv/"> <h2 class="title"> Netzwerk Kultur inklusiv </h2> <picture class="images"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__d2eef02c03.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__ea0d96e031.jpg 2x" media="(max-width: 800px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__f45fd1974c.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__a0f61a424a.jpg 2x" media="(max-width: 1200px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__d2eef02c03.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__ea0d96e031.jpg 2x"> <img src="//zhts-75b9.kxcdn.com/fileadmin/_processed_/f/4/csm_zts16_Inklusion_ALTORFER_4168_1__d2eef02c03.jpg" alt="Netzwerk Kultur inklusiv"> </picture> <p class="text"> Einladung zum Netzwerk-Anlass für Kultur-inklusiv-VeranstalterInnen am Theater Spektakel 2017 | Anmeldefrist: 30. Juni </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 423px; top: 0px;"> <a class="brick-inner teaser" href="/news/programm-highlights/"> <h2 class="title"> Programm-Highlights </h2> <picture class="images"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_3957838ae8.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_2fcfdaf7b0.jpg 2x" media="(max-width: 800px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_3d5271dc3d.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_37a5d05c8e.jpg 2x" media="(max-width: 1200px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_3957838ae8.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_2fcfdaf7b0.jpg 2x"> <img src="//zhts-75b9.kxcdn.com/fileadmin/_processed_/9/1/csm_MarianoPensotti_20012017-Photo.Jose%CC%81_FradeDSC09919_444027_3957838ae8.jpg" alt="Programm-Highlights"> </picture> <p class="text"> Wael Shawky, Ägypten | Boyzie Cekwana, Südafrika | Mariano Pensotti, Argentinien | Nowy Teatr, Polen </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 847px; top: 0px;"> <a class="brick-inner teaser" href="/news/man-bittet-zu-tisch/"> <h2 class="title"> Man bittet zu Tisch </h2> <picture class="images"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_07495a30f3.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_5ef6777877.jpg 2x" media="(max-width: 800px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_9965a03bed.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_c8a2af0679.jpg 2x" media="(max-width: 1200px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_07495a30f3.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_5ef6777877.jpg 2x"> <img src="//zhts-75b9.kxcdn.com/fileadmin/_processed_/4/d/csm_zts16_JUnges_Schauspielhaus_ALTORFER_1343_07495a30f3.jpg" alt="Man bittet zu Tisch"> </picture> <p class="text"> Junges Schauspielhaus: Workshop für Kinder von 8 bis 11 Jahren </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 847px; top: 364px;"> <a class="brick-inner teaser thsp-masonry-teaser" href="/news/neue-kuenstlerische-leitung-ab-2018/"> <h2 class="title"> Neue künstlerische Leitung ab 2018 </h2> <p> Matthias von Hartz wird Nachfolger von Sandro Lunin </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 423px; top: 429px;"> <a class="brick-inner teaser" href="/news/zentral-buehne-strassenkunst-2017/"> <h2 class="title"> Zentralbühne &amp; Strassenkunst 2017 </h2> <picture class="images"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_03daa47f68.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_d0fc3ba516.jpg 2x" media="(max-width: 800px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_1da65878a3.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_8dee4b3d0e.jpg 2x" media="(max-width: 1200px)"> <source srcset="//zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_03daa47f68.jpg, //zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_d0fc3ba516.jpg 2x"> <img src="//zhts-75b9.kxcdn.com/fileadmin/_processed_/e/6/csm_zts16_familleLizajous_ALTORFER_3833_03daa47f68.jpg" alt="Zentralbühne &amp; Strassenkunst 2017"> </picture> <p class="text"> Bewerbung ab sofort möglich | Anmeldeschluss: 31. Mai 2017 </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 0px; top: 436px;"> <a class="brick-inner teaser thsp-masonry-teaser" href="/news/termine-2017/"> <h2 class="title"> Termine 2017 </h2> <p> Am besten gleich in die Agenda eintragen </p> </a> </article> <article class="masonry-brick" style="position: absolute; left: 847px; top: 577px;"><div class="brick-inner teaser thsp-masonry-teaser-dark"><h2>Gönnerverein</h2><p class="bodytext">Unterstützen Sie das Zürcher Theater Spektakel und profitieren Sie vom exklusiven Vor-Vorverkauf und weiteren Angeboten für Gönnerinnen und Gönner.<br>Einzahlungsfrist Jahresbeitrag 2017: 9. Juni<br><br><a href="/ueber-uns/goennerverein/" class="button primary">Infos und Anmeldung<br></a></p></div></article> </div> </div> </div> </div> </div> <div id="push"></div> </div> </main>
+
+		<script>
+			// - concatenated transforms: correct clip?
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '510px';
+					canvas.style.top = '0';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

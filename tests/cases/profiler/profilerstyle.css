@@ -1,0 +1,186 @@
+@charset 'utf-8';
+@import url('profiler1.css');
+@import url('profiler2.css') screen and (min-width: 400px);
+@import url('profiler/style1.css');
+
+@namespace svg "http://www.w3.org/2000/svg";
+
+@-webkit-keyframes idleimage {
+	0% { background-position: 0; }
+	50% { background-position: 100%; }
+	100% { background-position: 0; }
+}
+
+@-moz-keyframes idleimage {
+	0% { background-position: 0; }
+	50% { background-position: 100%; }
+	100% { background-position: 0; }
+}
+
+@-webkit-keyframes wiggle {
+	0% { transform: rotateZ(0); }
+	33% { transform: rotateZ(5deg); }
+	66% { transform: rotateZ(-5deg); }
+	100% { transform: rotateZ(0); }
+}
+
+body {
+	font-family: Arial;
+	position: relative;
+}
+
+h1 {
+	/*color: hotpink !important;*/
+	border: 20px solid purple;
+	padding: 1em;
+	font-size: 3em;
+	/*background-image: url('img1.png') !important;*/
+	background-size: 54%;
+}
+
+@font-face {
+	font-family: MyHelvetica;
+	src: local("Helvetica Neue Bold"),
+	local("HelveticaNeue-Bold"),
+	url(MgOpenModernaBold.ttf);
+	font-weight: bold;
+}
+
+h1 {/*x*/
+border-radius: 20px;
+color: salmon;/*text-transform: uppercase;*/ /*y*/
+/*z*/
+	/*-webkit-animation: 1s infinite alternate wiggle;*/
+}
+
+@page {
+	margin: 5cm;
+}
+
+button {
+	background-color: cornflowerblue;
+}
+
+h1 {
+	border: 1px solid violet;
+	border-radius: 50px !important;
+}
+
+@page :first {
+	margin: 0;
+}
+
+button:hover {
+	background-color: midnightblue;
+}
+
+b.xxx, a:focus, a:hover:active, em.yyy, b.zzz > a.xyz:hover:active:focus {
+	color: orangered;
+}
+
+@media screen and (min-width: 800px) {
+	h1 {
+		background-color: blue;
+		text-shadow: 0 0 16px blue;
+	}
+
+	@media screen and (min-width: 1000px) and (max-width: 1100px), print and (min-resolution: 300dpi),  {
+		h1 {
+			padding: 10em;
+		}
+	}
+}
+
+.red {
+	color: #fe8721;
+}
+
+.yellow {
+	background-color: #ffff99;
+}
+
+.blue {
+	font-size: 20pt;
+}
+
+@supports (display: flex) {
+	.blue {
+		border: 5px solid blue;
+	}
+}
+
+@supports (display: flexbox) {
+	.blue {
+		border: 20px solid purple !important;
+	}
+}
+
+.animated {
+	width: 200px;
+	height: 100px;
+	background-image: url("mountain.jpg");
+	background-size: auto 100%;
+	/*-webkit-animation: idleimage 3s ease infinite;
+	-moz-animation: idleimage 3s ease infinite;*/
+}
+
+svg|a {
+	color: red;
+	fill: red;
+}
+
+@-moz-document url(http://localhost),
+	domain(localhost),
+	regexp("https:.*") {
+	/* CSS rules here apply to:
+	+ The page "http://www.w3.org/".
+	+ Any page whose URL begins with "http://www.w3.org/Style/"
+	+ Any page whose URL's host is "mozilla.org" or ends with ".mozilla.org"
+	+ Any page whose URL starts with "https:" */
+
+	/* make the above-mentioned pages really ugly */
+	body {
+		background: yellow;
+	}
+}
+
+.test::-webkit-input-placeholder {
+	color: violet;
+}
+
+.absolute {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 50px;
+	height: 50px;
+	background-color: lime;
+	opacity: 0.5;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+	width: 24px;
+	height: 24px;
+	margin-right: 10px;
+	background-color: #ccc;
+	border: 1px solid #888;
+	vertical-align: middle;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+input[type="radio"] {
+	border-radius: 50%;
+}
+input[type="radio"]:checked {
+	background-color: transparent;
+	background-image: url('data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22%20fill%3D%22orangered%22%2F%3E%3C%2Fsvg%3E');
+	border-color: orangered;
+}
+
+input[type="checkbox"]:checked {
+	border-color: orangered;
+	background-image: url('data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M%206%206%20L%2018%2018%20M%2018%206%20L%206%2018%22%20stroke%3D%22orangered%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E');
+}

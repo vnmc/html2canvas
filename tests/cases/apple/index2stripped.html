@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US" prefix="og: http://ogp.me/ns#" class="js no-touch svg no-ie8 enhanced-gallery no-android no-ie no-ie-edge"><head>
+
+    <script src="../../es6-promise.auto.js"></script>
+    <script src="../../specificity.js"></script>
+    <script src="../../html2canvas.js"></script>
+    <script src="../../fabric.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" type="text/css" href="https://apple.com/ac/globalnav/3/en_US/styles/ac-globalnav.built.css">
+    <link rel="stylesheet" type="text/css" href="https://apple.com/ac/globalfooter/3/en_US/styles/ac-globalfooter.built.css">
+    <link rel="stylesheet" type="text/css" href="https://apple.com/ac/localnav/3.0/styles/ac-localnav.built.css">
+
+    <title>Apple</title>
+    <link rel="stylesheet" href="https://apple.com/wss/fonts?families=SF+Pro,v1|SF+Pro+Icons,v1" type="text/css" media="all">
+    <link rel="stylesheet" href="https://images.apple.com/v/home/de/built/styles/main.built.css" type="text/css">
+</head>
+
+<body class="page-home ac-nav-overlap">
+    <main class="main with-promos">
+        <article class="gallery-container">
+            <div id="homepage-gallery" class="gallery infinite-gallery with-paddlenav with-paddlenav-onhover has-backing-link is-autoplaying showing-first-slide" tabindex="-1">
+
+                <div class="gallery-slide-wrapper" style="transform: translate3d(-87858px, 0px, 0px);">
+                    <div id="homepage-gallery-iphone-7" class="block gallery-item gallery-item-iphone-7 ac-gallery-currentitem" style="transform: translate3d(87858px, 0px, 0px);">
+                        <a href="/us/shop/goto/buy_iphone/special_edition_iphone_7" id="homepage-gallery-iphone" class="gallery-item-dark gallery-item-content" tabindex="-1">
+                            <div class="gallery-item-copy-wrapper" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1); height: 315px;">
+                                <div class="inner">
+                                    <span class="eyebrow">Special Edition</span>
+                                    <br>
+                                    <h1 class="typography-product-reduced">iPhone 7</h1>
+                                    <h2 class="typography-tagline-elevated">Now in <figure class="logo-image-product-red"><span class="visuallyhidden">Product Red</span></figure></h2>
+                                </div>
+                            </div>
+
+                            <div class="gallery-item-image-element" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1);">
+                                <figure class="gallery-image-iphone"></figure>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div id="homepage-gallery-ipad" class="block gallery-item gallery-item-ipad ac-gallery-lastitem ac-gallery-previousitem" style="transform: translate3d(86231px, 0px, 0px);">
+                        <a href="/ipad-9.7/" class="block gallery-item-content" tabindex="-1">
+                            <div class="gallery-item-copy-wrapper" style="transform: translate3d(1545.65px, 0px, 0px) scale3d(0.9, 0.9, 1); height: 273px;">
+                                <div class="inner">
+                                    <h1 class="typography-product-reduced">iPad</h1>
+                                    <h2 class="typography-tagline-elevated">Flat-out fun.</h2>
+                                </div>
+                            </div>
+
+                            <div class="gallery-item-image-element" style="transform: translate3d(1464.3px, 0px, 0px) scale3d(0.9, 0.9, 1);">
+                                <figure class="gallery-image-ipad availability"></figure>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </main>
+
+
+        <script>
+            setTimeout(function()
+            {
+                html2canvas(
+                    //document.body,
+                    document.documentElement,
+                    {
+                        background: '#ffffff',
+                        type: 'view',
+                        letterRendering: true,
+                        javascriptEnabled: true,
+                        proxy: 'areion'
+                    }
+                ).then(function(canvas)
+                {
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '0';
+                    canvas.style.top = '0';
+                    canvas.style.padding = '0';
+                    canvas.style.opacity = '1';
+                    canvas.style.zIndex = '1000000';
+
+                    document.body.appendChild(canvas);
+                });
+            }, 2000);
+        </script>    
+</body></html>

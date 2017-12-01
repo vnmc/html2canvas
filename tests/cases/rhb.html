@@ -1,0 +1,575 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+            body {
+                background-color: white;
+            }
+            @charset "UTF-8";
+            /*! normalize.css v1.1.0 | MIT License | git.io/normalize */
+
+            html {
+                font-size: 100%;
+                -webkit-text-size-adjust: 100%;
+                -ms-text-size-adjust: 100%
+            }
+            html {
+                font-family: sans-serif
+            }
+            body {
+                margin: 0
+            }
+            a:focus {
+                outline: thin dotted
+            }
+            a:active,
+            a:hover {
+                outline: 0
+            }
+            ul {
+                margin: 1em 0
+            }
+            ul {
+                padding: 0 0 0 40px
+            }
+            .mod_map_tabs {
+                *zoom: 1
+            }
+            .mod_map_tabs:before,
+            .mod_map_tabs:after {
+                content: " ";
+                display: table
+            }
+            .mod_map_tabs:after {
+                clear: both
+            }
+            .mod_map_tabs ul {
+                list-style: none;
+                list-style-type: none;
+                margin: 0;
+                padding: 0
+            }
+            *,
+            *:before,
+            *:after {
+                -moz-box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box
+            }
+            html {
+                height: 100%
+            }
+            a {
+                -webkit-transition: color 0.15s ease-out, background-color 0.15s ease-out, opacity 0.15s ease-out;
+                -moz-transition: color 0.15s ease-out, background-color 0.15s ease-out, opacity 0.15s ease-out;
+                -o-transition: color 0.15s ease-out, background-color 0.15s ease-out, opacity 0.15s ease-out;
+                transition: color 0.15s ease-out, background-color 0.15s ease-out, opacity 0.15s ease-out
+            }
+            a:focus,
+            a:active {
+                outline: 0
+            }
+            body {
+                min-width: 20em;
+                height: 100%
+            }
+            @font-face {
+                font-family: "ff-fago";
+                src: url("../fonts/FagoWebPro.eot");
+                src: url("../fonts/FagoWebPro.eot?#iefix") format("embedded-opentype"), url("../fonts/FagoWebPro.woff") format("woff");
+                font-weight: 400;
+                font-style: normal
+            }
+            @font-face {
+                font-family: "ff-fago";
+                src: url("../fonts/FagoWebPro-Bold.eot");
+                src: url("../fonts/FagoWebPro-Bold.eot?#iefix") format("embedded-opentype"), url("../fonts/FagoWebPro-Bold.woff") format("woff");
+                font-weight: 700;
+                font-style: normal
+            }
+            body {
+                font-family: 'ff-fago', Helvetica, Arial, sans-serif;
+                font-size: 100%;
+                line-height: 1.5;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-variant-ligatures: no-common-ligatures;
+                -moz-font-feature-settings: "liga=0";
+                -moz-font-feature-settings: "liga" 0;
+                -webkit-font-smoothing: antialiased
+            }
+            @media screen and (min-width: 768px) and (max-width: 784px) {
+                body {
+                    font-size: 99%
+                }
+            }
+            @media all and (min-width: 125em) {
+                body {
+                    font-size: 120%
+                }
+            }
+            @font-face {
+                font-family: "rhb_icons";
+                src: url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.eot");
+                src: url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.eot?#iefix") format("embedded-opentype"), url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.woff") format("woff"), url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.ttf") format("truetype"), url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.svg#rhb_icons") format("svg");
+                font-weight: normal;
+                font-style: normal
+            }
+            @media screen and (-webkit-min-device-pixel-ratio: 0) {
+                @font-face {
+                    font-family: "rhb_icons";
+                    src: url("../fonts/rhb_icons_ab01ab8903d2507917547054ee77dd67.svg#rhb_icons") format("svg")
+                }
+            }
+            /*!
+Chosen, a Select Box Enhancer for jQuery and Prototype
+by Patrick Filler for Harvest, http://getharvest.com
+
+Version 1.1.0
+Full source at https://github.com/harvesthq/chosen
+Copyright (c) 2011 Harvest http://getharvest.com
+
+MIT License, https://github.com/harvesthq/chosen/blob/master/LICENSE.md
+This file is generated by `grunt build`, do not edit it by hand.
+*/
+
+            a {
+                text-decoration: none;
+                color: black
+            }
+            .mod_map_tabs {
+                left: -33.33333%;
+                width: 33.33333%;
+                position: fixed;
+                bottom: 0;
+                z-index: 10;
+                -webkit-transition: left 0.75s ease;
+                -moz-transition: left 0.75s ease;
+                -o-transition: left 0.75s ease;
+                transition: left 0.75s ease
+            }
+            .mod_map_tabs ul li {
+                margin: 0
+            }
+            @media all and (max-width: 47.99em) {
+                .mod_map_tabs {
+                    position: relative !important;
+                    left: 0;
+                    width: 100%;
+                    height: initial !important
+                }
+            }
+            .mod_map_tabs .tabs {
+                position: absolute;
+                top: 46%;
+                margin-top: -9.375em;
+                width: 3.75em;
+                display: block;
+                left: 100%;
+                -webkit-transition: width 0.35s ease, top 0.35s ease;
+                -moz-transition: width 0.35s ease, top 0.35s ease;
+                -o-transition: width 0.35s ease, top 0.35s ease;
+                transition: width 0.35s ease, top 0.35s ease
+            }
+            .mod_map_tabs .tabs.var_preview {
+                width: 12.5em
+            }
+            @media all and (max-width: 47.99em) {
+                .mod_map_tabs .tabs.var_preview {
+                    width: auto
+                }
+            }
+            @media all and (max-width: 47.99em) {
+                .mod_map_tabs .tabs {
+                    position: relative;
+                    left: 0;
+                    top: 0;
+                    width: 100% !important;
+                    margin-top: 0
+                }
+            }
+            .mod_map_tabs li {
+                display: block;
+                position: relative
+            }
+            .mod_map_tabs li:nth-child(2) a.tab {
+                -moz-border-radius-topright: 3px;
+                -webkit-border-top-right-radius: 3px;
+                border-top-right-radius: 3px
+            }
+            .mod_map_tabs li:last-child a.tab {
+                -moz-border-radius-bottomright: 3px;
+                -webkit-border-bottom-right-radius: 3px;
+                border-bottom-right-radius: 3px
+            }
+            @media all and (max-width: 47.99em) {
+                .mod_map_tabs li.desktop_only {
+                    display: none
+                }
+            }
+            .mod_map_tabs li a.tab {
+                display: block;
+                position: relative;
+                height: 3.75em;
+                text-align: left;
+                left: 0;
+                line-height: 3.75em;
+                padding-left: 3.75em;
+                background: black;
+                background: rgba(0, 0, 0, 0.85);
+                color: white;
+                font-weight: 700;
+                z-index: 2;
+                white-space: nowrap;
+                overflow: hidden
+            }
+            .mod_map_tabs li a.tab.var_close {
+                opacity: 0;
+                transition: opacity 0.8s ease;
+                position: absolute;
+                width: 3.75em;
+                margin-top: -3.75em;
+                background: #e2001a;
+                vertical-align: bottom;
+                -moz-border-radius-topright: 3px;
+                -webkit-border-top-right-radius: 3px;
+                border-top-right-radius: 3px
+            }
+            .mod_map_tabs li a.tab.var_close:before {
+                content: "\f1b9";
+                display: inline-block;
+                font-family: "rhb_icons", sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-variant: normal;
+                line-height: 1;
+                text-decoration: inherit;
+                text-transform: none;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased
+            }
+            .mod_map_tabs li a.tab.var_close:before {
+                font-size: 3.125em;
+                position: absolute;
+                display: inline-block;
+                top: 50%;
+                margin-top: -0.5em;
+                left: 0;
+                text-align: center;
+                line-height: 1;
+                width: 100%;
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_close:before {
+                width: 1.2em
+            }
+            .mod_map_tabs li a.tab.var_close:hover {
+                background: #ab0112;
+                color: white
+            }
+            .mod_map_tabs li a.tab.var_clock {
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_clock:before {
+                content: "\f211";
+                display: inline-block;
+                font-family: "rhb_icons", sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-variant: normal;
+                line-height: 1;
+                text-decoration: inherit;
+                text-transform: none;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased
+            }
+            .mod_map_tabs li a.tab.var_clock:before {
+                font-size: 3.75em;
+                position: absolute;
+                display: inline-block;
+                top: 50%;
+                margin-top: -0.5em;
+                left: 0;
+                text-align: center;
+                line-height: 1;
+                width: 100%;
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_clock:before {
+                width: 1em;
+                left: 0
+            }
+            .mod_map_tabs li a.tab.var_warning {
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_warning:before {
+                content: "\f1b1";
+                display: inline-block;
+                font-family: "rhb_icons", sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-variant: normal;
+                line-height: 1;
+                text-decoration: inherit;
+                text-transform: none;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased
+            }
+            .mod_map_tabs li a.tab.var_warning:before {
+                font-size: 3.125em;
+                position: absolute;
+                display: inline-block;
+                top: 50%;
+                margin-top: -0.5em;
+                left: 0;
+                text-align: center;
+                line-height: 1;
+                width: 100%;
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_warning:before {
+                width: 1.2em
+            }
+            .mod_map_tabs li a.tab.var_ver {
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_ver:before {
+                content: "\f213";
+                display: inline-block;
+                font-family: "rhb_icons", sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-variant: normal;
+                line-height: 1;
+                text-decoration: inherit;
+                text-transform: none;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased
+            }
+            .mod_map_tabs li a.tab.var_ver:before {
+                font-size: 3.125em;
+                position: absolute;
+                display: inline-block;
+                top: 50%;
+                margin-top: -0.5em;
+                left: 0;
+                text-align: center;
+                line-height: 1;
+                width: 100%;
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_ver:before {
+                width: 1.2em
+            }
+            .mod_map_tabs li a.tab.var_gex {
+                vertical-align: bottom
+            }
+            .mod_map_tabs li a.tab.var_gex:before {
+                content: "\f1db";
+                display: inline-block;
+                font-family: "rhb_icons", sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-variant: normal;
+                line-height: 1;
+                text-decoration: inherit;
+                text-transform: none;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased
+            }
+
+            .mod_map_tabs li a.tab:focus {
+                outline: none
+            }
+            @media all and (min-width: 48em) {
+                .mod_map_tabs li a.tab:hover {
+                    color: black;
+                    background-color: white
+                }
+                .mod_map_tabs li a.tab:hover .face>div,
+                .mod_map_tabs li a.tab:hover .face>div:after {
+                    background-color: black
+                }
+            }
+            @media all and (max-width: 47.99em) {
+                .mod_map_tabs li a.tab {
+                    background: black
+                }
+            }
+            ul {
+                margin: 0 0 1.875em 0;
+                padding-left: 1em
+            }
+            ul li {
+                margin: 0.5em 0 0.75em 0;
+                padding: 0
+            }
+            ul li {
+                list-style-type: disc
+            }
+            .mod_clock {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 3.75em;
+                height: 3.75em;
+                z-index: 2
+            }
+            .mod_clock .face {
+                width: 0.0625em;
+                height: 0.0625em;
+                display: block;
+                left: 1.875em;
+                top: 0.75em;
+                position: relative
+            }
+            .mod_clock .hour,
+            .mod_clock .minute {
+                background: white;
+                display: block;
+                position: absolute;
+                top: 0;
+                width: 0.25em;
+                height: 1.0625em;
+                margin-left: -0.125em;
+                -webkit-transform-origin: bottom center;
+                -moz-transform-origin: bottom center;
+                -ms-transform-origin: bottom center;
+                -o-transform-origin: bottom center;
+                transform-origin: bottom center
+            }
+            .mod_clock .hour {
+                height: 0.75em;
+                margin-top: 0.3125em;
+                -webkit-transform: rotate(-60deg);
+                -moz-transform: rotate(-60deg);
+                -ms-transform: rotate(-60deg);
+                -o-transform: rotate(-60deg);
+                transform: rotate(-60deg)
+            }
+            .mod_clock .minute {
+                height: 1.0625em;
+                -webkit-transform: rotate(60deg);
+                -moz-transform: rotate(60deg);
+                -ms-transform: rotate(60deg);
+                -o-transform: rotate(60deg);
+                transform: rotate(60deg)
+            }
+            .mod_clock .hour:after,
+            .mod_clock .minute:after {
+                content: "";
+                position: absolute;
+                height: 0.25em;
+                width: 100%;
+                bottom: -0.25em;
+                left: 0;
+                background: white
+            }
+            @media print {
+                * {
+                    background: none !important;
+                    color: black !important
+                }
+            }
+            @media print {
+                body {
+                    width: 100%
+                }
+            }
+
+            li {
+                border: 2px solid red !important;
+            }
+            a {
+                border: 2px solid green !important;
+            }
+
+		</style>
+	</head>
+	<body>
+    <div class="mod_map_tabs" style="position: relative; left: 0; width: 100%;">
+		<ul class="tabs var_preview" style="left: 0; top: 0;margin-top: 0;">
+            <li>
+              <a class="tab var_close" data-hometabs="close" href="#close" btattached="true">Close</a>
+            </li>
+
+            <li>
+
+                <a data-hometabs="trigger" data-type="fahrplan" class="tab var_clock" href="/de/home?type=199" btattached="true">
+                    Fahrplan
+                <div class="mod_clock">
+                        <div class="minute" style="transform: rotate(10deg);"></div>
+                        <!-- <div class="minute" style="transform: rotate(50deg);"></div> -->
+                        <!-- <div class="minute" style="transform: rotate(5deg);"></div> -->
+                        <div class="hour" style="transform: rotate(50deg); border:80px solid orchid; margin-left: 20px;"></div>
+                </div>
+                </a>
+            </li>
+            <li id="xxx">
+                <div style="border: 2px solid blue;">
+                <a data-hometabs="trigger" data-type="betriebslage" class="xxx tab var_warning" href="/de/home?type=120" btattached="true">
+                    Betriebslage
+                </a>
+                </div>
+            </li>
+             <!-- <li id="yyy">
+                <a data-hometabs="trigger" data-type="betriebslage" class="yyy tab var_warning" href="/de/home?type=120" btattached="true">
+                    Betriebslage
+                </a>
+            </li> -->
+            <!-- <a href="">Inlist</a> -->
+<!--
+                <li>
+                    <a data-hometabs="trigger" data-id="t4" class="tab var_bex" href="/de/home?type=123&amp;tx_rhbcontent_tabbar%5Btab%5D=1&amp;tx_rhbcontent_tabbar%5Baction%5D=tabbarContent&amp;tx_rhbcontent_tabbar%5Bcontroller%5D=Page&amp;cHash=bad30226a2eccb1aa0988bf6560bab95" btattached="true">Bernina Express</a>
+                </li>
+
+                <li>
+                    <a data-hometabs="trigger" data-id="t22" class="tab var_gex" href="/de/home?type=123&amp;tx_rhbcontent_tabbar%5Btab%5D=2&amp;tx_rhbcontent_tabbar%5Baction%5D=tabbarContent&amp;tx_rhbcontent_tabbar%5Bcontroller%5D=Page&amp;cHash=3fc5b22aad367d2600a9260979df563d" btattached="true">Glacier Express</a>
+                </li>
+
+                <li>
+                    <a data-hometabs="trigger" data-id="t14" class="tab var_ver" href="/de/home?type=123&amp;tx_rhbcontent_tabbar%5Btab%5D=7&amp;tx_rhbcontent_tabbar%5Baction%5D=tabbarContent&amp;tx_rhbcontent_tabbar%5Bcontroller%5D=Page&amp;cHash=1a64bab9f1b6015aa64dd281d15331cd" btattached="true">Autoverlad</a>
+                </li>
+
+            <li class="desktop_only">
+                <a href="#" data-id="map" data-hometabs="trigger" class="tab var_map" btattached="true">
+                    Highlights
+                </a>
+            </li>-->
+    </ul>
+    </div>
+    <!-- <a href="">HEho</a> -->
+
+		<script>
+			// - concatenated transforms: correct clip?
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '500px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

@@ -1,0 +1,107 @@
+<html class="js cookies history serviceworker csspositionsticky no-touchevents flexbox no-ios no-ios7 no-retina" lang="de">
+<head>
+	<script src="../../es6-promise.auto.js"></script>
+    <script src="../../specificity.js"></script>
+    <script src="../../html2canvas.js"></script>
+    <script src="../../fabric.js"></script>
+
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>
+        Alles digital - digitec
+    </title>
+    <link href="https://www.digitec.ch/style/25/9595051472/classic.css?browserVersion=58&amp;os=Unknown&amp;browser=Chrome&amp;sprintNumber=167" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="page-wrapper" class="container">
+        <header id="page-head" class="row hidden-xs hidden-sm">
+            <div class="col-sm-8">
+                <ul class="page-head-menu clearfix">
+                    <li><a href="/de/Information/ContactInformation" tabindex="-1">Kontakt</a>
+                    </li>
+                    <li class="dropdown">
+                        <a tabindex="-1">Hilfe<svg aria-hidden="true" class="digicon digicon--chevron-down " height="12" role="img" width="12"><symbol id="digicon--chevron-down" viewBox="0 0 16 16"><title>chevron-down</title><path d="M14.3,4.5L15,5.3,8.5,11.6,2,5.2l0.7-.8,5.8,5.7Z"></path></symbol><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#digicon--chevron-down"></use></svg></a>
+                        <ul>
+                            <li>
+                                <a href="/de/ShopFaq" tabindex="-1">Häufig gestellte Fragen</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!--
+                    <li class="dropdown">
+                        <a tabindex="-1">Über uns<svg aria-hidden="true" class="digicon digicon--chevron-down " height="12" role="img" width="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#digicon--chevron-down"></use></svg></a>
+                        <ul>
+                            <li>
+                                <a href="/de/Wiki/528" tabindex="-1">Digitec Galaxus AG</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="/de/Site/List" tabindex="-1">Standorte</a>
+                    </li>
+                    <li class="dropdown">
+                        <a tabindex="-1">Social Media<svg aria-hidden="true" class="digicon digicon--chevron-down " height="12" role="img" width="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#digicon--chevron-down"></use></svg></a>
+                        <ul>
+                            <li>
+                                <a target="_blank" href="/de/SocialNetworkingService/12" tabindex="-1">Facebook</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="/de/JobOffer" tabindex="-1">Stellenangebote</a>
+                    </li>
+                    -->
+                </ul>
+            </div>
+            <!--
+            <div class="text-right no-padding-right col-sm-4">
+                <ul class="page-head-menu clearfix">
+                    <li class="dropdown">
+                        <a href="/de/" tabindex="-1"><strong>Deutsch</strong><svg aria-hidden="true" class="digicon digicon--chevron-down " height="12" role="img" width="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#digicon--chevron-down"></use></svg></a>
+                        <ul>
+                            <li>
+                                <a href="/en/" tabindex="-1"><strong>English</strong></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a rel="nofollow" href="/?vat=True" tabindex="-1">Inkl. MwSt.<svg aria-hidden="true" class="digicon digicon--chevron-down " height="12" role="img" width="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#digicon--chevron-down"></use></svg></a>
+                        <ul>
+                            <li>
+                                <a rel="nofollow" href="/?vat=False" tabindex="-1">Exkl. MwSt.</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            -->
+        </header>
+    </div>
+
+    <script>
+        setTimeout(function()
+        {
+            html2canvas(
+                //document.body,
+                document.documentElement,
+                {
+                    background: '#ffffff',
+                    type: 'view',
+                    letterRendering: true,
+                    javascriptEnabled: true,
+                    proxy: 'areion',
+                    logging: true,
+                    async: false
+                }
+            ).then(function(canvas)
+            {
+                canvas.style.position = 'absolute';
+                canvas.style.left = '0';
+                canvas.style.top = '400px';
+                canvas.style.padding = '0';
+                //canvas.style.opacity = '0.5';
+
+                document.body.appendChild(canvas);
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: white;
+			}
+
+			div {
+				position: absolute;
+				width: 40px;
+				background-color: royalblue;
+			}
+
+			.a { top: 20px; height: 8px; }
+			.b { top: 70px; height: 15px; }
+			.c { top: 120px; height: 20px; }
+			.d { top: 170px; height: 30px; }
+			.e { top: 220px; height: 40px; }
+			.f { top: 270px; height: 50px; }
+
+			.u { left: 20px; border-radius: 5%; }
+			.v { left: 70px; border-radius: 10%; }
+			.w { left: 120px; border-radius: 50%; }
+			.x { left: 170px; border-radius: 80%; }
+			.y { left: 220px; border-radius: 100%; }
+			.z { left: 270px; border-radius: 500%; }
+
+			span {
+				position: absolute;
+				display: block;
+				width: 80px;
+				height: 80px;
+			}
+		</style>
+	</head>
+	<body>
+		<span style="left:400px; top:30px; border-radius:5%; border-top-left-radius:10% 20%; background-color:deeppink"></span>
+		<span style="left:420px; top:140px; height:140px; border-radius:5%; border-top-left-radius:100% 50%; background-color:aquamarine"></span>
+
+		<!--<div class="b x"></div>-->
+
+		<script>
+			var X = [ 'a', 'b', 'c', 'd', 'e', 'f' ];
+			var Y = [ 'u', 'v', 'w', 'x', 'y', 'z' ];
+			for (var x = 0; x < X.length; x++)
+			{
+				for (var y = 0; y < Y.length; y++)
+				{
+					var div = document.createElement('div');
+					div.classList.add(X[x]);
+					div.classList.add(Y[y]);
+					document.body.append(div);
+				}
+			}
+		</script>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '500px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

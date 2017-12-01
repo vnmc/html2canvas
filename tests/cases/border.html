@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: white;
+			}
+
+			div {
+				display: inline-block;
+				width: 150px;
+				height: 100px;
+				border-style: solid;
+				border-color: midnightblue;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- https://www.w3.org/TR/css3-background/#corner-transitions -->
+		<div style="border-width: 20px; border-radius: 80px / 40px"></div>
+		<div style="border-width: 40px 20px; border-radius: 80px / 60px"></div>
+		<div style="border-width: 40px 80px; border-radius: 80px / 40px"></div>
+		<div style="border-width: 60px 40px; border-radius: 80px / 40px"></div>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '500px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

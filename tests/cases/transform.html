@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: white;
+			}
+
+			div {
+				width: 200px;
+				height: 200px;
+			}
+
+			section {
+				position:absolute;
+				left: 0;
+				top: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<section>
+			<div style="background-color: deepskyblue"></div>
+		</section>
+		<section style="top: 100px; left:-1000px; /*transform: translate3d(-1000px,0,0);*/ /*overflow: hidden*/">
+			<!-- problem with translate: not considered for the section's "overflow" -->
+			<div style="background-color: deeppink; transform: translate3d(900px,0,0) rotateZ(5deg); border:10px solid aquamarine; box-shadow: 0 0 20px rgba(0,0,0,0.5)">X</div>
+
+			<!-- problem when z-index isn't specified (overflow visible): html2canvas renders the pink square on top instead of the yellow one -->
+			<div style="background-color: yellow; position:absolute; left:900px; top:100px; /*z-index:0*/">Y</div>
+
+			<!--<div style="background-color: springgreen; position:absolute; left:900px; top:150px; /*z-index:0*/"></div>-->
+		</section>
+
+		<div style="position:absolute; left:300px; top:100px; width:80px; height:80px; background-color: teal; -webkit-transform: translate3d(50px, 100px, 0) rotateZ(10deg)"></div>
+
+		<script>
+			// - concatenated transforms: correct clip?
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '500px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

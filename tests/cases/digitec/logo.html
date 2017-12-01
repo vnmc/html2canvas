@@ -1,0 +1,57 @@
+<html class="js cookies history serviceworker csspositionsticky no-touchevents flexbox no-ios no-ios7 no-retina" lang="de">
+<head>
+    <script src="../../es6-promise.auto.js"></script>
+    <script src="../../specificity.js"></script>
+    <script src="../../html2canvas.js"></script>
+    <script src="../../fabric.js"></script>
+
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>
+        Alles digital - digitec
+    </title>
+    <link href="https://www.digitec.ch/style/25/9595051472/classic.css?browserVersion=59&amp;os=Unknown&amp;browser=Chrome&amp;sprintNumber=167" rel="stylesheet" type="text/css">
+</head>
+<body class="">
+    <div id="page-wrapper" class="container">
+        <div id="page" class="">
+            <header id="top-area" class="row loaded">
+                <div id="logo" class="col-xs-2 col-sm-3 col-xl-2">
+                    <div class="hidden-xs hidden-sm">
+                        <a href="/de" tabindex="-1"><img alt="Corporate logo" class="desktop-logo" data-originalimageheight="2147483647" data-originalimagewidth="2147483647" src="https://www.digitec.ch/portalimage/25/logo.svg?lang=de" title="Corporate logo" width="150">
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(function()
+        {
+            html2canvas(
+                //document.body,
+                document.documentElement,
+                {
+                    background: '#ffffff',
+                    type: 'view',
+                    letterRendering: true,
+                    javascriptEnabled: true,
+                    proxy: 'areion',
+                    logging: true,
+                    async: false
+                }
+            ).then(function(canvas)
+            {
+                canvas.style.position = 'absolute';
+                canvas.style.left = '0';
+                canvas.style.top = '400px';
+                canvas.style.padding = '0';
+                //canvas.style.opacity = '0.5';
+
+                document.body.appendChild(canvas);
+            });
+        }, 2000);
+    </script>    
+</body>
+</html>

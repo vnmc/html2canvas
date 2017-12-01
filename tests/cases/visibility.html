@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../../es6-promise.auto.js"></script>
+		<script src="../../specificity.js"></script>
+		<script src="../../html2canvas.js"></script>
+		<script src="../../fabric.js"></script>
+
+		<style>
+			body {
+				background-color: white;
+			}
+
+			div {
+				position: absolute;
+				width: 100px;
+				height: 100px;
+				background-color: aquamarine;
+			}
+
+			.p {
+				left: 50px;
+				top: 20px;
+			}
+
+			.p::before {
+				content: 'Before';
+				display: block;
+				background-color: pink;
+			}
+
+			.p::after {
+				content: 'After';
+				display: block;
+				background-color: purple;
+				visibility: hidden;
+				height: 0;
+			}
+
+			.q {
+				left: 70px;
+				top: 180px;
+				visibility: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="p">PseudoElements</div>
+		<div class="q">Invisible</div>
+
+		<script>
+			// - concatenated transforms: correct clip?
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: true,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '500px';
+					canvas.style.padding = '0';
+					//canvas.style.opacity = '0.5';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

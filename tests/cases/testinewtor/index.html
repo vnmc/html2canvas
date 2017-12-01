@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ghostlab Testing Page</title>
+    <script src="main.js"></script>
+
+        <script src="../../es6-promise.auto.js"></script>
+        <script src="../../specificity.js"></script>
+        <script src="../../html2canvas.js"></script>
+        <script src="../../fabric.js"></script>
+
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="intro">
+    <div class="content">
+        <div class="logo white"></div>
+        <div class="left"><h1>Test Page</h1>
+            <p>This is a test page to show you what Ghostlab is capable of. Open this page in at least two browser windows or devices.</p>
+        </div>
+        <div class="right">
+            <!--
+            <svg width="334px" height="284px" viewBox="0 0 334 284" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <desc>Created with Sketch.</desc>
+                <defs>
+                    <path d="M0.0463101092,135.643576 L95.8185189,135.379084 C92.9996629,132.022841 93.4420188,126.974542 96.8015318,124.159757 L151.751953,78.0973458 C152.222854,77.7024866 152.727137,77.3716888 153.253952,77.1040109 L153.253952,0.849816304 L0.0463101092,0.849816304 L0.0463101092,135.643576 Z"
+                          id="path-1"></path>
+                </defs>
+                <g id="Welcome" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g id="seite-1" transform="translate(-585.000000, -151.000000)">
+                        <g id="main-icon" transform="translate(585.000000, 151.000000)">
+                            <g id="Page-1" transform="translate(151.437123, 122.093458)">
+                                <g id="Group-6" transform="translate(0.000000, 0.926318)">
+                                    <mask id="mask-2" fill="white">
+                                        <use xlink:href="#path-1"></use>
+                                    </mask>
+                                    <g id="Clip-5"></g>
+                                    <path d="M120.030127,119.362546 C119.225119,122.169368 116.266781,123.807013 113.457224,123.002789 L16.4099392,95.2013121 C13.6003821,94.3970879 11.9611416,91.442957 12.7674779,88.6361346 L32.9059585,18.4735364 C33.7109664,15.6653869 36.6679755,14.0277421 39.4775327,14.8319664 L136.524818,42.6347701 C139.334375,43.4389944 140.973615,46.3931252 140.167279,49.1999477 L120.030127,119.362546 Z M147.481426,33.3477047 L35.1110956,1.15749907 C30.8974241,-0.050164486 26.460582,2.4063028 25.2530702,6.6158729 L0.353618967,93.3632748 C-0.853892833,97.5728449 1.60629623,102.005368 5.81863937,103.211705 L118.18897,135.403237 C122.402642,136.609574 126.839484,134.154434 128.048324,129.943536 L152.946447,43.1961346 C154.153959,38.9865645 151.696426,34.5553682 147.481426,33.3477047 L147.481426,33.3477047 Z"
+                                          id="Fill-4" fill="#FFFFFF" mask="url(#mask-2)"></path>
+                                </g>
+                            </g>
+                            <path d="M274.968863,274.103264 C272.729188,275.979787 269.361704,275.68517 267.483353,273.449002 L253.820802,257.182703 C251.94245,254.946535 252.237354,251.581002 254.475701,249.704479 L303.322143,208.758049 C305.559162,206.881525 308.927974,207.176142 310.807654,209.41231 L324.470205,225.678609 C326.348557,227.914778 326.052324,231.28031 323.815306,233.156834 L274.968863,274.103264 Z M332.11778,224.462983 L313.334263,202.09732 C310.515407,198.742404 305.462189,198.301806 302.105333,201.116591 L247.154911,247.180329 C243.795398,249.995114 243.353043,255.043413 246.17057,258.398329 L264.956744,280.76532 C267.774271,284.118908 272.827489,284.560834 276.185674,281.746049 L331.136095,235.680983 C334.495608,232.866198 334.936636,227.817899 332.11778,224.462983 L332.11778,224.462983 Z"
+                                  id="Fill-7" fill="#FFFFFF"></path>
+                            <path d="M156.919014,100.54237 C157.722694,103.349193 156.084782,106.303323 153.275225,107.108875 L43.4580707,138.567847 C40.649842,139.372071 37.6928329,137.734426 36.8864966,134.927604 L15.6494326,60.9376411 C14.8430964,58.1308187 16.4836652,55.1766879 19.291894,54.3711364 L129.109048,22.9121645 C131.918605,22.1079402 134.875614,23.745585 135.681951,26.5524075 L156.919014,100.54237 Z M130.911681,0.30762243 L5.77280971,36.1553234 C1.55780978,37.3629869 -0.901050885,41.7941832 0.307789311,46.0037533 L28.866971,145.508594 C30.0758112,149.718164 34.5126533,152.174632 38.7263248,150.968295 L163.865196,115.119267 C168.080196,113.912931 170.539057,109.480407 169.331545,105.270837 L140.771035,5.76599626 C139.563523,1.55642617 135.126681,-0.900041121 130.911681,0.30762243 L130.911681,0.30762243 Z"
+                                  id="Fill-1" fill="#FFFFFF"></path>
+                            <path d="M177.452456,66.4695754 L169.126214,41.1161947 C169.126214,41.1161947 207.72912,28.6301025 231.0971,53.1622485 C250.287886,73.3093598 245.074389,108.608378 245.074389,108.608378 L256.201207,108.608378 L238.737592,125.740458 L219.26662,108.798976 L230.978117,108.798976 C230.978117,108.798976 232.86777,84.696635 217.779974,71.4059375 C203.303724,58.6524962 177.452456,66.4695754 177.452456,66.4695754"
+                                  id="Fill-1" fill="#FFFFFF"></path>
+                        </g>
+                    </g>
+                </g>
+            </svg>-->
+        </div>
+    </div>
+</div>
+
+<div class="apps">
+    <a class="start js-start"><span>Get Started</span></a>
+    
+    <div class="content">
+        <div class="logo-wrapper js-logo">
+            <div class="logo black"></div>
+            <span>Test Page</span>
+        </div>
+
+        <a class="app-deviceinfo trigger">
+            <div class="icon" style="background-image: url(app-deviceinfo.png);" data-anim="2400"></div>
+            <div class="animated-icon" style="background-image: url(app-deviceinfo.gif);"></div>
+            <h1>Device Info</h1>
+            <p>Displays device specifications.</p></a>
+
+        <div class="app app-deviceinfo">
+            <div class="content">
+                <header><h1>Device Info</h1>
+                    <p>Here are some specs of your device.</p>
+                    <div class="icon" style="background-image: url(app-deviceinfo-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <div class="user-agent">
+                        <script>document.write(navigator.userAgent + ')');</script>
+                    </div>
+                    <div class="details"></div>
+                </div>
+            </div>
+        </div>
+
+        <a class="app-form trigger">
+            <div class="icon" style="background-image: url(app-form.png);" data-anim="3840"></div>
+            <div class="animated-icon" style="background-image: url(app-form.gif);"></div>
+            <h1>Forms</h1>
+            <p>Ghostlab helps you to fill out forms in many ways. Find out more by following this step-by-step tutorial.</p></a>
+        <div class="app app-form">
+            <div class="content">
+                <header><h1>Forms</h1>
+                    <p>Ghostlab helps you to fill out forms in many ways. Find out more by following this step-by-step tutorial.</p>
+                    <div class="icon" style="background-image: url(app-form-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <form>
+                        <fieldset><h2>Basic Form Filling with Ghostlab</h2>
+                            <p>Enter something in a form field below. You'll see that the field will be filled out in sync on the other
+                                browsers.</p>
+                            <div class="formfield"><input type="email" placeholder="What's your e-mail address?"></div>
+                            <div class="formfield select last"><select>
+                                <option disabled selected>How did you hear about us?</option>
+                                <option>Google</option>
+                                <option>Twitter</option>
+                                <option>A friend</option>
+                            </select></div>
+                            <label><input type="checkbox"><span>Sign me up for the newsletter! (Don't worry, this form isn't wired.)</span></label><label><input
+                                    type="radio" name="radio"><span>I want daily news</span></label><label><input type="radio" name="radio"><span>I want weekly news</span></label>
+                        </fieldset>
+                        <fieldset><h2>Remove Form Filling</h2>
+                            <p>Triple-Click on any form field to open the remote form filling tool. It will show you inputs for the field in
+                                every browser.</p>
+                            <div class="formfield"><input type="email" placeholder="What's your e-mail address?"></div>
+                            <div class="formfield select last"><select>
+                                <option disabled selected>How did you hear about us?</option>
+                                <option>Google</option>
+                                <option>Twitter</option>
+                                <option>A friend</option>
+                            </select></div>
+                            <label><input type="checkbox"><span>Sign me up for the newsletter! (Don't worry, this form isn't wired.)</span></label><label><input
+                                    type="radio" name="radio"><span>I want daily news</span></label><label><input type="radio" name="radio"><span>I want weekly news</span></label>
+                        </fieldset>
+                        <fieldset><h2>Automatic Form Filling</h2>
+                            <p>Place the cursor in a form field. Then use the Automatic Form Filling shortcut (Ctrl-Shift-F by default) to
+                                fill out this entire form below!</p>
+                            <div class="formfield"><input type="email" placeholder="What's your e-mail address?"></div>
+                            <div class="formfield select last"><select>
+                                <option disabled selected>How did you hear about us?</option>
+                                <option>Google</option>
+                                <option>Twitter</option>
+                                <option>A friend</option>
+                            </select></div>
+                            <label><input type="checkbox"><span>Sign me up for the newsletter! (Don't worry, this form isn't wired.)</span></label><label><input
+                                    type="radio" name="radio"><span>I want daily news</span></label><label><input type="radio" name="radio"><span>I want weekly news</span></label>
+                        </fieldset>
+                        <fieldset><h2>Quickfills</h2>
+                            <p>Use Quickfills to quickly populate a field: e.g., type [code $e], which will expand to a random e-mail
+                                address when you leave the form field.</p>
+                            <div class="formfield"><input type="email" placeholder="What's your e-mail address?"></div>
+                            <div class="formfield select last"><select>
+                                <option disabled selected>How did you hear about us?</option>
+                                <option>Google</option>
+                                <option>Twitter</option>
+                                <option>A friend</option>
+                            </select></div>
+                            <label><input type="checkbox"><span>Sign me up for the newsletter! (Don't worry, this form isn't wired.)</span></label><label><input
+                                    type="radio" name="radio"><span>I want daily news</span></label><label><input type="radio" name="radio"><span>I want weekly news</span></label>
+                        </fieldset>
+                        <fieldset><h2>Round-Robin Data</h2>
+                            <p>Define datasets for quickfills to enter different values on every client. E.g. $0</p>
+                            <div class="formfield"><input type="email" placeholder="What's your e-mail address?"></div>
+                            <div class="formfield select last"><select>
+                                <option disabled selected>How did you hear about us?</option>
+                                <option>Google</option>
+                                <option>Twitter</option>
+                                <option>A friend</option>
+                            </select></div>
+                            <label><input type="checkbox"><span>Sign me up for the newsletter! (Don't worry, this form isn't wired.)</span></label><label><input
+                                    type="radio" name="radio"><span>I want daily news</span></label><label><input type="radio" name="radio"><span>I want weekly news</span></label>
+                        </fieldset>
+                    </form>
+                    <ul class="pagination">
+                        <li class="prev js-prev"></li>
+                        <li class="next js-next"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <a class="app-pipes trigger">
+            <div class="icon" style="background-image: url(app-pipes.png);" data-anim="8160"></div>
+            <div class="animated-icon" style="background-image: url(app-pipes.gif);"></div>
+            <h1>Scrolling</h1>
+            <p>A little game demonstrating scrolling synchronization.</p></a>
+        <div class="app app-pipes">
+            <div class="content">
+                <header><h1>Scrolling</h1>
+                    <p>Scroll the individual tiles horizontally or vertically to connect the valve in the top left corner to the nozzle in
+                        the bottom right corner.</p>
+                    <div class="icon" style="background-image: url(app-pipes-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <canvas></canvas>
+                    <div class="app-content">
+                        <div class="container">
+                            <svg class="tap" viewbox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" d="M5,5 l5,0"></path>
+                                <path stroke-linecap="round" d="M5,5 l0,-3.5"></path>
+                                <circle cx="5" cy="5" r="1"></circle>
+                                <g class="handle">
+                                    <path stroke-linecap="round" stroke-width="0.5" d="M3.5,2 l3,0"></path>
+                                    <circle cx="3.5" cy="2" r="0.5"></circle>
+                                    <circle cx="6.5" cy="2" r="0.5"></circle>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="container horz">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="left:400px;" data-connectors="bd" data-pos="10" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l10,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:700px;" data-connectors="cd" data-pos="10" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l1,0 c4,0 4,0 4,4 l0,1"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container vert">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="top:350px;" data-connectors="bd" data-pos="20" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l10,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="top:750px;" data-connectors="cd" data-pos="20" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l1,0 c4,0 4,0 4,4 l0,1"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="top:900px;" data-connectors="ab" data-pos="20" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 -4,4 l-1,0"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container horz">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="left:150px;" data-connectors="ac" data-pos="01" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,10"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:300px;" data-connectors="bd" data-pos="01" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l10,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:450px;" data-connectors="ab" data-pos="01" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 4,4 l1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:900px;" data-connectors="bc" data-pos="01" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10,5 l-1,0 c-4,0 -4,0 -4,4 l0,1"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container horz">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="left:150px;" data-connectors="ac" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,10"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:350px;" data-connectors="ad" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 -4,4 l-1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:650px;" data-connectors="ab" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 4,4 l1,0"></path>
+                                </svg><
+                                <svg viewbox="0 0 10 10" style="left:800px;" data-connectors="ad" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 -4,4 l-1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:800px;" data-connectors="bc" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10,5 l-1,0 c-4,0 -4,0 -4,4 l0,1"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:950px;" data-connectors="ab" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 4,4 l1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:950px;" data-connectors="cd" data-pos="11" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l1,0 c4,0 4,0 4,4 l0,1"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container vert">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="top:400px;" data-connectors="ad" data-pos="21" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 -4,4 l-1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="top:500px;" data-connectors="cd" data-pos="21" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l1,0 c4,0 4,0 4,4 l0,1"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container vert">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="top:200px;" data-connectors="ac" data-pos="02" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,10"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="top:350px;" data-connectors="ab" data-pos="02" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 4,4 l1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="top:750px;" data-connectors="bc" data-pos="02" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10,5 l-1,0 c-4,0 -4,0 -4,4 l0,1"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container horz">
+                            <div>
+                                <svg viewbox="0 0 10 10" style="left:150px;" data-connectors="ac" data-pos="12" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,10"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:400px;" data-connectors="bd" data-pos="12" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0,5 l10,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:650px;" data-connectors="ad" data-pos="12" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 -4,4 l-1,0"></path>
+                                </svg>
+                                <svg viewbox="0 0 10 10" style="left:850px;" data-connectors="ab" data-pos="12" version="1.1"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1 c0,4 0,4 4,4 l1,0"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="container">
+                            <div>
+                                <svg class="hose" viewbox="0 0 10 10" version="1.1" data-connectors="a*" data-pos="22"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5,0 l0,1"></path>
+                                    <path stroke="none" fill="slategray" d="M4,0.5 l0.5,3 l1,0 l0.5,-3z"></path>
+                                    <path stroke="slategray" stroke-width="0.3" stroke-linecap="round"
+                                          d="M3.8,0.65 l2.4,0 M4.4,3.7 l1.2,0"></path>
+                                </svg>
+                                <div class="drops">
+                                    <div class="drop" style="left:42px; top:-30px;"></div>
+                                    <div class="drop" style="left:44px; top:0px;"></div>
+                                    <div class="drop" style="left:46px; top:5px;"></div>
+                                    <div class="drop" style="left:48px; top:-5px;"></div>
+                                    <div class="drop" style="left:50px; top:5px;"></div>
+                                    <div class="drop" style="left:52px; top:10px;"></div>
+                                    <div class="drop" style="left:54px; top:-10px;"></div>
+                                    <div class="drop" style="left:56px; top:0px;"></div>
+                                    <div class="drop" style="left:42px; top:-70px;"></div>
+                                    <div class="drop" style="left:44px; top:-30px;"></div>
+                                    <div class="drop" style="left:46px; top:-25px;"></div>
+                                    <div class="drop" style="left:48px; top:-35px;"></div>
+                                    <div class="drop" style="left:50px; top:-25px;"></div>
+                                    <div class="drop" style="left:52px; top:-20px;"></div>
+                                    <div class="drop" style="left:54px; top:-40px;"></div>
+                                    <div class="drop" style="left:56px; top:-30px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ground">
+                            <svg class="flower" version="1.1" xmlns="http://www.w3.org/2000/svg" viewbox="32.17 0 41.252 68.188">
+                                <path fill="#00BF24"
+                                      d="M70.35,40.275c-0.661-0.25-1.413-0.478-2.256-0.659c-0.835-0.154-1.711-0.199-2.655-0.206 c-0.951-0.011-1.86,0.156-2.834,0.342c-0.961,0.207-1.871,0.534-2.799,0.916c-0.89,0.409-1.759,0.893-2.58,1.437 c-0.78,0.57-1.571,1.166-2.235,1.847c-0.681,0.672-1.298,1.384-1.812,2.144c-1.064,1.494-1.769,3.137-2.197,4.651 c-0.207,0.771-0.351,1.5-0.431,2.18c-0.087,0.676-0.087,1.322-0.087,1.842c-0.01,0.246,0.003,0.486,0.017,0.699 c0.197-0.227,0.407-0.473,0.636-0.732c1.148-1.283,2.755-2.926,4.518-4.399c0.876-0.736,1.807-1.408,2.688-2.011 c0.459-0.277,0.903-0.544,1.328-0.803c0.438-0.221,0.85-0.435,1.231-0.631c0.396-0.161,0.76-0.305,1.082-0.438 c0.313-0.145,0.615-0.195,0.854-0.271c0.479-0.132,0.753-0.208,0.753-0.208s-0.268,0.094-0.731,0.266 c-0.233,0.091-0.521,0.17-0.821,0.337c-0.309,0.153-0.657,0.324-1.033,0.512c-0.362,0.221-0.746,0.462-1.164,0.715 c-0.391,0.279-0.805,0.576-1.234,0.886c-0.825,0.659-1.682,1.389-2.479,2.177c-1.607,1.568-3.048,3.294-4.061,4.632 c-0.288,0.373-0.532,0.715-0.75,1.016c0.282,0,0.637,0.014,1.034-0.023c0.501-0.037,1.134-0.045,1.77-0.123 c0.648-0.07,1.341-0.164,2.053-0.301c0.718-0.123,1.437-0.309,2.176-0.504c0.731-0.197,1.45-0.451,2.17-0.719 c0.701-0.293,1.402-0.588,2.061-0.951c0.656-0.377,1.308-0.715,1.909-1.152c1.222-0.82,2.32-1.751,3.288-2.786 c0.49-0.477,0.948-1.064,1.387-1.588c0.432-0.519,0.85-1.114,1.238-1.656c0.396-0.53,0.772-1.069,1.123-1.603 c0.369-0.551,0.697-1.022,0.965-1.417c0.294-0.378,0.521-0.803,0.688-1.037c0.172-0.273,0.264-0.421,0.264-0.421 s-0.12-0.125-0.349-0.312c-0.228-0.174-0.582-0.498-1.034-0.756C71.599,40.913,70.999,40.51,70.35,40.275z"></path>
+                                <path fill="#00BF32"
+                                      d="M49.648,59.899c0.214-5.436,1.052-11.052,1.771-14.423c0.421-1.963,0.792-3.725,1.022-5.246 c0.355-1.165-1.721-1.165-1.862-0.181c-0.225,1.444-0.585,3.142-0.989,5.041c-0.52,2.413-1.086,5.094-1.458,7.75 c-0.01-0.045-0.01-0.078-0.024-0.119c-0.305-1.081-0.806-2.248-1.563-3.304c-0.364-0.541-0.802-1.049-1.285-1.528 c-0.474-0.479-1.033-0.903-1.588-1.311c-0.585-0.386-1.201-0.727-1.832-1.021c-0.659-0.267-1.309-0.505-1.987-0.651 c-0.69-0.131-1.336-0.248-2.012-0.238c-0.672,0-1.292,0.034-1.886,0.144c-0.6,0.13-1.139,0.287-1.605,0.465 c-0.462,0.167-0.886,0.455-1.201,0.646c-0.321,0.185-0.57,0.412-0.729,0.536c-0.164,0.133-0.248,0.221-0.248,0.221 s0.062,0.104,0.185,0.297c0.12,0.17,0.284,0.467,0.491,0.736c0.188,0.277,0.421,0.618,0.683,1.006 c0.25,0.378,0.519,0.765,0.8,1.14c0.283,0.382,0.574,0.807,0.883,1.175c0.308,0.37,0.631,0.792,0.981,1.126 c0.687,0.732,1.469,1.396,2.337,1.979c0.429,0.312,0.891,0.555,1.358,0.814c0.467,0.26,0.965,0.473,1.465,0.678 c0.508,0.188,1.021,0.369,1.538,0.512c0.527,0.139,1.035,0.27,1.547,0.359c0.505,0.094,0.998,0.166,1.458,0.217 c0.448,0.059,0.9,0.064,1.254,0.086c0.234,0.021,0.429,0.014,0.606,0.014c-0.031,0.824-0.024,1.889,0.017,3.082l0.46,5.482 c0.122,0.945,0.27,1.883,0.441,2.807h1.303c-0.135-0.883-0.221-1.828-0.282-2.807L49.648,59.899z M47.349,56.096 c-0.72-0.951-1.74-2.176-2.883-3.291c-0.568-0.559-1.17-1.082-1.759-1.543c-0.306-0.221-0.6-0.428-0.873-0.632 c-0.297-0.178-0.571-0.352-0.826-0.508c-0.271-0.132-0.512-0.255-0.732-0.364c-0.214-0.118-0.421-0.171-0.585-0.238 c-0.331-0.12-0.521-0.188-0.521-0.188s0.192,0.055,0.534,0.146c0.167,0.056,0.385,0.091,0.604,0.195 c0.229,0.092,0.491,0.197,0.771,0.308c0.271,0.142,0.565,0.291,0.876,0.45c0.297,0.186,0.615,0.368,0.945,0.57 c0.631,0.424,1.285,0.905,1.913,1.426c1.178,0.986,2.235,2.064,3.037,2.951c-0.034,0.428-0.065,0.854-0.083,1.275 C47.637,56.473,47.512,56.303,47.349,56.096z"></path>
+                                <ellipse fill="#FFDE00" cx="52.23" cy="20.153" rx="5.538" ry="5.444"></ellipse>
+                                <path fill="#FF0036"
+                                      d="M52.441,40.229c3.05-0.189,5.47-2.698,5.47-5.785c0-0.38-0.034-0.785-0.101-1.202 c0.186,0.228,0.366,0.471,0.559,0.658c2.271,2.271,5.969,2.271,8.239,0c2.201-2.199,2.252-5.708,0.206-7.992 c3.151-0.073,5.688-2.646,5.688-5.814c0-3.217-2.607-5.828-5.824-5.828c-0.261,0-0.53,0.029-0.805,0.061 c0.146-0.126,0.325-0.251,0.452-0.383c2.274-2.272,2.274-5.964,0-8.244c-2.276-2.271-5.966-2.271-8.237,0 c-0.178,0.178-0.343,0.397-0.507,0.615c0.007-0.165,0.021-0.332,0.021-0.488C57.602,2.608,54.99,0,51.772,0 c-3.108,0-5.624,2.438-5.792,5.501c-2.286-2.116-5.841-2.081-8.067,0.144c-2.274,2.274-2.274,5.965,0,8.242 c0.253,0.25,0.558,0.501,0.876,0.736c-0.248-0.027-0.498-0.048-0.732-0.048c-3.217,0-5.828,2.605-5.828,5.825 c0,3.2,2.587,5.798,5.78,5.821c-2.209,2.277-2.195,5.915,0.058,8.168c2.261,2.26,5.908,2.268,8.187,0.042c0,0.004,0,0.007,0,0.011 C46.252,37.132,48.768,40.229,52.441,40.229z M47.115,20.09c0-2.803,2.276-5.085,5.085-5.085c2.799,0,5.087,2.283,5.087,5.085 c0,2.805-2.284,5.085-5.087,5.085C49.392,25.179,47.115,22.895,47.115,20.09z"></path>
+                            </svg>
+                            <svg class="pot" version="1.1" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 10 10">
+                                <path stroke="none" fill="black"
+                                      d="M2.7,8 l0.3,1 c0.2,0.7 0.7,1 1,1 l2,0 c0.7,0 0.9,-0.7 1,-1 l0.3,-1"></path>
+                                <path stroke="black" stroke-width="0.3" stroke-linecap="round" fill="none" d="M2.7,8 l4.6,0"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="app-links trigger">
+            <div class="icon" style="background-image: url(app-links.png);" data-anim="3720"></div>
+            <div class="animated-icon" style="background-image: url(app-links.gif);"></div>
+            <h1>Navigating the Web</h1>
+            <p>«A hyperlink is a reference to data that the reader can directly follow either by clicking, tapping, or hovering.»</p></a>
+        <div class="app app-links">
+            <div class="content">
+                <header><h1>Navigating the Web</h1>
+                    <p>«A hyperlink is a reference to data that the reader can directly follow either by clicking, tapping, or
+                        hovering.»</p>
+                    <div class="icon" style="background-image: url(app-links-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <ul>
+                        <li><a href="page2.html"><span>Go to another Page</span></a>
+                            <p>This link takes you to another page. From there, get back by using the provided link or by using the back
+                                button of your browser.</p></li>
+                        <li><a href="https://www.vanamco.com"><span>Go somewhere completely different</span></a>
+                            <p>This link takes you to the Vanamco website. We don't provide a link back to the testing page, so you have to
+                                use the back button of your browser to get back to the testing page.</p></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <a class="app-puzzle trigger">
+            <div class="icon" style="background-image: url(app-puzzle.png);" data-anim="3280"></div>
+            <div class="animated-icon" style="background-image: url(app-puzzle.gif);"></div>
+            <h1>Drag &amp; Drop</h1>
+            <p>A drag &amp; drop puzzle.</p></a>
+        <div class="app app-puzzle">
+            <div class="content">
+                <header><h1>Drag &amp; Drop</h1>
+                    <p>Solve the puzzle by dragging the tiles to the correct positions.</p>
+                    <div class="icon" style="background-image: url(app-puzzle-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <button id="btnScramble">Start over</button>
+                    <ul id="puzzle"></ul>
+                    <div class="won">You did it!</div>
+                </div>
+            </div>
+        </div>
+        <a class="app-colors trigger">
+            <div class="icon" style="background-image: url(app-colors.png);" data-anim="4000"></div>
+            <div class="animated-icon" style="background-image: url(app-colors.gif);"></div>
+            <h1>Hover</h1>
+            <p>A demonstration of a synchronized hover effect.</p></a>
+        <div class="app app-colors">
+            <div class="content">
+                <header><h1>Hover</h1>
+                    <p>Hover over the color tiles to see the names of the HTML colors.</p>
+                    <div class="icon" style="background-image: url(app-colors-inv.png);"></div>
+                </header>
+                <div class="app-wrapper"></div>
+            </div>
+        </div>
+        <a class="app-slideshow trigger">
+            <div class="icon" style="background-image: url(app-slideshow.png);" data-anim="3840"></div>
+            <div class="animated-icon" style="background-image: url(app-slideshow.gif);"></div>
+            <h1>Mouse &amp; Touch</h1>
+            <p>Demonstrates synchronizing mouse actions and touch gestures.</p></a>
+        <div class="app app-slideshow">
+            <div class="content">
+                <header><h1>Mouse &amp; Touch</h1>
+                    <p>Swipe or use the controls to navigate between images.</p>
+                    <div class="icon" style="background-image: url(app-slideshow-inv.png);"></div>
+                </header>
+                <div class="app-wrapper">
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide" style="background-image: url(photo01.jpg);"></div>
+                            <div class="swiper-slide" style="background-image: url(photo02.jpg);"></div>
+                            <div class="swiper-slide" style="background-image: url(photo03.jpg);"></div>
+                            <div class="swiper-slide" style="background-image: url(photo04.jpg);"></div>
+                        </div>
+                    </div>
+                    <div class="swiper-pagination swiper-pagination-white"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer><span>Design by</span><a href="http://ala.ch/" target="_blank">ala.ch</a></footer>
+</div>
+
+
+<script>
+            setTimeout(function()
+            {
+                html2canvas(
+                    //document.body,
+                    document.documentElement,
+                    {
+                        background: '#ffffff',
+                        type: 'view',
+                        letterRendering: true,
+                        javascriptEnabled: true,
+                        proxy: 'areion',
+                        removeContainer: true
+                    }
+                ).then(function(canvas)
+                {
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '0';
+                    canvas.style.top = '0';
+                    canvas.style.padding = '0';
+                    canvas.style.opacity = '0.5';
+
+                    document.body.appendChild(canvas);
+                });
+            }, 2000);
+        </script>
+
+</body>
+</html>
