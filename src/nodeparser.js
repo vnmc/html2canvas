@@ -811,11 +811,16 @@ NodeParser.prototype.paintNode = function(container) {
         if (container.hasTransform()) {
             this.renderer.setTransform(container.parseTransform());
         }
+    }
 
-        var mixBlendMode = container.css("mixBlendMode");
-        if (mixBlendMode) {
-            this.renderer.setMixBlendMode(mixBlendMode);
-        }
+    var mixBlendMode = container.css("mixBlendMode");
+    if (mixBlendMode) {
+        this.renderer.setMixBlendMode(mixBlendMode);
+    }
+
+    var filter = container.css("filter");
+    if (filter) {
+        this.renderer.setFilter(filter);
     }
 
     if (container.node.nodeName === "INPUT" && container.node.type === "checkbox") {
@@ -987,7 +992,7 @@ NodeParser.prototype.paintIntrinsicTextNode = function(container, value, canHave
 
         wrapper.textContent = value;
 
-        if (wrapper.style.lineHeight === 'normal') {
+        if (wrapper.style.lineHeight === 'normal') {
             wrapper.style.lineHeight = container.computedStyles.height;
         }
 
@@ -1047,7 +1052,7 @@ NodeParser.prototype.paintListItem = function(container) {
             if (start !== null) {
                 value = parseInt(start, 10);
             }
-            
+
             var listItems = listContainer.node.querySelectorAll("li");
             var lenListItems = listItems.length;
             for (var i = 0; i < lenListItems; i++) {

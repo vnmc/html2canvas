@@ -3238,17 +3238,21 @@ NodeParser.prototype.getPseudoElements = function(container) {
     return flatten(nodes);
 };
 
-/* applyInlineStylesToSvgs' workhorse */
+/**
+ * applyInlineStylesToSvgs' workhorse.
+ */
 function applyInlineStylesRecursive(node) {
     if (node.nodeName !== "use" && node.nodeName !== "symbol") {
         var cStyle = getComputedStyle(node);
-        for (var j = cStyle.length-1; j >= 0; j--) {
+        for (var j = cStyle.length - 1; j >= 0; j--) {
             var property = toCamelCase(cStyle.item(j));
             node.style[property] = cStyle[property];
         }
     }
 
-    var childNodes = node.childNodes, len = childNodes.length;
+    var childNodes = node.childNodes;
+    var len = childNodes.length;
+
     for (var i = 0; i < len; i++) {
         var childNode = childNodes[i];
         if (childNode.nodeType === 1) {
@@ -3257,7 +3261,10 @@ function applyInlineStylesRecursive(node) {
     }
 }
 
-/* Make sure we apply all styles as inline styles of svg and any contained elements so that fabric renders the properly */
+/**
+ * Make sure we apply all styles as inline styles of SVG and any
+ * contained elements so that fabric renders the properly.
+ */
 NodeParser.prototype.applyInlineStylesToSvg = function(container) {
     var n = container[0].node;
     if (n.nodeType === 1 && n.tagName === "svg") {
@@ -3759,11 +3766,16 @@ NodeParser.prototype.paintNode = function(container) {
         if (container.hasTransform()) {
             this.renderer.setTransform(container.parseTransform());
         }
+    }
 
-        var mixBlendMode = container.css("mixBlendMode");
-        if (mixBlendMode) {
-            this.renderer.setMixBlendMode(mixBlendMode);
-        }
+    var mixBlendMode = container.css("mixBlendMode");
+    if (mixBlendMode) {
+        this.renderer.setMixBlendMode(mixBlendMode);
+    }
+
+    var filter = container.css("filter");
+    if (filter) {
+        this.renderer.setFilter(filter);
     }
 
     if (container.node.nodeName === "INPUT" && container.node.type === "checkbox") {
@@ -3935,7 +3947,7 @@ NodeParser.prototype.paintIntrinsicTextNode = function(container, value, canHave
 
         wrapper.textContent = value;
 
-        if (wrapper.style.lineHeight === 'normal') {
+        if (wrapper.style.lineHeight === 'normal') {
             wrapper.style.lineHeight = container.computedStyles.height;
         }
 
@@ -3995,7 +4007,7 @@ NodeParser.prototype.paintListItem = function(container) {
             if (start !== null) {
                 value = parseInt(start, 10);
             }
-            
+
             var listItems = listContainer.node.querySelectorAll("li");
             var lenListItems = listItems.length;
             for (var i = 0; i < lenListItems; i++) {
@@ -5549,6 +5561,10 @@ CanvasRenderer.prototype.setOpacity = function(opacity) {
 
 CanvasRenderer.prototype.setMixBlendMode = function(mixBlendMode) {
     this.ctx.globalCompositeOperation = mixBlendMode;
+};
+
+CanvasRenderer.prototype.setFilter = function(filter) {
+    this.ctx.filter = filter;
 };
 
 CanvasRenderer.prototype.setTransform = function(transform) {

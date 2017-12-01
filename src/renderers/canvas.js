@@ -282,6 +282,10 @@ CanvasRenderer.prototype.setMixBlendMode = function(mixBlendMode) {
     this.ctx.globalCompositeOperation = mixBlendMode;
 };
 
+CanvasRenderer.prototype.setFilter = function(filter) {
+    this.ctx.filter = filter;
+};
+
 CanvasRenderer.prototype.setTransform = function(transform) {
     this.ctx.translate(transform.origin[0], transform.origin[1]);
     this.ctx.transform.apply(this.ctx, transform.matrix);
