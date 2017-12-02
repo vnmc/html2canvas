@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="_scripts/test.js"></script>
+
+		<style>
+			/*div*/body {
+				quotes: "<{" "}>" "->" "<-" "(" ")" "-:" ":-";
+				font-size: 60px;
+			}
+
+			div::before {
+				content: open-quote "!" open-quote close-quote open-quote;
+			}
+
+			div::after {
+				content: "!" close-quote close-quote;
+			}
+		</style>
+	</head>
+	<body>
+		<div>Hello <small>🤣</small><div>World</div></div>
+	</body>
+</html>

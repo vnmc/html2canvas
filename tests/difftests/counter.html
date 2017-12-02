@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="_scripts/test.js"></script>
+
+		<style>
+			ol.list1 {
+				counter-reset: c1 3;
+			}
+
+			ol.list1 li::before {
+				content: "«\"" counter(c1) "\»";
+				counter-increment: c1 -1;
+				margin-right: 6px;
+			}
+
+			ol.list2 {
+				list-style-type: none;
+				counter-reset: c2;
+			}
+
+			ol.list2 li::before {
+				content: "["counters(c2, " < ") ']';
+				counter-increment: c2 2;
+				margin-right: 6px;
+			}
+
+			ol.list2 li::after {
+				content: counter(c2, upper-roman);
+				counter-increment: c2 1;
+			}
+
+			.div1::before {
+				/*
+				display: block;
+				width: 100px;
+				height: 100px;
+				background-color: red;
+				*/
+
+				content: "Hello" url(_assets/border.png) "World" url(_assets/border.png);
+				/*content: "XX" url(_assets/border.png);*/
+				/*content: "BLA" "BLU";*/
+				/*content: url(_assets/border.png);*/
+			}
+
+			.list3 {
+				list-style-position: outside;
+				list-style-type: disc;
+				/*list-style-image: url(_assets/border.png);*/
+				list-style-image: linear-gradient(90deg, blue, red);
+			}
+
+			.list4 {
+				list-style-image: url(_assets/border.png);
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+		<dl>
+			<dt>Def 1</dt>
+			<dd>Is awesome</dd>
+			<dt>Def 2</dt>
+			<dd>Is OK!</dd>
+		</dl>-->
+
+		<ol class="list1">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list3" start="5">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list4">
+			<li>Angelina</li>
+			<li>Betty</li>
+			<li>Charlize</li>
+		</ol>
+
+		<ol class="list2">
+			<li>Alpha</li>
+			<li>Beta</li>
+			<li>Gamma
+				<ol class="list2">
+					<li>Aleph</li>
+					<li>Beth</li>
+					<li>Gimel
+						<ol class="list2">
+							<li>A</li>
+							<li>B</li>
+							<li>C
+								<ol class="list2">
+									<li>a</li>
+									<li>b</li>
+									<li>c</li>
+								</ol>
+							</li>
+						</ol>
+					</li>
+				</ol>
+			</li>
+		</ol>
+		
+		<img src="_assets/border.png">
+		<div class="div1"></div>
+	</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="_scripts/test.js"></script>
+
+		<style>
+			body {
+				font-family: sans-serif;
+			}
+
+			ol {
+				padding-left: 150px;
+				list-style-type: lower-latin;
+			}
+
+			li {
+				float: left;
+				width: 150px;
+			}
+		</style>
+	</head>
+	<body>
+		<ol id="list" start="-3">
+		</ol>
+
+		<script>
+			var ol = document.getElementById('list');
+			for (var i = 0; i < 255; i++)
+			{
+				var li = document.createElement('li');
+				li.textContent = i;
+				ol.appendChild(li);
+			}
+		</script>
+	</body>
+</html>

@@ -21,6 +21,7 @@ setTimeout(function()
 			backgroundColor: '#ffffff',
 			type: 'view',
 			scale: 1,
+			foreignObjectRendering: false,
 			letterRendering: true,
 			javascriptEnabled: true,
 			proxy: 'areion'

@@ -31,31 +31,5 @@
 		<div style="background-repeat: repeat; background-origin: content-box"></div>
 		<div style="background-repeat: repeat; background-origin: padding-box"></div>
 		<div style="background-repeat: repeat; background-origin: border-box"></div>
-
-		<script>
-			setTimeout(function()
-			{
-				html2canvas(
-					//document.body,
-					document.documentElement,
-					{
-						background: '#ffffff',
-						type: 'view',
-						letterRendering: true,
-						javascriptEnabled: true,
-						proxy: 'areion'
-					}
-				).then(function(canvas)
-				{
-					canvas.style.position = 'absolute';
-					canvas.style.left = '0';
-					canvas.style.top = '0';
-					canvas.style.padding = '0';
-					canvas.style.opacity = '0.5';
-
-					document.body.appendChild(canvas);
-				});
-			}, 2000);
-		</script>
 	</body>
 </html>

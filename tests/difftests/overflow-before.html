@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="_scripts/test.js"></script>
+
+		<style>
+            body {
+                background-color: white;
+            }
+
+            .title {
+                overflow: hidden;
+                display: block;
+                width: 50px;
+                height: 10px;
+                /*position: relative;*/
+            }
+
+            .title:before {
+                position: fixed;
+                content: '';
+                background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0), #fff);
+                background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+                top: 0;
+                left: 0;
+                width: 4.06452em;
+                height: 4.06452em;
+                border: 5px solid #000;
+
+            }
+		</style>
+	</head>
+	<body>
+         <img class="visual_img is_ready" src="http://www.zvv.ch/zvv-assets/service/hindernisfrei-reisen/velo_02.jpg/_jcr_content/renditions/cq5dam.web.728.480.jpeg">
+         <h3 class="title" aria-level="3" role="heading">Ha-drei</h3>
+
+         <div style="position:relative; width:50px; height:50px;/*overflow: hidden*/">
+            <div style="position:static; width:50px; height:20px; margin-left:10px; overflow:hidden; background-color:yellow">
+                <div style="position:absolute; top:10px; left:10px; width:100px; height:20px; background-color:orange"
+            </div>
+         </div>
+	</body>
+</html>
