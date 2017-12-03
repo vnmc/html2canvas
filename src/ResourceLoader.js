@@ -9,7 +9,7 @@ export type Resource = ImageElement;
 type ResourceCache = {[string]: Promise<Resource>};
 
 import FEATURES from './Feature';
-import {Proxy} from './Proxy';
+import {Proxy} from './AreionProxy';
 
 export default class ResourceLoader {
     origin: string;
