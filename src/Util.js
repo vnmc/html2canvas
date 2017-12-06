@@ -21,6 +21,8 @@ export const copyCSSStyles = (style: CSSStyleDeclaration, target: HTMLElement): 
     return target;
 };
 
+const REGEX_PSEUDO_ELEMENTS = /::?(?:after|before|first-line|first-letter)/g;
+
 export const getMatchingRules = (
     element: HTMLElement,
     selectorRegex: RegExp
@@ -78,7 +80,7 @@ export const getMatchingRules = (
 
         const arr = [];
         for (let i = 0; i < len; i++) {
-            if (element.matches(s[i].selector)) {
+            if (element.matches(s[i].selector.replace(REGEX_PSEUDO_ELEMENTS, ''))) {
                 arr.push(s[i].specificityArray);
             }
         }
