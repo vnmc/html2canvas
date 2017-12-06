@@ -238,6 +238,10 @@ const getImage = (node: HTMLElement | SVGSVGElement, resourceLoader: ResourceLoa
             // $FlowFixMe
             const img: HTMLImageElement = node;
             return resourceLoader.loadImage(img.currentSrc || img.src);
+        case 'VIDEO':
+            // $FlowFixMe
+            const video: HTMLVideoElement = node;
+            return resourceLoader.loadVideo(video);
         case 'CANVAS':
             // $FlowFixMe
             const canvas: HTMLCanvasElement = node;
