@@ -70,12 +70,12 @@ export default class ResourceLoader {
         }
 
         if (video.currentSrc && typeof this.options.proxy === 'string' && !this.isSameOrigin(video.currentSrc)) {
-            Proxy(video.currentSrc, this.options).then(src => {
+            this.cache[id] = Proxy(video.currentSrc, this.options).then(src => {
                 video.src = src;
-                this.addVideo(id, video);
+                return this.addVideo(id, video);
             });
         } else {
-            this.addVideo(id, video);
+            this.cache[id] = this.addVideo(id, video);
         }
 
         return id;
@@ -196,21 +196,22 @@ export default class ResourceLoader {
     }
 
     addVideo(key: string, video: HTMLVideoElement): string {
-        this.cache[key] = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             video.muted = true;
-            const originalVideos = this._window.document.getElementsByTagName('video');
 
+            const originalVideos = this._window.document.getElementsByTagName('video');
             if (originalVideos.length > 0 && originalVideos[video.videoIndex]) {
                 const originalVideo = originalVideos[video.videoIndex];
-                const canvas = document.createElement('canvas');
 
                 const draw = () => {
+                    const canvas = document.createElement('canvas');
+
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
                     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
                     resolve(canvas);
                 };
-
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
 
                 if (originalVideo.currentTime) {
                     video.currentTime = originalVideo.currentTime;
@@ -221,8 +222,9 @@ export default class ResourceLoader {
                 } else {
                     const timeout = setTimeout(() => reject(`Failed to load video ${video.src}`), this.options.imageTimeout || 5000);
 
+                    const eventName = 'loadeddata';
                     const handler = () => {
-                        video.removeEventListener('loadeddata', handler, false);
+                        video.removeEventListener(eventName, handler, false);
 
                         if (timeout) {
                             clearTimeout(timeout);
@@ -236,14 +238,12 @@ export default class ResourceLoader {
                         }
                     };
 
-                    video.addEventListener('loadeddata', handler, false);
+                    video.addEventListener(eventName, handler, false);
                 }
             } else {
                 reject(`Failed to load video ${video.src}`);
             }
         });
-
-        return key;
     }
 
     isSameOrigin(url: string): boolean {
