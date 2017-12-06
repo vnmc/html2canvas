@@ -27,6 +27,7 @@ export default class ResourceLoader {
         this.cache = {};
         this.logger = logger;
         this._index = 0;
+        this._videoIndex = 0;
     }
 
     loadImage(src: string): ?string {
@@ -56,6 +57,28 @@ export default class ResourceLoader {
                 }
             }
         }
+    }
+
+    loadVideo(video: HTMLVideoElement): ?string {
+        if (video.videoIndex === undefined) {
+            video.videoIndex = this._videoIndex++;
+        }
+
+        const id = '_video' + video.videoIndex;
+        if (this.hasResourceInCache(id)) {
+            return id;
+        }
+
+        if (video.currentSrc && typeof this.options.proxy === 'string' && !this.isSameOrigin(video.currentSrc)) {
+            Proxy(video.currentSrc, this.options).then(src => {
+                video.src = src;
+                this.addVideo(id, video);
+            });
+        } else {
+            this.addVideo(id, video);
+        }
+
+        return id;
     }
 
     inlineImage(src: string): Promise<Resource> {
@@ -169,6 +192,57 @@ export default class ResourceLoader {
                 ? // $FlowFixMe
                   FEATURES.SUPPORT_BASE64_DRAWING(src).then(imageLoadHandler)
                 : imageLoadHandler(true);
+        return key;
+    }
+
+    addVideo(key: string, video: HTMLVideoElement): string {
+        this.cache[key] = new Promise((resolve, reject) => {
+            video.muted = true;
+            const originalVideos = this._window.document.getElementsByTagName('video');
+
+            if (originalVideos.length > 0 && originalVideos[video.videoIndex]) {
+                const originalVideo = originalVideos[video.videoIndex];
+                const canvas = document.createElement('canvas');
+
+                const draw = () => {
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas);
+                };
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                if (originalVideo.currentTime) {
+                    video.currentTime = originalVideo.currentTime;
+                }
+
+                if (video.readyState > 1) {
+                    draw();
+                } else {
+                    const timeout = setTimeout(() => reject(`Failed to load video ${video.src}`), this.options.imageTimeout || 5000);
+
+                    const handler = () => {
+                        video.removeEventListener('loadeddata', handler, false);
+
+                        if (timeout) {
+                            clearTimeout(timeout);
+                        }
+
+                        const playPromise = video.play();
+                        if (playPromise) {
+                            playPromise.then(draw, () => reject(`Failed to load video ${video.src}`));
+                        } else {
+                            draw();
+                        }
+                    };
+
+                    video.addEventListener('loadeddata', handler, false);
+                }
+            } else {
+                reject(`Failed to load video ${video.src}`);
+            }
+        });
+
         return key;
     }
 
