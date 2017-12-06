@@ -64,13 +64,13 @@ const parseNodeTree = (
                 if (container.isVisible()) {
                     if (childNode.tagName === 'INPUT') {
                         // $FlowFixMe
-                        inlineInputElement(childNode, container);
+                        inlineInputElement(childNode, container, resourceLoader);
                     } else if (childNode.tagName === 'TEXTAREA') {
                         // $FlowFixMe
-                        inlineTextAreaElement(childNode, container);
+                        inlineTextAreaElement(childNode, container, resourceLoader);
                     } else if (childNode.tagName === 'SELECT') {
                         // $FlowFixMe
-                        inlineSelectElement(childNode, container);
+                        inlineSelectElement(childNode, container, resourceLoader);
                     }
 
                     const SHOULD_TRAVERSE_CHILDREN = childNode.tagName !== 'TEXTAREA';

@@ -9,3 +9,8 @@ declare class SVGSVGElement extends Element {
 }
 
 declare class HTMLBodyElement extends HTMLElement {}
+
+declare class CSSStyleRule extends CSSRule {
+	selectorText: string;
+    style: CSSStyleDeclaration;
+}

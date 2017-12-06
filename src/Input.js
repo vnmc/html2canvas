@@ -1,7 +1,8 @@
 /* @flow */
 'use strict';
-import type NodeContainer from './NodeContainer';
+import NodeContainer from './NodeContainer';
 import TextContainer from './TextContainer';
+import type ResourceLoader from './ResourceLoader';
 
 import {BACKGROUND_CLIP, BACKGROUND_ORIGIN} from './parsing/background';
 import {BORDER_STYLE} from './parsing/border';
@@ -12,7 +13,7 @@ import Color from './Color';
 import Length from './Length';
 import {Bounds} from './Bounds';
 import {TextBounds} from './TextBounds';
-import {copyCSSStyles} from './Util';
+import {copyCSSStyles, getMatchingRules} from './Util';
 
 export const INPUT_COLOR = new Color([42, 42, 42]);
 const INPUT_BORDER_COLOR = new Color([165, 165, 165]);
@@ -52,7 +53,19 @@ export const getInputBorderRadius = (node: HTMLInputElement) => {
     return node.type === 'radio' ? INPUT_RADIO_BORDER_RADIUS : INPUT_CHECKBOX_BORDER_RADIUS;
 };
 
-export const inlineInputElement = (node: HTMLInputElement, container: NodeContainer): void => {
+export const isPlaceholderShown = (node: HTMLInputElement | HTMLTextAreaElement) => {
+    return (
+        (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') &&
+        !node.value &&
+        !!node.placeholder
+    );
+};
+
+export const inlineInputElement = (
+    node: HTMLInputElement,
+    container: NodeContainer,
+    resourceLoader: ResourceLoader
+): void => {
     if (node.type === 'radio' || node.type === 'checkbox') {
         if (node.checked) {
             const size = Math.min(container.bounds.width, container.bounds.height);
@@ -96,20 +109,25 @@ export const inlineInputElement = (node: HTMLInputElement, container: NodeContai
             );
         }
     } else {
-        inlineFormElement(getInputValue(node), node, container, false);
+        inlineFormElement(getInputValue(node), node, container, false, resourceLoader);
     }
 };
 
 export const inlineTextAreaElement = (
     node: HTMLTextAreaElement,
-    container: NodeContainer
+    container: NodeContainer,
+    resourceLoader: ResourceLoader
 ): void => {
-    inlineFormElement(node.value, node, container, true);
+    inlineFormElement(node.value || node.placeholder, node, container, true, resourceLoader);
 };
 
-export const inlineSelectElement = (node: HTMLSelectElement, container: NodeContainer): void => {
+export const inlineSelectElement = (
+    node: HTMLSelectElement,
+    container: NodeContainer,
+    resourceLoader: ResourceLoader
+): void => {
     const option = node.options[node.selectedIndex || 0];
-    inlineFormElement(option ? option.text || '' : '', node, container, false);
+    inlineFormElement(option ? option.text || '' : '', node, container, false, resourceLoader);
 };
 
 export const reformatInputBounds = (bounds: Bounds): Bounds => {
@@ -127,12 +145,26 @@ const inlineFormElement = (
     value: string,
     node: HTMLElement,
     container: NodeContainer,
-    allowLinebreak: boolean
+    allowLinebreak: boolean,
+    resourceLoader: ResourceLoader
 ): void => {
     const body = node.ownerDocument.body;
     if (value.length > 0 && body) {
         const wrapper = node.ownerDocument.createElement('html2canvaswrapper');
         copyCSSStyles(node.ownerDocument.defaultView.getComputedStyle(node, null), wrapper);
+
+        // $FlowFixMe
+        if (isPlaceholderShown(node)) {
+            const placeholderRules = getMatchingRules(
+                node,
+                /::placeholder|::-webkit-input-placeholder|::?-moz-placeholder|:-ms-input-placeholder/
+            );
+
+            for (let i = placeholderRules.length - 1; i >= 0; i--) {
+                copyCSSStyles(placeholderRules[i].style, wrapper);
+            }
+        }
+
         wrapper.style.position = 'fixed';
         wrapper.style.left = `${container.bounds.left}px`;
         wrapper.style.top = `${container.bounds.top}px`;
@@ -142,7 +174,14 @@ const inlineFormElement = (
         const text = node.ownerDocument.createTextNode(value);
         wrapper.appendChild(text);
         body.appendChild(wrapper);
-        container.childNodes.push(TextContainer.fromTextNode(text, container));
+
+        container.childNodes.push(
+            TextContainer.fromTextNode(
+                text,
+                new NodeContainer(wrapper, container, resourceLoader, 0)
+            )
+        );
+
         body.removeChild(wrapper);
     }
 };
