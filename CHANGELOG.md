@@ -1,6 +1,13 @@
 ### Changelog ###
 
-#### v1.0.0-alpha1 - TBD ####
+#### v1.0.0-alpha3 - TBD ####
+
+#### v1.0.0-alpha2 - 7.12.2017 ####
+ * Fix scroll positions for CanvasRenderer (#1259)
+ * Fix `data-html2canvas-ignore` attribute (#1253)
+ * Fix decimal `letter-spacing` values (#1293)
+
+#### v1.0.0-alpha1 - 5.12.2017 ####
  * Complete rewrite of library
  ##### Breaking Changes #####
  * Remove deprecated onrendered callback, calling `html2canvas` returns a `Promise<HTMLCanvasElement>`
