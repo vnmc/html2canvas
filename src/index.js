@@ -15,6 +15,7 @@ export type Options = {
     canvas: ?HTMLCanvasElement,
     foreignObjectRendering: boolean,
     imageTimeout: number,
+    logging: boolean,
     proxy: ?string,
     removeContainer: ?boolean,
     scale: number,
@@ -37,7 +38,7 @@ const html2canvas = (element: HTMLElement, conf: ?Options): Promise<*> => {
     }
 
     const config = conf || {};
-    const logger = new Logger();
+    const logger = new Logger(typeof config.logging === 'boolean' ? config.logging : true);
 
     if (__DEV__ && typeof config.onrendered === 'function') {
         logger.error(
@@ -64,6 +65,7 @@ const html2canvas = (element: HTMLElement, conf: ?Options): Promise<*> => {
         async: true,
         allowTaint: false,
         imageTimeout: 15000,
+        logging: true,
         proxy: null,
         removeContainer: true,
         foreignObjectRendering: false,

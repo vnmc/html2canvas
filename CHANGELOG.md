@@ -1,6 +1,11 @@
 ### Changelog ###
 
-#### v1.0.0-alpha3 - TBD ####
+#### v1.0.0-alpha4 - TBD ####
+ * Fix logging option (#1302)
+ * Add support for rendering webgl canvas content (#646)
+ * Fix external SVG loading with proxies (#802)
+
+#### v1.0.0-alpha3 - 9.12.2017 ####
  * Disable `foreignObjectRendering` by default (#1295)
  * Fix background-size when using background-origin and background-size: cover/contain (#1299)
  * Added support for background-origin: content-box (#1299)

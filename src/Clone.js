@@ -177,6 +177,7 @@ export class DocumentCloner {
                             backgroundColor: '#ffffff',
                             canvas: null,
                             imageTimeout: this.options.imageTimeout,
+                            logging: this.options.logging,
                             proxy: this.options.proxy,
                             removeContainer: this.options.removeContainer,
                             scale: this.options.scale,
@@ -346,13 +347,13 @@ const cloneCanvasContents = (canvas: HTMLCanvasElement, clonedCanvas: HTMLCanvas
         if (clonedCanvas) {
             clonedCanvas.width = canvas.width;
             clonedCanvas.height = canvas.height;
-            clonedCanvas
-                .getContext('2d')
-                .putImageData(
-                    canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height),
-                    0,
-                    0
-                );
+            const ctx = canvas.getContext('2d');
+            const clonedCtx = clonedCanvas.getContext('2d');
+            if (ctx) {
+                clonedCtx.putImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), 0, 0);
+            } else {
+                clonedCtx.drawImage(canvas, 0, 0);
+            }
         }
     } catch (e) {}
 };
