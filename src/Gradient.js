@@ -32,19 +32,10 @@ export type ColorStop = {
     stop: number
 };
 
-export type LinearGradient = {
+export interface Gradient {
     type: GradientType,
-    direction: Direction,
     colorStops: Array<ColorStop>
-};
-
-export type RadialGradient = {
-    type: GradientType,
-    shape: RadialGradientShapeType,
-    center: Point,
-    radius: Point,
-    colorStops: Array<ColorStop>
-};
+}
 
 export const GRADIENT_TYPE = {
     LINEAR_GRADIENT: 0,
@@ -68,11 +59,44 @@ const LENGTH_FOR_POSITION = {
     bottom: new Length('100%')
 };
 
+export class LinearGradient implements Gradient {
+    type: GradientType;
+    colorStops: Array<ColorStop>;
+    direction: Direction;
+
+    constructor(colorStops: Array<ColorStop>, direction: Direction) {
+        this.type = GRADIENT_TYPE.LINEAR_GRADIENT;
+        this.colorStops = colorStops;
+        this.direction = direction;
+    }
+}
+
+export class RadialGradient implements Gradient {
+    type: GradientType;
+    colorStops: Array<ColorStop>;
+    shape: RadialGradientShapeType;
+    center: Point;
+    radius: Point;
+
+    constructor(
+        colorStops: Array<ColorStop>,
+        shape: RadialGradientShapeType,
+        center: Point,
+        radius: Point
+    ) {
+        this.type = GRADIENT_TYPE.RADIAL_GRADIENT;
+        this.colorStops = colorStops;
+        this.shape = shape;
+        this.center = center;
+        this.radius = radius;
+    }
+}
+
 export const parseGradient = (
     container: NodeContainer,
     {args, method, prefix}: BackgroundSource,
     bounds: Bounds
-): ?LinearGradient | RadialGradient => {
+): ?Gradient => {
     if (method === 'linear-gradient') {
         return parseLinearGradient(args, bounds, !!prefix);
     } else if (method === 'gradient' && args[0] === 'linear') {
@@ -83,10 +107,11 @@ export const parseGradient = (
             !!prefix
         );
     } else if (method === 'radial-gradient') {
-        if (prefix === '-webkit-') {
-            args = transformWebkitRadialGradientArgs(args);
-        }
-        return parseRadialGradient(container, args, bounds);
+        return parseRadialGradient(
+            container,
+            prefix === '-webkit-' ? transformWebkitRadialGradientArgs(args) : args,
+            bounds
+        );
     } else if (method === 'gradient' && args[0] === 'radial') {
         return parseRadialGradient(
             container,
@@ -113,10 +138,13 @@ const parseColorStops = (args: Array<string>, firstColorStopIndex: number, lineL
     }
 
     const absoluteValuedColorStops = colorStops.map(({color, stop}) => {
+        const absoluteStop =
+            lineLength === 0 ? 0 : stop ? stop.getAbsoluteValue(lineLength) / lineLength : null;
+
         return {
             color,
             // $FlowFixMe
-            stop: stop ? stop.getAbsoluteValue(lineLength) / lineLength : null
+            stop: absoluteStop
         };
     });
 
@@ -176,11 +204,7 @@ const parseLinearGradient = (
         bounds.height * 2
     );
 
-    return {
-        type: GRADIENT_TYPE.LINEAR_GRADIENT,
-        direction,
-        colorStops: parseColorStops(args, firstColorStopIndex, lineLength)
-    };
+    return new LinearGradient(parseColorStops(args, firstColorStopIndex, lineLength), direction);
 };
 
 const parseRadialGradient = (
@@ -238,13 +262,12 @@ const parseRadialGradient = (
         bounds
     );
 
-    return {
-        type: GRADIENT_TYPE.RADIAL_GRADIENT,
+    return new RadialGradient(
+        parseColorStops(args, m ? 1 : 0, Math.min(gradientRadius.x, gradientRadius.y)),
         shape,
-        center: gradientCenter,
-        radius: gradientRadius,
-        colorStops: parseColorStops(args, m ? 1 : 0, Math.min(gradientRadius.x, gradientRadius.y))
-    };
+        gradientCenter,
+        gradientRadius
+    );
 };
 
 const calculateGradientDirection = (radian: number, bounds: Bounds): Direction => {
@@ -319,19 +342,24 @@ const findCorner = (bounds: Bounds, x: number, y: number, closest: boolean): Poi
         {x: bounds.width, y: bounds.height}
     ];
 
-    let optimumDistance = closest ? Infinity : -Infinity;
-    let optimumCorner = null;
-
-    for (let corner of corners) {
-        const d = distance(x - corner.x, y - corner.y);
-        if (closest ? d < optimumDistance : d > optimumDistance) {
-            optimumDistance = d;
-            optimumCorner = corner;
-        }
-    }
-
     // $FlowFixMe
-    return optimumCorner;
+    return corners.reduce(
+        (stat, corner) => {
+            const d = distance(x - corner.x, y - corner.y);
+            if (closest ? d < stat.optimumDistance : d > stat.optimumDistance) {
+                return {
+                    optimumCorner: corner,
+                    optimumDistance: d
+                };
+            }
+
+            return stat;
+        },
+        {
+            optimumDistance: closest ? Infinity : -Infinity,
+            optimumCorner: null
+        }
+    ).optimumCorner;
 };
 
 const calculateRadius = (
