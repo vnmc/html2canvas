@@ -117,6 +117,24 @@ export const getMatchingRules = (
     });
 
     return matchingRules;
+}
+
+export const getParentOfType = (node: HTMLElement, parentTypes: Array<string>): ?HTMLElement => {
+    let parent = node.parentNode;
+    if (!parent) {
+        return null;
+    }
+
+    // $FlowFixMe
+    while (parentTypes.indexOf(parent.tagName) < 0) {
+        parent = parent.parentNode;
+        if (!parent) {
+            return null;
+        }
+    }
+
+    // $FlowFixMe
+    return parent;
 };
 
 export const SMALL_IMAGE =
