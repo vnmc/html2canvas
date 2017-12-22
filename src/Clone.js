@@ -602,18 +602,18 @@ export const cloneWindow = (
             cloneWindow.scrollTo(bounds.left, bounds.top);
 
             // make the "HTML" element the full height of the iframe
-            var html = documentClone.documentElement;
-            if (html && !html.style.height) {
-                html.style.height = '100%';
+            const documentElement = documentClone.documentElement;
+            if (!documentElement.style.height) {
+                documentElement.style.setProperty('height', '100%', 'important');
             }
 
             if (
                 /(iPad|iPhone|iPod)/g.test(navigator.userAgent) &&
                 (cloneWindow.scrollY !== bounds.top || cloneWindow.scrollX !== bounds.left)
             ) {
-                documentClone.documentElement.style.top = -bounds.top + 'px';
-                documentClone.documentElement.style.left = -bounds.left + 'px';
-                documentClone.documentElement.style.position = 'absolute';
+                documentElement.style.setProperty('top', `${-bounds.top}px`, 'important');
+                documentElement.style.setProperty('left', `${-bounds.left}px`, 'important');
+                documentElement.style.setProperty('position', 'absolute', 'important');
             }
             return cloner.clonedReferenceElement instanceof cloneWindow.HTMLElement ||
             cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement ||
