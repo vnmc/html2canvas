@@ -96,7 +96,9 @@ const parseListStyleType = (type: string): ListStyleType => {
         case 'lower-greek':
             return LIST_STYLE_TYPE.LOWER_GREEK;
         case 'lower-alpha':
+        case 'lower-latin':
             return LIST_STYLE_TYPE.LOWER_ALPHA;
+        case 'upper-latin':
         case 'upper-alpha':
             return LIST_STYLE_TYPE.UPPER_ALPHA;
         case 'arabic-indic':
