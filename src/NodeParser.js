@@ -71,9 +71,11 @@ const parseNodeTree = (
                         inlineTextAreaElement(childNode, container, resourceLoader);
                     } else if (childNode.tagName === 'SELECT') {
                         // $FlowFixMe
-                        inlineSelectElement(childNode, container, resourceLoader);
-                    } else if (childNode.tagName === 'LI') {
-                        // $FlowFixMe
+                        inlineSelectElement(childNode, container);
+                    } else if (
+                        container.style.listStyle &&
+                        container.style.listStyle.listStyleType !== 'none'
+                    ) {
                         inlineListItemElement(childNode, container, resourceLoader);
                     }
 

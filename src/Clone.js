@@ -194,6 +194,7 @@ export class DocumentCloner {
                             removeContainer: this.options.removeContainer,
                             scale: this.options.scale,
                             foreignObjectRendering: this.options.foreignObjectRendering,
+                            useCORS: this.options.useCORS,
                             target: new CanvasRenderer(),
                             width,
                             height,
