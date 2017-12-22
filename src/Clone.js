@@ -527,13 +527,22 @@ const createIframeContainer = (
 ): Promise<HTMLIFrameElement> => {
     const cloneIframeContainer = ownerDocument.createElement('iframe');
 
+    const properties = {
+        visibility: 'hidden',
+        position: 'fixed',
+        left: '-10000px',
+        top: '0',
+        border: 'none',
+        padding: '0',
+        width: `${bounds.width}px`,
+        height: `${bounds.height}px`
+    };
+
+    for (let property in properties) {
+        cloneIframeContainer.style.setProperty(property, properties[property], 'important');
+    }
+
     cloneIframeContainer.className = 'html2canvas-container';
-    cloneIframeContainer.style.visibility = 'hidden';
-    cloneIframeContainer.style.position = 'fixed';
-    cloneIframeContainer.style.left = '-10000px';
-    cloneIframeContainer.style.top = '0px';
-    cloneIframeContainer.style.border = '0';
-    cloneIframeContainer.style.padding = '0';
     cloneIframeContainer.width = bounds.width.toString();
     cloneIframeContainer.height = bounds.height.toString();
     cloneIframeContainer.scrolling = 'no'; // ios won't scroll without it
