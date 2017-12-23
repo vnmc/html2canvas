@@ -563,6 +563,8 @@ export const cloneWindow = (
                 documentElement.style.setProperty('height', '100%', 'important');
             }
 
+            // is this still needed?
+            /*
             if (
                 /(iPad|iPhone|iPod)/g.test(navigator.userAgent) &&
                 (cloneWindow.scrollY !== bounds.top || cloneWindow.scrollX !== bounds.left)
@@ -570,7 +572,8 @@ export const cloneWindow = (
                 documentElement.style.setProperty('top', `${-bounds.top}px`, 'important');
                 documentElement.style.setProperty('left', `${-bounds.left}px`, 'important');
                 documentElement.style.setProperty('position', 'absolute', 'important');
-            }
+            }*/
+
             return cloner.clonedReferenceElement instanceof cloneWindow.HTMLElement ||
             cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement ||
             cloner.clonedReferenceElement instanceof HTMLElement
