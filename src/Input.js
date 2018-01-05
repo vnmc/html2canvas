@@ -165,7 +165,7 @@ const inlineFormElement = (
             }
         }
 
-        wrapper.style.position = 'fixed';
+        wrapper.style.position = 'absolute';
         wrapper.style.left = `${container.bounds.left}px`;
         wrapper.style.top = `${container.bounds.top}px`;
         if (!allowLinebreak) {

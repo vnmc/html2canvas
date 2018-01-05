@@ -3,7 +3,7 @@
   "name": "html2canvas",
   "description": "Screenshots with JavaScript",
   "main": "dist/npm/index.js",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.8",
   "author": {
     "name": "Niklas von Hertzen",
     "email": "niklasvh@gmail.com",
@@ -79,6 +79,6 @@
   "dependencies": {
     "punycode": "2.1.0",
     "specificity": "0.3.2",
-    "liststyletype-formatter": "latest"
+    "css-line-break": "1.0.1"
   }
 }
