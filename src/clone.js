@@ -24,20 +24,27 @@ function cloneCanvasContents(canvas, clonedCanvas) {
     }
 }
 
-function cloneNode(node, javascriptEnabled) {
+function cloneNode(node, options) {
     var clone = node.nodeType === 3 ? document.createTextNode(node.nodeValue) : node.cloneNode(false);
 
     var child = node.firstChild;
     while(child) {
-        if (javascriptEnabled === true || child.nodeType !== 1 || child.nodeName !== 'SCRIPT') {
-            clone.appendChild(cloneNode(child, javascriptEnabled));
+        if (options.javascriptEnabled === true || child.nodeType !== 1 || child.nodeName !== 'SCRIPT') {
+            clone.appendChild(cloneNode(child, options));
         }
         child = child.nextSibling;
     }
 
     if (node.nodeType === 1) {
-        clone._scrollTop = node.scrollTop;
-        clone._scrollLeft = node.scrollLeft;
+        // MCH: if the clonee is the HTML node, disregard scrolling if we're doing a fullpage screenshot
+        if (node.nodeName === "HTML" && options.type !== "view") {
+            clone._scrollTop = 0;
+            clone._scrollLeft = 0;
+        } else {
+            clone._scrollTop = node.scrollTop;
+            clone._scrollLeft = node.scrollLeft;
+        }
+
         if (node.nodeName === "CANVAS") {
             cloneCanvasContents(node, clone);
         } else if (node.nodeName === "TEXTAREA" || node.nodeName === "SELECT") {
@@ -62,7 +69,7 @@ function initNode(node) {
 }
 
 module.exports = function(ownerDocument, containerDocument, width, height, options, x ,y) {
-    var documentElement = cloneNode(ownerDocument.documentElement, options.javascriptEnabled);
+    var documentElement = cloneNode(ownerDocument.documentElement, options);
     var container = containerDocument.createElement("iframe");
 
     container.className = "html2canvas-container";
@@ -107,6 +114,7 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
                             documentClone.documentElement.style.position = 'absolute';
                         }
                     }
+
                     resolve(container);
                 }
             }, 50);
