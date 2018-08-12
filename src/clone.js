@@ -24,14 +24,83 @@ function cloneCanvasContents(canvas, clonedCanvas) {
     }
 }
 
-function cloneNode(node, options) {
+/**
+ * Create a <div> to emulate the host element of the shadow DOM
+ * and clone the contents of the shadow DOM.
+ */
+function cloneShadowDOM(node, options) {
+    var shadowDiv = document.createElement('div');
+    copyComputedStyle(node, shadowDiv);
+
+    var numChildren = node.shadowRoot.children.length;
+    for (var i = 0; i < numChildren; i++) {
+        var child = node.shadowRoot.children[i];
+        if (child.shadowRoot) {
+            shadowDiv.appendChild(cloneShadowDOM(child, options));
+        } else if (child.nodeName === 'SLOT') {
+            shadowDiv.appendChild(cloneSlot(child, node, options));
+        } else if (child.nodeType === 1 && !isStyle(child) && child.nodeName !== 'SCRIPT') {
+            shadowDiv.appendChild(cloneNode(child, options, node));
+        }
+    }
+
+    return shadowDiv;
+}
+
+function cloneSlot(slot, shadowHost, options) {
+    var slotDiv = document.createElement('div');
+    copyComputedStyle(slot, slotDiv);
+
+    var child = shadowHost.firstChild;
+    while (child) {
+        if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && !isStyle(child))) {
+            slotDiv.appendChild(cloneNode(child, options, shadowHost));
+        }
+        child = child.nextSibling;
+    }
+
+    return slotDiv;
+}
+
+function isStyle(node) {
+    return node.nodeName === 'STYLE' || (node.nodeName === 'LINK' && node.rel && node.rel.toLowerCase() === 'stylesheet');
+}
+
+function copyComputedStyle(node, clone) {
+    /*
+    var style = getComputedStyle(node);
+    for (var i = 0; i < style.length; i++) {
+        clone.style[style[i]] = style.getPropertyValue(style[i]);
+    } //*/
+}
+
+function cloneNode(node, options, shadowHost) {
     var clone = node.nodeType === 3 ? document.createTextNode(node.nodeValue) : node.cloneNode(false);
+
+    if (shadowHost && node.nodeType === 1) {
+        copyComputedStyle(node, clone);
+    }
 
     var child = node.firstChild;
     while(child) {
-        if (options.javascriptEnabled === true || child.nodeType !== 1 || child.nodeName !== 'SCRIPT') {
-            clone.appendChild(cloneNode(child, options));
+        // MCH -->
+        if (child.shadowRoot) {
+            clone.appendChild(cloneShadowDOM(child, options));
+        } else if (shadowHost && child.nodeName === 'SLOT') {
+            clone.appendChild(cloneSlot(child, shadowHost, options));
+        } else if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && (!shadowHost || !isStyle(child)))) {
+            clone.appendChild(cloneNode(child, options, shadowHost));
+
+            // MCH -->
+            // if (child.nodeName === 'SCRIPT' && child.textContent) {
+            //     /*jshint -W061 */
+            //     console.log('Evaluating script:', child.textContent);
+            //     eval(child.textContent);
+            // }
+            // <--
         }
+        // <--
+
         child = child.nextSibling;
     }
 

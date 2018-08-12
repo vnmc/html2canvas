@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<script>
+			class MyComponent2 extends HTMLElement
+			{
+				constructor()
+				{
+					super();
+				}
+
+				connectedCallback()
+				{
+					var shadow = this.attachShadow({mode: 'closed'});
+					
+					var elt = document.createElement('div');
+					elt.textContent = '<Element>';
+					elt.addEventListener('click', function()
+					{
+						elt.style.color = '#' + ((Math.random() * 0xffffff) | 0).toString(16);
+					});
+					shadow.append(elt);
+
+					var script = document.createElement('script');
+					script.id = 'shadowscript';
+					shadow.append(script);
+				}
+			}
+
+			class MyComponent extends HTMLElement
+			{
+				constructor()
+				{
+					super();
+				}
+
+				connectedCallback()
+				{
+					var shadow = this.attachShadow({mode: 'closed'});
+
+					var style = document.createElement('style');
+					style.textContent =
+						'.display { height: 2em; }' +
+						'button { border:none; background-color:bisque; padding: 0.5em 1em; }' +
+						'button:hover { box-shadow: 0 0 5px rgba(255,80,140,0.5); }';
+					shadow.appendChild(style);
+
+					var stylelink = document.createElement('link');
+					stylelink.setAttribute('href', 'style.css');
+					stylelink.setAttribute('rel', 'stylesheet');
+					shadow.append(stylelink);
+
+					var display = document.createElement('div');
+					display.setAttribute('class', 'display');
+
+					var btn1 = document.createElement('button');
+					btn1.textContent = 'Blue';
+					btn1.addEventListener('click', function()
+					{
+						display.style.backgroundColor = 'deepskyblue';
+					});
+					btn1.style.position = 'absolute';
+					//btn1.style.right = '20px';
+					btn1.style.left = '10px';
+					btn1.style.top = '0';
+
+					var btn2 = document.createElement('button');
+					btn2.textContent = 'Pink';
+					btn2.addEventListener('click', function()
+					{
+						display.style.backgroundColor = 'hotpink';
+					});
+
+					var input1 = document.createElement('input');
+					input1.setAttribute('type', 'text');
+
+					var check1 = document.createElement('input');
+					check1.setAttribute('type', 'checkbox');
+
+					var radio1 = document.createElement('input');
+					radio1.setAttribute('type', 'radio');
+					radio1.setAttribute('name', 'radios');
+					var radio2 = document.createElement('input');
+					radio2.setAttribute('type', 'radio');
+					radio2.setAttribute('name', 'radios');
+
+					var select1 = document.createElement('select');
+					for (var i = 0; i < 5; i++)
+					{
+						var opt = document.createElement('option');
+						opt.setAttribute('value', 'v' + i);
+						opt.textContent = 'Option ' + i;
+						select1.appendChild(opt);
+					}
+
+					var wrapper = document.createElement('div');
+					wrapper.appendChild(display);
+					wrapper.appendChild(document.createElement('slot'));
+					wrapper.appendChild(btn1);
+					wrapper.appendChild(btn2);
+					wrapper.appendChild(input1);
+					wrapper.appendChild(check1);
+					wrapper.appendChild(radio1);
+					wrapper.appendChild(radio2);
+					wrapper.appendChild(select1);
+					wrapper.appendChild(document.createElement('my-component-2'));
+
+					//shadow.appendChild(document.createElement('slot'));
+					shadow.appendChild(wrapper);
+					//shadow.appendChild(document.createElement('slot'));
+				}
+			}
+
+			customElements.define('my-component', MyComponent);
+			customElements.define('my-component-2', MyComponent2);
+		</script>
+		<style>
+			button {
+				border: none;
+				border-radius: 3px;
+				background-color: aquamarine;
+			}
+
+			iframe {
+				visibility: visible !important;
+				left: 0 !important;
+				top: 200px !important;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Shadow DOM / Custom Element Test</h1>
+		<my-component text="Hello World" style="position: relative;">
+			<button style="border:2px solid orangered">In the slot!</button>
+			And some text...
+		</my-component>
+		<button id="btn">Hello</button>
+		<div id="display"></div>
+
+		<script>
+			document.getElementById('btn').addEventListener('click', function()
+			{
+				document.getElementById('display').textContent += Math.floor(Math.random() * 10);
+			});
+		</script>
+
+		<script>
+			// canvas filters:
+			// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/filter
+			// correspond to CSS filters (https://developer.mozilla.org/en-US/docs/Web/CSS/filter)
+
+
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: false,
+						removeContainer: false,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '0';
+					canvas.style.top = '550px';
+					canvas.style.padding = '0';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

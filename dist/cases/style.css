@@ -1,0 +1,10 @@
+body {
+	background-color: yellow;
+}
+
+div {
+	border: 1px solid darkgrey;
+	border-radius: 5px;
+	padding: 3px;
+	margin: 0 0 3px;
+}
