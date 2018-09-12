@@ -131,23 +131,19 @@ function cloneShadowDOM(node, options) {
 }
 
 function cloneSlot(slot, shadowHost, options) {
-    var slotReplacement;
+    var slotReplacement = document.createElement('span');
+    copyComputedStyle(slot, slotReplacement);
 
+    /*
     if (slot.name) {
         // named slot; clone the element with the given slot name
-        var slotSources = shadowHost.querySelectorAll('[slot="' + escapeCSS(slot.name) + '"]');
-        var numSlotSources = slotSources.length;
-        if (numSlotSources === 1) {
-            slotReplacement = cloneNode(slotSources[0], options, shadowHost);
-        } else {
-            slotReplacement = document.createElement('span');
-            for (var i = 0; i < numSlotSources; i++) {
-                slotReplacement.appendChild(cloneNode(slotSources[i], options, shadowHost));
-            }
+        var slotNodes = shadowHost.querySelectorAll('[slot="' + escapeCSS(slot.name) + '"]');
+        var numSlotNodes = slotNodes.length;
+        for (var i = 0; i < numSlotNodes; i++) {
+            slotReplacement.appendChild(cloneNode(slotNodes[i], options, shadowHost));
         }
     } else {
         // unnamed slot; copy the entire contents of the shadow host
-        slotReplacement = document.createElement('span');
         var child = shadowHost.firstChild;
         while (child) {
             if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && !isStyle(child) && !child.slot)) {
@@ -155,6 +151,12 @@ function cloneSlot(slot, shadowHost, options) {
             }
             child = child.nextSibling;
         }
+    }*/
+
+    var slotNodes = typeof slot.assignedNodes === 'function' ? slot.assignedNodes() : [];
+    var numSlotNodes = slotNodes.length;
+    for (var i = 0; i < numSlotNodes; i++) {
+        slotReplacement.appendChild(cloneNode(slotNodes[i], options, shadowHost));
     }
 
     return slotReplacement;
@@ -185,10 +187,7 @@ function cloneNode(node, options, shadowHost) {
         if (child.shadowRoot) {
             clone.appendChild(cloneShadowDOM(child, options));
         } else if (shadowHost && child.nodeName === 'SLOT') {
-            var slotClone = cloneSlot(child, shadowHost, options);
-            if (slotClone) {
-                clone.appendChild(slotClone);
-            }
+            clone.appendChild(cloneSlot(child, shadowHost, options));
         } else if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && (!shadowHost || !isStyle(child)))) {
             clone.appendChild(cloneNode(child, options, shadowHost));
 

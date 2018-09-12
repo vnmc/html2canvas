@@ -16,21 +16,40 @@
     </style>
 
     <script>
-    	customElements.define('element-details',
-		  class extends HTMLElement {
-		    constructor() {
-		      super();
-		      const template = document
-		        .getElementById('element-details-template')
-		        .content;
-		      const shadowRoot = this.attachShadow({mode: 'open'})
-		        .appendChild(template.cloneNode(true));
-		  }
-		});
+      customElements.define('element-details',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const template = document
+              .getElementById('element-details-template')
+              .content;
+            const shadowRoot = this.attachShadow({mode: 'open'})
+              .appendChild(template.cloneNode(true));
+          }
+        }
+      );
+
+      customElements.define('details-content',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const template = document
+              .getElementById('details-content-template')
+              .content;
+            const shadowRoot = this.attachShadow({mode: 'open'})
+              .appendChild(template.cloneNode(true));
+          }
+        }
+      );
     </script>
   </head>
   <body>
     <h1>element-details - web component using <code>&lt;template&gt;</code> and <code>&lt;slot&gt;</code></h1>
+
+    <template id="details-content-template">
+      <b>This is the content:</b>
+      <slot name="content">DETAILS-CONTENT</slot>
+    </template>
 
     <template id="element-details-template">
       <style>
@@ -44,16 +63,21 @@
       .attributes p { margin-left: 16px; font-style: italic }
       </style>
       <div style="background-color: hotpink">
-      	Before unnamed slot***
-      	<slot style="color:deepskyblue"></slot>
-      	***Ater unnamed slot
+        Before unnamed slot***
+        <slot style="display:block; color:deepskyblue; margin-left:20px"></slot>
+        ***Ater unnamed slot
       </div>
       <details>
         <summary>
           <span>
-            <code class="name">&lt;<slot name="element-name">NEED NAME</slot>&gt;</code>
+            <code class="name">&lt;<slot name="element-name" style="display:block; color:forestgreen; margin-left:50px;">NEED NAME</slot>&gt;</code>
             <i class="desc"><slot name="description">NEED DESCRIPTION</slot></i>
           </span>
+          <details-content>
+            <div slot="content">
+              <slot name="content"></slot>
+            </div>
+          </details-content>
         </summary>
         <div class="attributes">
           <h4><span>Attributes</span></h4>
@@ -67,8 +91,8 @@
     <div slot="description">Lorem Ipsum</div>
 
     <element-details>
-    	<div>Something not contained in an element with a slot attribute!</div>
-      <span slot="element-name">slot</span>
+      <div>Something not contained in an element with a slot attribute!</div>
+      <span slot="element-name" style="border:1px solid blue">slot</span>
       <span slot="description">A placeholder inside a web
         component that users can fill with their own markup,
         with the effect of composing different DOM trees
@@ -80,6 +104,7 @@
         <dt>name</dt>
         <dd>The name of the slot.</dd>
       </dl>
+      <em slot="content"><span style="color:aquamarine"># The content #</span></em>
     </element-details>
 
     <element-details>
