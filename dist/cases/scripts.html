@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../es6-promise.auto.js"></script>
+		<script src="../specificity.js"></script>
+		<script src="../html2canvas.js"></script>
+		<script src="../fabric.js"></script>
+
+		<meta charset="utf8">
+		<style>
+			h1 {
+				letter-spacing: 4px;
+				color: deepskyblue;
+			}
+
+			p.rtl {
+				text-align: right;
+				width: 300px;
+				direction: rtl;
+				letter-spacing: 1px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Arabic</h1>
+		<h2>على بابِ قلبٍ وحيد</h2>
+		<!--<p class="rtl">
+			لست وحيدا أبدا<br>
+			كلّ مافي الأمر<br>
+			انني<br>
+			صرت رفيقا لوحدتي
+		</p>-->
+		<!--<p class="rtl">
+			الكتابة العربية هو نظام الكتابة المستخدم في كتابة اللغة العربية، وفي كتابة لغات أخرى في آسيا وإفريقيا كذلك، مثل اللغات ة والفارسية والبنجابية والكردية واللرية والأردية والمندنكوية وغيرها. وكان مسلمو الصين يستخدمونها لكتابة لهجاتهم الصينية، وكان الأندلسيون المستعربون حتى القرن السادس عشر يكتبون بالأعجمية وهي لهجاتهم الإسبانية والبرتغالية المرسومة بالخط العربي.
+		</p>-->
+		<!--<p class="rtl">
+			وإفريقيا كذلك،،، مثل اللغات ة وغيرها. وكان
+		</p>-->
+		<p id="p" class="rtl" contenteditable>ما اسمك؟</p>
+		<h1>Hebrew</h1>
+		<h2>על המיטה</h2>
+		<p class="rtl">
+			על המיטה<br>
+			ליפני עוד יום<br>
+			עבודה<br>
+			אני לוחש לעצמי <br>
+			כתפילה חרישית<br>
+			:את מילותיו של זרתוסטרא<br>
+			אדם אשר אין בו כאוס<br>
+			.לא יכול להוליד כוכב רוקד <br>
+			!יש בך כאב, יש בך כאוס<br>
+			.יש, יש, יש
+		</p>
+		<h1>Chinese</h1>
+		<h2>春晓</h2>
+		<p style="letter-spacing: 3px">
+			春眠不觉晓，<br>
+			处处闻啼鸟。<br>
+			夜来风雨声，<br>
+			花落知多少
+		</p>
+		<h1>Thai</h1>
+		<p>บ ใบไม้</p>
+
+		<script>
+			setTimeout(function()
+			{
+				html2canvas(
+					//document.body,
+					document.documentElement,
+					{
+						background: '#ffffff',
+						type: 'view',
+						letterRendering: true,
+						javascriptEnabled: false,
+						proxy: 'areion'
+					}
+				).then(function(canvas)
+				{
+					canvas.style.position = 'absolute';
+					canvas.style.left = '320px';
+					canvas.style.top = '0';
+					canvas.style.padding = '0';
+
+					document.body.appendChild(canvas);
+				});
+			}, 2000);
+		</script>
+	</body>
+</html>

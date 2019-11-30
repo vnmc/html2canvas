@@ -655,7 +655,7 @@ NodeParser.prototype.getPseudoElement = function(container, type) {
 
 
 NodeParser.prototype.getChildren = function(parentContainer) {
-    return flatten([].filter.call(parentContainer.node.childNodes, renderableNode).map(function(node) {
+    return flatten(Array.prototype.filter.call(parentContainer.node.childNodes, renderableNode).map(function(node) {
         var container = [node.nodeType === Node.TEXT_NODE ? new TextContainer(node, parentContainer) : new NodeContainer(node, parentContainer)].filter(nonIgnoredElement);
         return node.nodeType === Node.ELEMENT_NODE && container.length && node.tagName !== "TEXTAREA" ? (container[0].isElementVisible() ? container.concat(this.getChildren(container[0])) : []) : container;
     }, this));
@@ -1074,10 +1074,16 @@ NodeParser.prototype.paintListItem = function(container) {
 NodeParser.prototype.paintText = function(container) {
     container.applyTextTransform();
     var characters = punycode.ucs2.decode(container.node.data);
-    var wordRendering = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data);
+
+    // MCH: allow letter rendering only for latin/cyrillic/greek scripts -->
+    //var wordRendering = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data);
+    var wordRendering = !isLatinCyrillicGreek(container.node.data) || !this.options.letterRendering || noLetterSpacing(container); // && !hasUnicode(container.node.data);
+    // <--
+
     var textList = wordRendering ? getWords(characters) : characters.map(function(character) {
         return punycode.ucs2.encode([character]);
     });
+    console.log(textList);
     if (!wordRendering) {
         container.parent.node.style.fontVariantLigatures = 'none';
     }
@@ -1562,7 +1568,7 @@ function nonIgnoredElement(nodeContainer) {
 }
 
 function flatten(arrays) {
-    return [].concat.apply([], arrays);
+    return Array.prototype.concat.apply([], arrays);
 }
 
 /*
@@ -1607,6 +1613,15 @@ function isWordBoundary(characterCode) {
 
 function hasUnicode(string) {
     return (/[^\u0000-\u00ff]/).test(string);
+}
+
+/*
+function isArabic(s) {
+    return /[\u0600-\u06FF]/.test(s);
+}*/
+
+function isLatinCyrillicGreek(s) {
+    return !/[^\u0000-\u052f\u1d00-\u2bff\u2c60-\u2c7f\u2de0-\u2e7f]/.test(s);
 }
 
 module.exports = NodeParser;

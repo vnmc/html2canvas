@@ -1,740 +1,11 @@
 /*
   html2canvas 0.5.0-beta4 <http://html2canvas.hertzen.com>
-  Copyright (c) 2017 Niklas von Hertzen
+  Copyright (c) 2019 Niklas von Hertzen
 
   Released under  License
 */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.html2canvas = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-function toAlphabetic(value, alphabet)
-{
-    // make the value 0-based, and don't do anything for value <= 0
-    --value;
-    if (value < 0)
-        return null;
-
-    // determine the number of "digits" and the offset for the place-value system
-    var lenAlphabet = alphabet.length;
-    var numDigits = 1;
-    var offset = 0;
-
-    for ( ; ; numDigits++)
-    {
-        var newOffset = (offset + 1) * lenAlphabet;
-        if (value < newOffset)
-            break;
-
-        offset = newOffset;
-    }
-
-    // use value - offset to convert to a "number" in the place-value system with base lenAlphabet
-    value -= offset;
-    var ret = '';
-
-    for (var i = 0; i < numDigits; i++)
-    {
-        ret = alphabet.charAt(value % lenAlphabet) + ret;
-        value = Math.floor(value / lenAlphabet);
-    }
-
-    return ret;
-}
-
-module.exports.toAlphabetic = toAlphabetic;
-
-
-var ALPHABET = {
-    LOWER_LATIN: 'abcdefghijklmnopqrstuvwxyz',
-    UPPER_LATIN: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    LOWER_GREEK: 'αβγδεζηθικλμνξοπρστυφχψω',
-    UPPER_GREEK: 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
-    HIRAGANA: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわゐゑをん',
-    HIRAGANA_IROHA: 'いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす',
-    KATAKANA: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン',
-    KATAKANA_IROHA: 'イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス'
-};
-
-module.exports.ALPHABET = ALPHABET;
-
-
-module.exports.toLowerLatin = function(value) { return toAlphabetic(value, ALPHABET.LOWER_LATIN); };
-module.exports.toUpperLatin = function(value) { return toAlphabetic(value, ALPHABET.UPPER_LATIN); };
-module.exports.toLowerGreek = function(value) { return toAlphabetic(value, ALPHABET.LOWER_GREEK); };
-module.exports.toUpperGreek = function(value) { return toAlphabetic(value, ALPHABET.UPPER_GREEK); };
-module.exports.toHiragana = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA); };
-module.exports.toHiraganaIroha = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA_IROHA); };
-module.exports.toKatakana = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA); };
-module.exports.toKatakanaIroha = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA_IROHA); };
-
-},{}],2:[function(_dereq_,module,exports){
-function toCJK(value, digits, multipliers, negativeSign, tenHasCoefficient, tenHasCoefficientIfHighNumber, hundredHasCoefficient, usesZero)
-{
-    if (value <= 0 && !negativeSign)
-        return null;
-
-    var val = Math.abs(Math.floor(value));
-
-    if (val === 0)
-        return digits.charAt(0);
-
-    var ret = '';
-    var maxExponent = multipliers.length;
-    var exponent = 0;
-
-    for (var exponent = 0; val > 0 && exponent <= maxExponent; exponent++)
-    {
-        var coeff = val % 10;
-
-        if (coeff === 0 && usesZero && ret !== '')
-            ret = digits.charAt(coeff) + ret;
-        else if (coeff > 1 ||
-            (coeff === 1 && exponent === 0) ||
-            (coeff === 1 && exponent === 1 && tenHasCoefficient) ||
-            (coeff === 1 && exponent === 1 && tenHasCoefficientIfHighNumber && value > 100) ||
-            (coeff === 1 && exponent > 1 && hundredHasCoefficient))
-        {
-            ret = digits.charAt(coeff) + (exponent > 0 ? multipliers.charAt(exponent - 1) : '') + ret;
-        }
-        else if (coeff === 1 && exponent > 0)
-            ret = multipliers.charAt(exponent - 1) + ret;
-
-        val = Math.floor(val / 10);
-    }
-
-    return (value < 0 ? negativeSign : '') + ret;
-};
-
-module.exports.toCJK = toCJK;
-
-
-var NUMERAL = {
-    CJK_IDEOGRAPHIC: {
-        DIGITS: '零一二三四五六七八九',
-        MULTIPLIERS: '十百千萬',
-        NEGATIVE: '負'
-    },
-
-    TRAD_CHINESE_INFORMAL: {
-        DIGITS: '零一二三四五六七八九',
-        MULTIPLIERS: '十百千萬',
-        NEGATIVE: '負'
-    },
-
-    TRAD_CHINESE_FORMAL: {
-        DIGITS: '零壹貳參肆伍陸柒捌玖',
-        MULTIPLIERS: '拾佰仟萬',
-        NEGATIVE: '負'
-    },
-
-    SIMP_CHINESE_INFORMAL: {
-        DIGITS: '零一二三四五六七八九',
-        MULTIPLIERS: '十百千萬',
-        NEGATIVE: '负'
-    },
-
-    SIMP_CHINESE_FORMAL: {
-        DIGITS: '零壹贰叁肆伍陆柒捌玖',
-        MULTIPLIERS: '拾佰仟萬',
-        NEGATIVE: '负'
-    },
-
-    JAPANESE_INFORMAL: {
-        DIGITS: '〇一二三四五六七八九',
-        MULTIPLIERS: '十百千万',
-        NEGATIVE: 'マイナス'
-    },
-
-    JAPANESE_FORMAL: {
-        DIGITS: '零壱弐参四伍六七八九',
-        MULTIPLIERS: '拾百千万',
-        NEGATIVE: 'マイナス'
-    },
-
-    KOREAN_HANGUL: {
-        DIGITS: '영일이삼사오육칠팔구',
-        MULTIPLIERS: '십백천만',
-        NEGATIVE: '마이너스'
-    },
-
-    KOREAN_HANJA_INFORMAL: {
-        DIGITS: '零一二三四五六七八九',
-        MULTIPLIERS: '十百千萬',
-        NEGATIVE: '마이너스'
-    },
-
-    KOREAN_HANJA_FORMAL: {
-        //DIGITS: ' 壹貳參肆伍陸柒捌玖',
-        DIGITS: '零壹貳參四五六七八九',
-        //MULTIPLIERS: '拾佰仟'
-        MULTIPLIERS: '拾百千',
-        NEGATIVE: '마이너스'
-    }
-};
-
-module.exports.NUMERAL = NUMERAL;
-
-
-module.exports.toCJKIdeographic = function(value) { return toCJK(value, NUMERAL.CJK_IDEOGRAPHIC.DIGITS, NUMERAL.CJK_IDEOGRAPHIC.MULTIPLIERS, NUMERAL.CJK_IDEOGRAPHIC.NEGATIVE, false, true, true, true); };
-module.exports.toTraditionalChineseInformal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_INFORMAL.DIGITS, NUMERAL.TRAD_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
-module.exports.toTraditionalChineseFormal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_FORMAL.DIGITS, NUMERAL.TRAD_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
-module.exports.toSimplifiedChineseInformal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_INFORMAL.DIGITS, NUMERAL.SIMP_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
-module.exports.toSimplifiedChineseFormal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_FORMAL.DIGITS, NUMERAL.SIMP_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
-module.exports.toJapaneseInformal = function(value) { return toCJK(value, NUMERAL.JAPANESE_INFORMAL.DIGITS, NUMERAL.JAPANESE_INFORMAL.MULTIPLIERS, NUMERAL.JAPANESE_INFORMAL.NEGATIVE, false, false, false, false); };
-module.exports.toJapaneseFormal = function(value) { return toCJK(value, NUMERAL.JAPANESE_FORMAL.DIGITS, NUMERAL.JAPANESE_FORMAL.MULTIPLIERS, NUMERAL.JAPANESE_FORMAL.NEGATIVE, true, true, true, false); };
-module.exports.toKoreanHangul = function(value) { return toCJK(value, NUMERAL.KOREAN_HANGUL.DIGITS, NUMERAL.KOREAN_HANGUL.MULTIPLIERS, NUMERAL.KOREAN_HANGUL.NEGATIVE, true, true, true, false); };
-module.exports.toKoreanHanjaInformal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_INFORMAL.DIGITS, NUMERAL.KOREAN_HANJA_INFORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_INFORMAL.NEGATIVE, false, false, false, false); };
-module.exports.toKoreanHanjaFormal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_FORMAL.DIGITS, NUMERAL.KOREAN_HANJA_FORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_FORMAL.NEGATIVE, true, true, true, false); };
-
-},{}],3:[function(_dereq_,module,exports){
-function toLetterSystem(value, letters)
-{
-    if (value <= 0)
-        return null;
-
-    var ret = '';
-
-    for (var b in letters)
-    {
-        var num = letters[b];
-        var q = Math.floor(value / num);
-        value -= q * num;
-
-        for (var i = 0; i < q; i++)
-            ret += b;
-    }
-
-    return ret;
-}
-
-module.exports.toLetterSystem = toLetterSystem;
-
-
-var LETTER_SYSTEM = {
-    ROMAN_UPPER: {
-        M: 1000,
-        CM: 900,
-        D: 500,
-        CD: 400,
-        C: 100,
-        XC: 90,
-        L: 50,
-        XL: 40,
-        X: 10,
-        IX: 9,
-        V: 5,
-        IV: 4,
-        I: 1
-    },
-
-    ROMAN_LOWER: {
-        m: 1000,
-        cm: 900,
-        d: 500,
-        cd: 400,
-        c: 100,
-        xc: 90,
-        l: 50,
-        xl: 40,
-        x: 10,
-        ix: 9,
-        v: 5,
-        iv: 4,
-        i: 1
-    },
-
-    HEBREW: {
-        'א׳א׳': 1000000,
-        'א׳ק': 100000,
-        'א׳י': 10000,
-        'ט׳': 9000,
-        'ח׳': 8000,
-        'ז׳': 7000,
-        'ו׳': 6000,
-        'ה׳': 5000,
-        'ד׳': 4000,
-        'ג׳': 3000,
-        'ב׳': 2000,
-        'א׳': 1000,
-        'ת': 400,
-        'ש': 300,
-        'ר': 200,
-        'ק': 100,
-        'צ': 90,
-        'פ': 80,
-        'ע': 70,
-        'ס': 60,
-        'נ': 50,
-        'מ‎': 40,
-        'ל': 30,
-        'כ': 20,
-        'טז': 16,
-        'טו': 15,
-        'י': 10,
-        'ט': 9,
-        'ח‎': 8,
-        'ז': 7,
-        'ו': 6,
-        'ה': 5,
-        'ד': 4,
-        'ג': 3,
-        'ב': 2,
-        'א': 1
-    },
-
-    GEORGIAN: {
-        'ჵ': 10000,
-        'ჰ': 9000,
-        'ჯ': 8000,
-        'ჴ': 7000,
-        'ხ': 6000,
-        'ჭ': 5000,
-        'წ': 4000,
-        'ძ': 3000,
-        'ც': 2000,
-        'ჩ': 1000,
-        'შ': 900,
-        'ყ': 800,
-        'ღ': 700,
-        'ქ': 600,
-        'ფ': 500,
-        'ჳ': 400,
-        'ტ': 300,
-        'ს': 200,
-        'რ': 100,
-        'ჟ': 90,
-        'პ': 80,
-        'ო': 70,
-        'ჲ': 60,
-        'ნ': 50,
-        'მ': 40,
-        'ლ': 30,
-        'კ': 20,
-        'ი': 10,
-        'თ': 9,
-        'ჱ': 8,
-        'ზ': 7,
-        'ვ': 6,
-        'ე': 5,
-        'დ': 4,
-        'გ': 3,
-        'ბ': 2,
-        'ა': 1
-    },
-
-    ARMENIAN_UPPER: {
-        'Ք': 9000,
-        'Փ': 8000,
-        'Ւ': 7000,
-        'Ց': 6000,
-        'Ր': 5000,
-        'Տ': 4000,
-        'Վ': 3000,
-        'Ս': 2000,
-        'Ռ': 1000,
-        'Ջ': 900,
-        'Պ': 800,
-        'Չ': 700,
-        'Ո': 600,
-        'Շ': 500,
-        'Ն': 400,
-        'Յ': 300,
-        'Մ': 200,
-        'Ճ': 100,
-        'Ղ': 90,
-        'Ձ': 80,
-        'Հ': 70,
-        'Կ': 60,
-        'Ծ': 50,
-        'Խ': 40,
-        'Լ': 30,
-        'Ի': 20,
-        'Ժ': 10,
-        'Թ': 9,
-        'Ը': 8,
-        'Է': 7,
-        'Զ': 6,
-        'Ե': 5,
-        'Դ': 4,
-        'Գ': 3,
-        'Բ': 2,
-        'Ա': 1
-    },
-
-    ARMENIAN_LOWER: {
-        'ք': 9000,
-        'փ': 8000,
-        'ւ': 7000,
-        'ց': 6000,
-        'ր': 5000,
-        'տ': 4000,
-        'վ': 3000,
-        'ս': 2000,
-        'ռ': 1000,
-        'ջ': 900,
-        'պ': 800,
-        'չ': 700,
-        'ո': 600,
-        'շ': 500,
-        'ն': 400,
-        'յ': 300,
-        'մ': 200,
-        'ճ': 100,
-        'ղ': 90,
-        'ձ': 80,
-        'հ': 70,
-        'կ': 60,
-        'ծ': 50,
-        'խ': 40,
-        'լ': 30,
-        'ի': 20,
-        'ժ': 10,
-        'թ': 9,
-        'ը': 8,
-        'է': 7,
-        'զ': 6,
-        'ե': 5,
-        'դ': 4,
-        'գ': 3,
-        'բ': 2,
-        'ա': 1
-    }
-};
-
-module.exports.LETTER_SYSTEM = LETTER_SYSTEM;
-
-
-module.exports.toUpperRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_UPPER); };
-module.exports.toLowerRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_LOWER); };
-module.exports.toHebrew = function(value) { return toLetterSystem(value, LETTER_SYSTEM.HEBREW); };
-module.exports.toGeorgian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.GEORGIAN); };
-module.exports.toUpperArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_UPPER); };
-module.exports.toLowerArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_LOWER); };
-
-},{}],4:[function(_dereq_,module,exports){
-function toPlaceValue(value, digits, hasNegativeNumbers, minusSign)
-{
-    if (hasNegativeNumbers === false && value < 0)
-        return null;
-
-    if (!minusSign)
-        minusSign = '-';
-
-    var sign = '';
-    if (value < 0)
-        sign = minusSign;
-
-    if (-1 < value && value < 1)
-        return sign + digits.charAt(0);
-
-    var ret = '';
-    var numDigits = digits.length;
-    value = Math.abs(value);
-
-    while (value)
-    {
-        ret = digits.charAt(value % numDigits) + ret;
-        value = Math.floor(value / numDigits);
-    }
-
-    return sign + ret;
-};
-
-module.exports.toPlaceValue = toPlaceValue;
-
-
-function toOneBasedPlaceValue(value, digits)
-{
-    if (value <= 0)
-        return null;
-
-    var ret = '';
-    var numDigits = digits.length;
-
-    while (value)
-    {
-        var v = value % numDigits;
-        ret = digits.charAt(v === 0 ? numDigits - 1 : v - 1) + ret;
-        value = Math.floor(value / numDigits) - (v === 0 ? 1 : 0);
-    }
-
-    return ret;
-};
-
-
-var DIGITS = {
-    ARABIC_INDIC: '٠١٢٣٤٥٦٧٨٩',
-    BENGALI: '০১২৩৪৫৬৭৮৯',
-    CJK_DECIMAL: '〇一二三四五六七八九',
-    CJK_EARTHLY_BRANCH: '子丑寅卯辰巳午未申酉戌亥',
-    CJK_HEAVENLY_STEM: '甲乙丙丁戊己庚辛壬癸',
-    DEVANAGARI: '०१२३४५६७८९',
-    GUJARATI: '૦૧૨૩૪૫૬૭૮૯',
-    GURMUKHI: '੦੧੨੩੪੫੬੭੮੯',
-    KANNADA: '೦೧೨೩೪೫೬೭೮೯',
-    KHMER: '០១២៣៤៥៦៧៨៩',
-    LAO: '໐໑໒໓໔໕໖໗໘໙',
-    MALAYALAM: '൦൧൨൩൪൫൬൭൮൯',
-    MONGILIAN: '᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙',
-    MYANMAR: '၀၁၂၃၄၅၆၇၈၉',
-    ORIYA: '୦୧୨୩୪୫୬୭୮୯',
-    PERSIAN: '۰۱۲۳۴۵۶۷۸۹',
-    TAMIL: '௦௧௨௩௪௫௬௭௮௯',
-    TELUGU: '౦౧౨౩౪౫౬౭౮౯',
-    THAI: '๐๑๒๓๔๕๖๗๘๙',
-    TIBETAN: '༠༡༢༣༤༥༦༧༨༩'
-};
-
-module.exports.DIGITS = DIGITS;
-
-
-module.exports.toArabicIndic = function(v) { return toPlaceValue(v, DIGITS.ARABIC_INDIC); };
-module.exports.toBengali = function(v) { return toPlaceValue(v, DIGITS.BENGALI); };
-module.exports.toCJKDecimal = function(v) { return toPlaceValue(v, DIGITS.CJK_DECIMAL, false); };
-module.exports.toCJKEarthlyBranch = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_EARTHLY_BRANCH); };
-module.exports.toCJKHeavenlyStem = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_HEAVENLY_STEM); };
-module.exports.toDevanagari = function(v) { return toPlaceValue(v, DIGITS.DEVANAGARI); };
-module.exports.toGujarati = function(v) { return toPlaceValue(v, DIGITS.GUJARATI); };
-module.exports.toGurmukhi = function(v) { return toPlaceValue(v, DIGITS.GURMUKHI); };
-module.exports.toKannada = function(v) { return toPlaceValue(v, DIGITS.KANNADA); };
-module.exports.toKhmer = function(v) { return toPlaceValue(v, DIGITS.KHMER); };
-module.exports.toLao = function(v) { return toPlaceValue(v, DIGITS.LAO); };
-module.exports.toMalayalam = function(v) { return toPlaceValue(v, DIGITS.MALAYALAM); };
-module.exports.toMongolian = function(v) { return toPlaceValue(v, DIGITS.MONGILIAN); };
-module.exports.toMyanmar = function(v) { return toPlaceValue(v, DIGITS.MYANMAR); };
-module.exports.toOriya = function(v) { return toPlaceValue(v, DIGITS.ORIYA); };
-module.exports.toPersian = function(v) { return toPlaceValue(v, DIGITS.PERSIAN); };
-module.exports.toTamil = function(v) { return toPlaceValue(v, DIGITS.TAMIL); };
-module.exports.toTelugu = function(v) { return toPlaceValue(v, DIGITS.TELUGU); };
-module.exports.toThai = function(v) { return toPlaceValue(v, DIGITS.THAI); };
-module.exports.toTibetan = function(v) { return toPlaceValue(v, DIGITS.TIBETAN); };
-
-},{}],5:[function(_dereq_,module,exports){
-/**
- * http://www.geez.org/Numerals/
- * http://metaappz.com/Geez_Numbers_Converter/Default.aspx
- */
-module.exports.toEthiopic = function(value)
-{
-    if (value <= 0)
-        return null;
-
-    var ONES = '፩፪፫፬፭፮፯፰፱';
-    var TENS = '፲፳፴፵፶፷፸፹፺';
-    var HUNDRED = '፻';
-    var TENTHOUSAND = '፼';
-
-    var ret = '';
-    var sep = '';
-
-    value = Math.floor(value);
-
-    for (var i = 0; value > 0; i++)
-    {
-        var one = value % 10;
-        var ten = Math.floor(value / 10) % 10;
-
-        if ((one === 1 && ten === 0 && i > 0) || (one === 0 && ten === 0 && i > 1))
-            ret = sep + ret;
-        else if (one > 0 || ten > 0)
-        {
-            ret =
-                (ten > 0 ? TENS.charAt(ten - 1) : '') +
-                (one > 0 ? ONES.charAt(one - 1) : '') +
-                sep + ret;
-        }
-
-        value = Math.floor(value / 100);
-        sep = i % 2 ? TENTHOUSAND : HUNDRED;
-    }
-
-    return ret;
-};
-
-},{}],6:[function(_dereq_,module,exports){
-///////////////////////////////////////////////////////////////////////////////
-// Import Packages
-
-var Alpha = _dereq_('./converters/alpha');
-var Letter = _dereq_('./converters/letter');
-var PlaceValue = _dereq_('./converters/placevalue');
-var CJK = _dereq_('./converters/cjk');
-var Special = _dereq_('./converters/special');
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Private Functions
-
-function addDot(s, dot)
-{
-    if (dot === undefined)
-        dot = '.';
-    return s === null ? s : s + dot;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Module Constants
-
-// formatter specifications
-var formatters = {
-    'none': '',
-    'disc': '•',
-    'circle': '◦',
-    'square': '￭',
-
-    'decimal': Math.floor,
-    'cjk-decimal': { function: PlaceValue.toCJKDecimal, dot: '、' },
-
-    'decimal-leading-zero': function(v)
-    {
-        v = Math.floor(v);
-        if (0 <= v && v < 10)
-            return '0' + v;
-        if (-10 < v && v < 0)
-            return '-0' + Math.abs(v);
-        return v;
-    },
-
-    'lower-roman': Letter.toLowerRoman,
-    'upper-roman': Letter.toUpperRoman,
-    'lower-greek': Alpha.toLowerGreek,
-    'lower-alpha': Alpha.toLowerLatin,
-    'upper-alpha': Alpha.toUpperLatin,
-    'arabic-indic': PlaceValue.toArabicIndic,
-    'armenian': Letter.toUpperArmenian,
-    'bengali': PlaceValue.toBengali,
-    'cambodian': PlaceValue.toKhmer,
-    'cjk-earthly-branch': { function: PlaceValue.toCJKEarthlyBranch, dot: '、' },
-    'cjk-heavenly-stem': { function: PlaceValue.toCJKHeavenlyStem, dot: '、' },
-    'cjk-ideographic': { function: CJK.toCJKIdeographic, dot: '、' },
-    'devanagari': PlaceValue.toDevanagari,
-    'ethiopic-numeric': { function: Special.toEthiopic, dot: '' },
-    'georgian': Letter.toGeorgian,
-    'gujarati': PlaceValue.toGujarati,
-    'gurmukhi': PlaceValue.toGurmukhi,
-    'hebrew': Letter.toHebrew,
-    'hiragana': Alpha.toHiragana,
-    'hiragana-iroha': Alpha.toHiraganaIroha,
-    'japanese-formal': { function: CJK.toJapaneseFormal, dot: '、' },
-    'japanese-informal': { function: CJK.toJapaneseInformal, dot: '、' },
-    'kannada': PlaceValue.toKannada,
-    'katakana': Alpha.toKatakana,
-    'katakana-iroha': Alpha.toKatakanaIroha,
-    'khmer': PlaceValue.toKhmer,
-    'korean-hangul-formal': { function: CJK.toKoreanHangul, dot: '、' },
-    'korean-hanja-formal': { function: CJK.toKoreanHanjaFormal, dot: '、' },
-    'korean-hanja-informal': { function: CJK.toKoreanHanjaInformal, dot: '、' },
-    'lao': PlaceValue.toLao,
-    'lower-armenian': Letter.toLowerArmenian,
-    'malayalam': PlaceValue.toMalayalam,
-    'mongolian': PlaceValue.toMongolian,
-    'myanmar': PlaceValue.toMyanmar,
-    'oriya': PlaceValue.toOriya,
-    'persian': PlaceValue.toPersian,
-    'simp-chinese-formal': { function: CJK.toSimplifiedChineseFormal, dot: '、' },
-    'simp-chinese-informal': { function: CJK.toSimplifiedChineseInformal, dot: '、' },
-    'tamil': PlaceValue.toTamil,
-    'telugu': PlaceValue.toTelugu,
-    'thai': PlaceValue.toThai,
-    'tibetan': PlaceValue.toTibetan,
-    'trad-chinese-formal': { function: CJK.toTraditionalChineseFormal, dot: '、' },
-    'trad-chinese-informal': { function: CJK.toTraditionalChineseInformal, dot: '、' },
-    'upper-armenian': Letter.toUpperArmenian
-};
-
-// define aliases
-formatters['lower-latin'] = formatters['lower-alpha'];
-formatters['upper-latin'] = formatters['upper-alpha'];
-formatters['-moz-arabic-indic'] = formatters['arabic-indic'];
-formatters['-moz-bengali'] = formatters['bengali'];
-formatters['-moz-cjk-earthly-branch'] = formatters['cjk-earthly-branch'];
-formatters['-moz-cjk-heavenly-stem'] = formatters['cjk-heavenly-stem'];
-formatters['-moz-devanagari'] = formatters['devanagari'];
-formatters['-moz-gujarati'] = formatters['gujarati'];
-formatters['-moz-gurmukhi'] = formatters['gurmukhi'];
-formatters['-moz-kannada'] = formatters['kannada'];
-formatters['-moz-khmer'] = formatters['khmer'];
-formatters['-moz-lao'] = formatters['lao'];
-formatters['-moz-malayalam'] = formatters['malayalam'];
-formatters['-moz-myanmar'] = formatters['myanmar'];
-formatters['-moz-oriya'] = formatters['oriya'];
-formatters['-moz-persian'] = formatters['persian'];
-formatters['-moz-tamil'] = formatters['tamil'];
-formatters['-moz-telugu'] = formatters['telugu'];
-formatters['-moz-thai'] = formatters['thai'];
-
-// set the default formatter
-var defaultFormatter = formatters.decimal;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation
-
-function formatInternal(value, formatter, appendDot)
-{
-    switch (typeof formatter)
-    {
-    case 'function':
-        return appendDot ?
-            addDot(formatter(value)) :
-            formatter(value);
-
-    case 'object':
-        return appendDot ?
-            addDot(formatter.function(value), formatter.dot) :
-            formatter.function(value);
-
-    case 'string':
-        return formatter;
-    }
-
-    return undefined;
-}
-
-/**
- * Formats the number "value" according to the CSS list-style-type format "format".
- * https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
- *
- * @param value
- *    The number to format
- *
- * @param format
- *    The format string to use, the ones listed here:
- *    https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
- *
- * @param appendDot
- *    Optional flag indicating if an enumeration symbol (typically, a dot) is to be
- *    appended to the formatted number.
- *    Defaults to true.
- */
-module.exports.format = function(value, format, appendDot /* optional */)
-{
-    if (appendDot === undefined)
-        appendDot = true;
-
-    var ret = formatInternal(
-        value,
-        format in formatters ? formatters[format] : defaultFormatter,
-        appendDot
-    );
-
-    return (ret === null || ret === undefined) ?
-        formatInternal(value, defaultFormatter, appendDot) :
-        ret;
-};
-
-
-/**
- * Export a global object in the browser.
- */
-if (typeof window !== 'undefined')
-{    
-    window.ListStyleTypeFormatter = {
-        format: module.exports.format
-    };
-}
-
-},{"./converters/alpha":1,"./converters/cjk":2,"./converters/letter":3,"./converters/placevalue":4,"./converters/special":5}],7:[function(_dereq_,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -1271,7 +542,736 @@ if (typeof window !== 'undefined')
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(_dereq_,module,exports){
+},{}],2:[function(_dereq_,module,exports){
+function toAlphabetic(value, alphabet)
+{
+    // make the value 0-based, and don't do anything for value <= 0
+    --value;
+    if (value < 0)
+        return null;
+
+    // determine the number of "digits" and the offset for the place-value system
+    var lenAlphabet = alphabet.length;
+    var numDigits = 1;
+    var offset = 0;
+
+    for ( ; ; numDigits++)
+    {
+        var newOffset = (offset + 1) * lenAlphabet;
+        if (value < newOffset)
+            break;
+
+        offset = newOffset;
+    }
+
+    // use value - offset to convert to a "number" in the place-value system with base lenAlphabet
+    value -= offset;
+    var ret = '';
+
+    for (var i = 0; i < numDigits; i++)
+    {
+        ret = alphabet.charAt(value % lenAlphabet) + ret;
+        value = Math.floor(value / lenAlphabet);
+    }
+
+    return ret;
+}
+
+module.exports.toAlphabetic = toAlphabetic;
+
+
+var ALPHABET = {
+    LOWER_LATIN: 'abcdefghijklmnopqrstuvwxyz',
+    UPPER_LATIN: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    LOWER_GREEK: 'αβγδεζηθικλμνξοπρστυφχψω',
+    UPPER_GREEK: 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+    HIRAGANA: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわゐゑをん',
+    HIRAGANA_IROHA: 'いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす',
+    KATAKANA: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン',
+    KATAKANA_IROHA: 'イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス'
+};
+
+module.exports.ALPHABET = ALPHABET;
+
+
+module.exports.toLowerLatin = function(value) { return toAlphabetic(value, ALPHABET.LOWER_LATIN); };
+module.exports.toUpperLatin = function(value) { return toAlphabetic(value, ALPHABET.UPPER_LATIN); };
+module.exports.toLowerGreek = function(value) { return toAlphabetic(value, ALPHABET.LOWER_GREEK); };
+module.exports.toUpperGreek = function(value) { return toAlphabetic(value, ALPHABET.UPPER_GREEK); };
+module.exports.toHiragana = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA); };
+module.exports.toHiraganaIroha = function(value) { return toAlphabetic(value, ALPHABET.HIRAGANA_IROHA); };
+module.exports.toKatakana = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA); };
+module.exports.toKatakanaIroha = function(value) { return toAlphabetic(value, ALPHABET.KATAKANA_IROHA); };
+
+},{}],3:[function(_dereq_,module,exports){
+function toCJK(value, digits, multipliers, negativeSign, tenHasCoefficient, tenHasCoefficientIfHighNumber, hundredHasCoefficient, usesZero)
+{
+    if (value <= 0 && !negativeSign)
+        return null;
+
+    var val = Math.abs(Math.floor(value));
+
+    if (val === 0)
+        return digits.charAt(0);
+
+    var ret = '';
+    var maxExponent = multipliers.length;
+    var exponent = 0;
+
+    for (var exponent = 0; val > 0 && exponent <= maxExponent; exponent++)
+    {
+        var coeff = val % 10;
+
+        if (coeff === 0 && usesZero && ret !== '')
+            ret = digits.charAt(coeff) + ret;
+        else if (coeff > 1 ||
+            (coeff === 1 && exponent === 0) ||
+            (coeff === 1 && exponent === 1 && tenHasCoefficient) ||
+            (coeff === 1 && exponent === 1 && tenHasCoefficientIfHighNumber && value > 100) ||
+            (coeff === 1 && exponent > 1 && hundredHasCoefficient))
+        {
+            ret = digits.charAt(coeff) + (exponent > 0 ? multipliers.charAt(exponent - 1) : '') + ret;
+        }
+        else if (coeff === 1 && exponent > 0)
+            ret = multipliers.charAt(exponent - 1) + ret;
+
+        val = Math.floor(val / 10);
+    }
+
+    return (value < 0 ? negativeSign : '') + ret;
+};
+
+module.exports.toCJK = toCJK;
+
+
+var NUMERAL = {
+    CJK_IDEOGRAPHIC: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '負'
+    },
+
+    TRAD_CHINESE_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '負'
+    },
+
+    TRAD_CHINESE_FORMAL: {
+        DIGITS: '零壹貳參肆伍陸柒捌玖',
+        MULTIPLIERS: '拾佰仟萬',
+        NEGATIVE: '負'
+    },
+
+    SIMP_CHINESE_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '负'
+    },
+
+    SIMP_CHINESE_FORMAL: {
+        DIGITS: '零壹贰叁肆伍陆柒捌玖',
+        MULTIPLIERS: '拾佰仟萬',
+        NEGATIVE: '负'
+    },
+
+    JAPANESE_INFORMAL: {
+        DIGITS: '〇一二三四五六七八九',
+        MULTIPLIERS: '十百千万',
+        NEGATIVE: 'マイナス'
+    },
+
+    JAPANESE_FORMAL: {
+        DIGITS: '零壱弐参四伍六七八九',
+        MULTIPLIERS: '拾百千万',
+        NEGATIVE: 'マイナス'
+    },
+
+    KOREAN_HANGUL: {
+        DIGITS: '영일이삼사오육칠팔구',
+        MULTIPLIERS: '십백천만',
+        NEGATIVE: '마이너스'
+    },
+
+    KOREAN_HANJA_INFORMAL: {
+        DIGITS: '零一二三四五六七八九',
+        MULTIPLIERS: '十百千萬',
+        NEGATIVE: '마이너스'
+    },
+
+    KOREAN_HANJA_FORMAL: {
+        //DIGITS: ' 壹貳參肆伍陸柒捌玖',
+        DIGITS: '零壹貳參四五六七八九',
+        //MULTIPLIERS: '拾佰仟'
+        MULTIPLIERS: '拾百千',
+        NEGATIVE: '마이너스'
+    }
+};
+
+module.exports.NUMERAL = NUMERAL;
+
+
+module.exports.toCJKIdeographic = function(value) { return toCJK(value, NUMERAL.CJK_IDEOGRAPHIC.DIGITS, NUMERAL.CJK_IDEOGRAPHIC.MULTIPLIERS, NUMERAL.CJK_IDEOGRAPHIC.NEGATIVE, false, true, true, true); };
+module.exports.toTraditionalChineseInformal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_INFORMAL.DIGITS, NUMERAL.TRAD_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
+module.exports.toTraditionalChineseFormal = function(value) { return toCJK(value, NUMERAL.TRAD_CHINESE_FORMAL.DIGITS, NUMERAL.TRAD_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.TRAD_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
+module.exports.toSimplifiedChineseInformal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_INFORMAL.DIGITS, NUMERAL.SIMP_CHINESE_INFORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_INFORMAL.NEGATIVE, false, true, true, true); };
+module.exports.toSimplifiedChineseFormal = function(value) { return toCJK(value, NUMERAL.SIMP_CHINESE_FORMAL.DIGITS, NUMERAL.SIMP_CHINESE_FORMAL.MULTIPLIERS, NUMERAL.SIMP_CHINESE_FORMAL.NEGATIVE, true, true, true, true); };
+module.exports.toJapaneseInformal = function(value) { return toCJK(value, NUMERAL.JAPANESE_INFORMAL.DIGITS, NUMERAL.JAPANESE_INFORMAL.MULTIPLIERS, NUMERAL.JAPANESE_INFORMAL.NEGATIVE, false, false, false, false); };
+module.exports.toJapaneseFormal = function(value) { return toCJK(value, NUMERAL.JAPANESE_FORMAL.DIGITS, NUMERAL.JAPANESE_FORMAL.MULTIPLIERS, NUMERAL.JAPANESE_FORMAL.NEGATIVE, true, true, true, false); };
+module.exports.toKoreanHangul = function(value) { return toCJK(value, NUMERAL.KOREAN_HANGUL.DIGITS, NUMERAL.KOREAN_HANGUL.MULTIPLIERS, NUMERAL.KOREAN_HANGUL.NEGATIVE, true, true, true, false); };
+module.exports.toKoreanHanjaInformal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_INFORMAL.DIGITS, NUMERAL.KOREAN_HANJA_INFORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_INFORMAL.NEGATIVE, false, false, false, false); };
+module.exports.toKoreanHanjaFormal = function(value) { return toCJK(value, NUMERAL.KOREAN_HANJA_FORMAL.DIGITS, NUMERAL.KOREAN_HANJA_FORMAL.MULTIPLIERS, NUMERAL.KOREAN_HANJA_FORMAL.NEGATIVE, true, true, true, false); };
+
+},{}],4:[function(_dereq_,module,exports){
+function toLetterSystem(value, letters)
+{
+    if (value <= 0)
+        return null;
+
+    var ret = '';
+
+    for (var b in letters)
+    {
+        var num = letters[b];
+        var q = Math.floor(value / num);
+        value -= q * num;
+
+        for (var i = 0; i < q; i++)
+            ret += b;
+    }
+
+    return ret;
+}
+
+module.exports.toLetterSystem = toLetterSystem;
+
+
+var LETTER_SYSTEM = {
+    ROMAN_UPPER: {
+        M: 1000,
+        CM: 900,
+        D: 500,
+        CD: 400,
+        C: 100,
+        XC: 90,
+        L: 50,
+        XL: 40,
+        X: 10,
+        IX: 9,
+        V: 5,
+        IV: 4,
+        I: 1
+    },
+
+    ROMAN_LOWER: {
+        m: 1000,
+        cm: 900,
+        d: 500,
+        cd: 400,
+        c: 100,
+        xc: 90,
+        l: 50,
+        xl: 40,
+        x: 10,
+        ix: 9,
+        v: 5,
+        iv: 4,
+        i: 1
+    },
+
+    HEBREW: {
+        'א׳א׳': 1000000,
+        'א׳ק': 100000,
+        'א׳י': 10000,
+        'ט׳': 9000,
+        'ח׳': 8000,
+        'ז׳': 7000,
+        'ו׳': 6000,
+        'ה׳': 5000,
+        'ד׳': 4000,
+        'ג׳': 3000,
+        'ב׳': 2000,
+        'א׳': 1000,
+        'ת': 400,
+        'ש': 300,
+        'ר': 200,
+        'ק': 100,
+        'צ': 90,
+        'פ': 80,
+        'ע': 70,
+        'ס': 60,
+        'נ': 50,
+        'מ‎': 40,
+        'ל': 30,
+        'כ': 20,
+        'טז': 16,
+        'טו': 15,
+        'י': 10,
+        'ט': 9,
+        'ח‎': 8,
+        'ז': 7,
+        'ו': 6,
+        'ה': 5,
+        'ד': 4,
+        'ג': 3,
+        'ב': 2,
+        'א': 1
+    },
+
+    GEORGIAN: {
+        'ჵ': 10000,
+        'ჰ': 9000,
+        'ჯ': 8000,
+        'ჴ': 7000,
+        'ხ': 6000,
+        'ჭ': 5000,
+        'წ': 4000,
+        'ძ': 3000,
+        'ც': 2000,
+        'ჩ': 1000,
+        'შ': 900,
+        'ყ': 800,
+        'ღ': 700,
+        'ქ': 600,
+        'ფ': 500,
+        'ჳ': 400,
+        'ტ': 300,
+        'ს': 200,
+        'რ': 100,
+        'ჟ': 90,
+        'პ': 80,
+        'ო': 70,
+        'ჲ': 60,
+        'ნ': 50,
+        'მ': 40,
+        'ლ': 30,
+        'კ': 20,
+        'ი': 10,
+        'თ': 9,
+        'ჱ': 8,
+        'ზ': 7,
+        'ვ': 6,
+        'ე': 5,
+        'დ': 4,
+        'გ': 3,
+        'ბ': 2,
+        'ა': 1
+    },
+
+    ARMENIAN_UPPER: {
+        'Ք': 9000,
+        'Փ': 8000,
+        'Ւ': 7000,
+        'Ց': 6000,
+        'Ր': 5000,
+        'Տ': 4000,
+        'Վ': 3000,
+        'Ս': 2000,
+        'Ռ': 1000,
+        'Ջ': 900,
+        'Պ': 800,
+        'Չ': 700,
+        'Ո': 600,
+        'Շ': 500,
+        'Ն': 400,
+        'Յ': 300,
+        'Մ': 200,
+        'Ճ': 100,
+        'Ղ': 90,
+        'Ձ': 80,
+        'Հ': 70,
+        'Կ': 60,
+        'Ծ': 50,
+        'Խ': 40,
+        'Լ': 30,
+        'Ի': 20,
+        'Ժ': 10,
+        'Թ': 9,
+        'Ը': 8,
+        'Է': 7,
+        'Զ': 6,
+        'Ե': 5,
+        'Դ': 4,
+        'Գ': 3,
+        'Բ': 2,
+        'Ա': 1
+    },
+
+    ARMENIAN_LOWER: {
+        'ք': 9000,
+        'փ': 8000,
+        'ւ': 7000,
+        'ց': 6000,
+        'ր': 5000,
+        'տ': 4000,
+        'վ': 3000,
+        'ս': 2000,
+        'ռ': 1000,
+        'ջ': 900,
+        'պ': 800,
+        'չ': 700,
+        'ո': 600,
+        'շ': 500,
+        'ն': 400,
+        'յ': 300,
+        'մ': 200,
+        'ճ': 100,
+        'ղ': 90,
+        'ձ': 80,
+        'հ': 70,
+        'կ': 60,
+        'ծ': 50,
+        'խ': 40,
+        'լ': 30,
+        'ի': 20,
+        'ժ': 10,
+        'թ': 9,
+        'ը': 8,
+        'է': 7,
+        'զ': 6,
+        'ե': 5,
+        'դ': 4,
+        'գ': 3,
+        'բ': 2,
+        'ա': 1
+    }
+};
+
+module.exports.LETTER_SYSTEM = LETTER_SYSTEM;
+
+
+module.exports.toUpperRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_UPPER); };
+module.exports.toLowerRoman = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ROMAN_LOWER); };
+module.exports.toHebrew = function(value) { return toLetterSystem(value, LETTER_SYSTEM.HEBREW); };
+module.exports.toGeorgian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.GEORGIAN); };
+module.exports.toUpperArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_UPPER); };
+module.exports.toLowerArmenian = function(value) { return toLetterSystem(value, LETTER_SYSTEM.ARMENIAN_LOWER); };
+
+},{}],5:[function(_dereq_,module,exports){
+function toPlaceValue(value, digits, hasNegativeNumbers, minusSign)
+{
+    if (hasNegativeNumbers === false && value < 0)
+        return null;
+
+    if (!minusSign)
+        minusSign = '-';
+
+    var sign = '';
+    if (value < 0)
+        sign = minusSign;
+
+    if (-1 < value && value < 1)
+        return sign + digits.charAt(0);
+
+    var ret = '';
+    var numDigits = digits.length;
+    value = Math.abs(value);
+
+    while (value)
+    {
+        ret = digits.charAt(value % numDigits) + ret;
+        value = Math.floor(value / numDigits);
+    }
+
+    return sign + ret;
+};
+
+module.exports.toPlaceValue = toPlaceValue;
+
+
+function toOneBasedPlaceValue(value, digits)
+{
+    if (value <= 0)
+        return null;
+
+    var ret = '';
+    var numDigits = digits.length;
+
+    while (value)
+    {
+        var v = value % numDigits;
+        ret = digits.charAt(v === 0 ? numDigits - 1 : v - 1) + ret;
+        value = Math.floor(value / numDigits) - (v === 0 ? 1 : 0);
+    }
+
+    return ret;
+};
+
+
+var DIGITS = {
+    ARABIC_INDIC: '٠١٢٣٤٥٦٧٨٩',
+    BENGALI: '০১২৩৪৫৬৭৮৯',
+    CJK_DECIMAL: '〇一二三四五六七八九',
+    CJK_EARTHLY_BRANCH: '子丑寅卯辰巳午未申酉戌亥',
+    CJK_HEAVENLY_STEM: '甲乙丙丁戊己庚辛壬癸',
+    DEVANAGARI: '०१२३४५६७८९',
+    GUJARATI: '૦૧૨૩૪૫૬૭૮૯',
+    GURMUKHI: '੦੧੨੩੪੫੬੭੮੯',
+    KANNADA: '೦೧೨೩೪೫೬೭೮೯',
+    KHMER: '០១២៣៤៥៦៧៨៩',
+    LAO: '໐໑໒໓໔໕໖໗໘໙',
+    MALAYALAM: '൦൧൨൩൪൫൬൭൮൯',
+    MONGILIAN: '᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙',
+    MYANMAR: '၀၁၂၃၄၅၆၇၈၉',
+    ORIYA: '୦୧୨୩୪୫୬୭୮୯',
+    PERSIAN: '۰۱۲۳۴۵۶۷۸۹',
+    TAMIL: '௦௧௨௩௪௫௬௭௮௯',
+    TELUGU: '౦౧౨౩౪౫౬౭౮౯',
+    THAI: '๐๑๒๓๔๕๖๗๘๙',
+    TIBETAN: '༠༡༢༣༤༥༦༧༨༩'
+};
+
+module.exports.DIGITS = DIGITS;
+
+
+module.exports.toArabicIndic = function(v) { return toPlaceValue(v, DIGITS.ARABIC_INDIC); };
+module.exports.toBengali = function(v) { return toPlaceValue(v, DIGITS.BENGALI); };
+module.exports.toCJKDecimal = function(v) { return toPlaceValue(v, DIGITS.CJK_DECIMAL, false); };
+module.exports.toCJKEarthlyBranch = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_EARTHLY_BRANCH); };
+module.exports.toCJKHeavenlyStem = function(v) { return toOneBasedPlaceValue(v, DIGITS.CJK_HEAVENLY_STEM); };
+module.exports.toDevanagari = function(v) { return toPlaceValue(v, DIGITS.DEVANAGARI); };
+module.exports.toGujarati = function(v) { return toPlaceValue(v, DIGITS.GUJARATI); };
+module.exports.toGurmukhi = function(v) { return toPlaceValue(v, DIGITS.GURMUKHI); };
+module.exports.toKannada = function(v) { return toPlaceValue(v, DIGITS.KANNADA); };
+module.exports.toKhmer = function(v) { return toPlaceValue(v, DIGITS.KHMER); };
+module.exports.toLao = function(v) { return toPlaceValue(v, DIGITS.LAO); };
+module.exports.toMalayalam = function(v) { return toPlaceValue(v, DIGITS.MALAYALAM); };
+module.exports.toMongolian = function(v) { return toPlaceValue(v, DIGITS.MONGILIAN); };
+module.exports.toMyanmar = function(v) { return toPlaceValue(v, DIGITS.MYANMAR); };
+module.exports.toOriya = function(v) { return toPlaceValue(v, DIGITS.ORIYA); };
+module.exports.toPersian = function(v) { return toPlaceValue(v, DIGITS.PERSIAN); };
+module.exports.toTamil = function(v) { return toPlaceValue(v, DIGITS.TAMIL); };
+module.exports.toTelugu = function(v) { return toPlaceValue(v, DIGITS.TELUGU); };
+module.exports.toThai = function(v) { return toPlaceValue(v, DIGITS.THAI); };
+module.exports.toTibetan = function(v) { return toPlaceValue(v, DIGITS.TIBETAN); };
+
+},{}],6:[function(_dereq_,module,exports){
+/**
+ * http://www.geez.org/Numerals/
+ * http://metaappz.com/Geez_Numbers_Converter/Default.aspx
+ */
+module.exports.toEthiopic = function(value)
+{
+    if (value <= 0)
+        return null;
+
+    var ONES = '፩፪፫፬፭፮፯፰፱';
+    var TENS = '፲፳፴፵፶፷፸፹፺';
+    var HUNDRED = '፻';
+    var TENTHOUSAND = '፼';
+
+    var ret = '';
+    var sep = '';
+
+    value = Math.floor(value);
+
+    for (var i = 0; value > 0; i++)
+    {
+        var one = value % 10;
+        var ten = Math.floor(value / 10) % 10;
+
+        if ((one === 1 && ten === 0 && i > 0) || (one === 0 && ten === 0 && i > 1))
+            ret = sep + ret;
+        else if (one > 0 || ten > 0)
+        {
+            ret =
+                (ten > 0 ? TENS.charAt(ten - 1) : '') +
+                (one > 0 ? ONES.charAt(one - 1) : '') +
+                sep + ret;
+        }
+
+        value = Math.floor(value / 100);
+        sep = i % 2 ? TENTHOUSAND : HUNDRED;
+    }
+
+    return ret;
+};
+
+},{}],7:[function(_dereq_,module,exports){
+///////////////////////////////////////////////////////////////////////////////
+// Import Packages
+
+var Alpha = _dereq_('./converters/alpha');
+var Letter = _dereq_('./converters/letter');
+var PlaceValue = _dereq_('./converters/placevalue');
+var CJK = _dereq_('./converters/cjk');
+var Special = _dereq_('./converters/special');
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Private Functions
+
+function addDot(s, dot)
+{
+    if (dot === undefined)
+        dot = '.';
+    return s === null ? s : s + dot;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Module Constants
+
+// formatter specifications
+var formatters = {
+    'none': '',
+    'disc': '•',
+    'circle': '◦',
+    'square': '￭',
+
+    'decimal': Math.floor,
+    'cjk-decimal': { function: PlaceValue.toCJKDecimal, dot: '、' },
+
+    'decimal-leading-zero': function(v)
+    {
+        v = Math.floor(v);
+        if (0 <= v && v < 10)
+            return '0' + v;
+        if (-10 < v && v < 0)
+            return '-0' + Math.abs(v);
+        return v;
+    },
+
+    'lower-roman': Letter.toLowerRoman,
+    'upper-roman': Letter.toUpperRoman,
+    'lower-greek': Alpha.toLowerGreek,
+    'lower-alpha': Alpha.toLowerLatin,
+    'upper-alpha': Alpha.toUpperLatin,
+    'arabic-indic': PlaceValue.toArabicIndic,
+    'armenian': Letter.toUpperArmenian,
+    'bengali': PlaceValue.toBengali,
+    'cambodian': PlaceValue.toKhmer,
+    'cjk-earthly-branch': { function: PlaceValue.toCJKEarthlyBranch, dot: '、' },
+    'cjk-heavenly-stem': { function: PlaceValue.toCJKHeavenlyStem, dot: '、' },
+    'cjk-ideographic': { function: CJK.toCJKIdeographic, dot: '、' },
+    'devanagari': PlaceValue.toDevanagari,
+    'ethiopic-numeric': { function: Special.toEthiopic, dot: '' },
+    'georgian': Letter.toGeorgian,
+    'gujarati': PlaceValue.toGujarati,
+    'gurmukhi': PlaceValue.toGurmukhi,
+    'hebrew': Letter.toHebrew,
+    'hiragana': Alpha.toHiragana,
+    'hiragana-iroha': Alpha.toHiraganaIroha,
+    'japanese-formal': { function: CJK.toJapaneseFormal, dot: '、' },
+    'japanese-informal': { function: CJK.toJapaneseInformal, dot: '、' },
+    'kannada': PlaceValue.toKannada,
+    'katakana': Alpha.toKatakana,
+    'katakana-iroha': Alpha.toKatakanaIroha,
+    'khmer': PlaceValue.toKhmer,
+    'korean-hangul-formal': { function: CJK.toKoreanHangul, dot: '、' },
+    'korean-hanja-formal': { function: CJK.toKoreanHanjaFormal, dot: '、' },
+    'korean-hanja-informal': { function: CJK.toKoreanHanjaInformal, dot: '、' },
+    'lao': PlaceValue.toLao,
+    'lower-armenian': Letter.toLowerArmenian,
+    'malayalam': PlaceValue.toMalayalam,
+    'mongolian': PlaceValue.toMongolian,
+    'myanmar': PlaceValue.toMyanmar,
+    'oriya': PlaceValue.toOriya,
+    'persian': PlaceValue.toPersian,
+    'simp-chinese-formal': { function: CJK.toSimplifiedChineseFormal, dot: '、' },
+    'simp-chinese-informal': { function: CJK.toSimplifiedChineseInformal, dot: '、' },
+    'tamil': PlaceValue.toTamil,
+    'telugu': PlaceValue.toTelugu,
+    'thai': PlaceValue.toThai,
+    'tibetan': PlaceValue.toTibetan,
+    'trad-chinese-formal': { function: CJK.toTraditionalChineseFormal, dot: '、' },
+    'trad-chinese-informal': { function: CJK.toTraditionalChineseInformal, dot: '、' },
+    'upper-armenian': Letter.toUpperArmenian
+};
+
+// define aliases
+formatters['lower-latin'] = formatters['lower-alpha'];
+formatters['upper-latin'] = formatters['upper-alpha'];
+formatters['-moz-arabic-indic'] = formatters['arabic-indic'];
+formatters['-moz-bengali'] = formatters['bengali'];
+formatters['-moz-cjk-earthly-branch'] = formatters['cjk-earthly-branch'];
+formatters['-moz-cjk-heavenly-stem'] = formatters['cjk-heavenly-stem'];
+formatters['-moz-devanagari'] = formatters['devanagari'];
+formatters['-moz-gujarati'] = formatters['gujarati'];
+formatters['-moz-gurmukhi'] = formatters['gurmukhi'];
+formatters['-moz-kannada'] = formatters['kannada'];
+formatters['-moz-khmer'] = formatters['khmer'];
+formatters['-moz-lao'] = formatters['lao'];
+formatters['-moz-malayalam'] = formatters['malayalam'];
+formatters['-moz-myanmar'] = formatters['myanmar'];
+formatters['-moz-oriya'] = formatters['oriya'];
+formatters['-moz-persian'] = formatters['persian'];
+formatters['-moz-tamil'] = formatters['tamil'];
+formatters['-moz-telugu'] = formatters['telugu'];
+formatters['-moz-thai'] = formatters['thai'];
+
+// set the default formatter
+var defaultFormatter = formatters.decimal;
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation
+
+function formatInternal(value, formatter, appendDot)
+{
+    switch (typeof formatter)
+    {
+    case 'function':
+        return appendDot ?
+            addDot(formatter(value)) :
+            formatter(value);
+
+    case 'object':
+        return appendDot ?
+            addDot(formatter.function(value), formatter.dot) :
+            formatter.function(value);
+
+    case 'string':
+        return formatter;
+    }
+
+    return undefined;
+}
+
+/**
+ * Formats the number "value" according to the CSS list-style-type format "format".
+ * https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
+ *
+ * @param value
+ *    The number to format
+ *
+ * @param format
+ *    The format string to use, the ones listed here:
+ *    https://developer.mozilla.org/en/docs/Web/CSS/list-style-type
+ *
+ * @param appendDot
+ *    Optional flag indicating if an enumeration symbol (typically, a dot) is to be
+ *    appended to the formatted number.
+ *    Defaults to true.
+ */
+module.exports.format = function(value, format, appendDot /* optional */)
+{
+    if (appendDot === undefined)
+        appendDot = true;
+
+    var ret = formatInternal(
+        value,
+        format in formatters ? formatters[format] : defaultFormatter,
+        appendDot
+    );
+
+    return (ret === null || ret === undefined) ?
+        formatInternal(value, defaultFormatter, appendDot) :
+        ret;
+};
+
+
+/**
+ * Export a global object in the browser.
+ */
+if (typeof window !== 'undefined')
+{    
+    window.ListStyleTypeFormatter = {
+        format: module.exports.format
+    };
+}
+
+},{"./converters/alpha":2,"./converters/cjk":3,"./converters/letter":4,"./converters/placevalue":5,"./converters/special":6}],8:[function(_dereq_,module,exports){
 /* global Areion: true */
 
 function ProxyImageContainer(src, proxy) {
@@ -1339,6 +1339,89 @@ module.exports = ProxyVideoContainer;
 },{}],10:[function(_dereq_,module,exports){
 var log = _dereq_('./log');
 
+function escapeCSS(value) {
+    if (window.CSS && typeof CSS.escape === 'function') {
+        return CSS.escape(value);
+    }
+
+    // https://github.com/mathiasbynens/CSS.escape/blob/master/css.escape.js
+    if (arguments.length === 0) {
+        throw new TypeError('`escapeCSS` requires an argument.');
+    }
+    var string = String(value);
+    var length = string.length;
+    var index = -1;
+    var codeUnit;
+    var result = '';
+    var firstCodeUnit = string.charCodeAt(0);
+    while (++index < length) {
+        codeUnit = string.charCodeAt(index);
+        // Note: there’s no need to special-case astral symbols, surrogate
+        // pairs, or lone surrogates.
+
+        // If the character is NULL (U+0000), then the REPLACEMENT CHARACTER
+        // (U+FFFD).
+        if (codeUnit === 0x0000) {
+            result += '\uFFFD';
+            continue;
+        }
+
+        if (
+            // If the character is in the range [\1-\1F] (U+0001 to U+001F) or is
+            // U+007F, […]
+            (codeUnit >= 0x0001 && codeUnit <= 0x001F) || codeUnit === 0x007F ||
+            // If the character is the first character and is in the range [0-9]
+            // (U+0030 to U+0039), […]
+            (index === 0 && codeUnit >= 0x0030 && codeUnit <= 0x0039) ||
+            // If the character is the second character and is in the range [0-9]
+            // (U+0030 to U+0039) and the first character is a `-` (U+002D), […]
+            (
+                index === 1 &&
+                codeUnit >= 0x0030 && codeUnit <= 0x0039 &&
+                firstCodeUnit === 0x002D
+            )
+        ) {
+            // https://drafts.csswg.org/cssom/#escape-a-character-as-code-point
+            result += '\\' + codeUnit.toString(16) + ' ';
+            continue;
+        }
+
+        if (
+            // If the character is the first character and is a `-` (U+002D), and
+            // there is no second character, […]
+            index === 0 &&
+            length === 1 &&
+            codeUnit === 0x002D
+        ) {
+            result += '\\' + string.charAt(index);
+            continue;
+        }
+
+        // If the character is not handled by one of the above rules and is
+        // greater than or equal to U+0080, is `-` (U+002D) or `_` (U+005F), or
+        // is in one of the ranges [0-9] (U+0030 to U+0039), [A-Z] (U+0041 to
+        // U+005A), or [a-z] (U+0061 to U+007A), […]
+        if (
+            codeUnit >= 0x0080 ||
+            codeUnit === 0x002D ||
+            codeUnit === 0x005F ||
+            codeUnit >= 0x0030 && codeUnit <= 0x0039 ||
+            codeUnit >= 0x0041 && codeUnit <= 0x005A ||
+            codeUnit >= 0x0061 && codeUnit <= 0x007A
+        ) {
+            // the character itself
+            result += string.charAt(index);
+            continue;
+        }
+
+        // Otherwise, the escaped character.
+        // https://drafts.csswg.org/cssom/#escape-a-character
+        result += '\\' + string.charAt(index);
+    }
+
+    return result;
+}
+
 function restoreOwnerScroll(ownerDocument, x, y) {
     if (ownerDocument.defaultView && (x !== ownerDocument.defaultView.pageXOffset || y !== ownerDocument.defaultView.pageYOffset)) {
         ownerDocument.defaultView.scrollTo(x, y);
@@ -1363,20 +1446,113 @@ function cloneCanvasContents(canvas, clonedCanvas) {
     }
 }
 
-function cloneNode(node, javascriptEnabled) {
+/**
+ * Create a <div> to emulate the host element of the shadow DOM
+ * and clone the contents of the shadow DOM.
+ */
+function cloneShadowDOM(node, options) {
+    var shadowDiv = document.createElement('div');
+    copyComputedStyle(node, shadowDiv);
+
+    var numChildren = node.shadowRoot.children.length;
+    for (var i = 0; i < numChildren; i++) {
+        var child = node.shadowRoot.children[i];
+        if (child.shadowRoot) {
+            shadowDiv.appendChild(cloneShadowDOM(child, options));
+        } else if (child.nodeName === 'SLOT') {
+            shadowDiv.appendChild(cloneSlot(child, node, options));
+        } else if (child.nodeType === 1 && !isStyle(child) && child.nodeName !== 'SCRIPT') {
+            shadowDiv.appendChild(cloneNode(child, options, node));
+        }
+    }
+
+    return shadowDiv;
+}
+
+function cloneSlot(slot, shadowHost, options) {
+    var slotReplacement = document.createElement('span');
+    copyComputedStyle(slot, slotReplacement);
+
+    /*
+    if (slot.name) {
+        // named slot; clone the element with the given slot name
+        var slotNodes = shadowHost.querySelectorAll('[slot="' + escapeCSS(slot.name) + '"]');
+        var numSlotNodes = slotNodes.length;
+        for (var i = 0; i < numSlotNodes; i++) {
+            slotReplacement.appendChild(cloneNode(slotNodes[i], options, shadowHost));
+        }
+    } else {
+        // unnamed slot; copy the entire contents of the shadow host
+        var child = shadowHost.firstChild;
+        while (child) {
+            if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && !isStyle(child) && !child.slot)) {
+                slotReplacement.appendChild(cloneNode(child, options, shadowHost));
+            }
+            child = child.nextSibling;
+        }
+    }*/
+
+    var slotNodes = typeof slot.assignedNodes === 'function' ? slot.assignedNodes() : [];
+    var numSlotNodes = slotNodes.length;
+    for (var i = 0; i < numSlotNodes; i++) {
+        slotReplacement.appendChild(cloneNode(slotNodes[i], options, shadowHost));
+    }
+
+    return slotReplacement;
+}
+
+function isStyle(node) {
+    return node.nodeName === 'STYLE' || (node.nodeName === 'LINK' && node.rel && node.rel.toLowerCase() === 'stylesheet');
+}
+
+function copyComputedStyle(node, clone) {
+    //*
+    var style = getComputedStyle(node);
+    for (var i = 0; i < style.length; i++) {
+        clone.style[style[i]] = style.getPropertyValue(style[i]);
+    } //*/
+}
+
+function cloneNode(node, options, shadowHost) {
     var clone = node.nodeType === 3 ? document.createTextNode(node.nodeValue) : node.cloneNode(false);
+
+    if (shadowHost && node.nodeType === 1) {
+        copyComputedStyle(node, clone);
+    }
 
     var child = node.firstChild;
     while(child) {
-        if (javascriptEnabled === true || child.nodeType !== 1 || child.nodeName !== 'SCRIPT') {
-            clone.appendChild(cloneNode(child, javascriptEnabled));
+        // MCH -->
+        if (child.shadowRoot) {
+            clone.appendChild(cloneShadowDOM(child, options));
+        } else if (shadowHost && child.nodeName === 'SLOT') {
+            clone.appendChild(cloneSlot(child, shadowHost, options));
+        } else if (options.javascriptEnabled === true || child.nodeType !== 1 || (child.nodeName !== 'SCRIPT' && (!shadowHost || !isStyle(child)))) {
+            clone.appendChild(cloneNode(child, options, shadowHost));
+
+            // MCH -->
+            // if (child.nodeName === 'SCRIPT' && child.textContent) {
+            //     /*jshint -W061 */
+            //     console.log('Evaluating script:', child.textContent);
+            //     eval(child.textContent);
+            // }
+            // <--
         }
+        // <--
+
         child = child.nextSibling;
     }
 
     if (node.nodeType === 1) {
-        clone._scrollTop = node.scrollTop;
-        clone._scrollLeft = node.scrollLeft;
+        // MCH: if the clonee is the HTML node, disregard scrolling if we're doing a fullpage screenshot
+        if (node.nodeName === "HTML" && options.type !== "view") {
+            clone._scrollTop = 0;
+            clone._scrollLeft = 0;
+        } else {
+            clone._scrollTop = node.scrollTop;
+            clone._scrollLeft = node.scrollLeft;
+        }
+
         if (node.nodeName === "CANVAS") {
             cloneCanvasContents(node, clone);
         } else if (node.nodeName === "TEXTAREA" || node.nodeName === "SELECT") {
@@ -1401,7 +1577,7 @@ function initNode(node) {
 }
 
 module.exports = function(ownerDocument, containerDocument, width, height, options, x ,y) {
-    var documentElement = cloneNode(ownerDocument.documentElement, options.javascriptEnabled);
+    var documentElement = cloneNode(ownerDocument.documentElement, options);
     var container = containerDocument.createElement("iframe");
 
     container.className = "html2canvas-container";
@@ -1446,6 +1622,7 @@ module.exports = function(ownerDocument, containerDocument, width, height, optio
                             documentClone.documentElement.style.position = 'absolute';
                         }
                     }
+
                     resolve(container);
                 }
             }, 50);
@@ -3610,7 +3787,7 @@ NodeParser.prototype.getPseudoElement = function(container, type) {
 
 
 NodeParser.prototype.getChildren = function(parentContainer) {
-    return flatten([].filter.call(parentContainer.node.childNodes, renderableNode).map(function(node) {
+    return flatten(Array.prototype.filter.call(parentContainer.node.childNodes, renderableNode).map(function(node) {
         var container = [node.nodeType === Node.TEXT_NODE ? new TextContainer(node, parentContainer) : new NodeContainer(node, parentContainer)].filter(nonIgnoredElement);
         return node.nodeType === Node.ELEMENT_NODE && container.length && node.tagName !== "TEXTAREA" ? (container[0].isElementVisible() ? container.concat(this.getChildren(container[0])) : []) : container;
     }, this));
@@ -4029,10 +4206,16 @@ NodeParser.prototype.paintListItem = function(container) {
 NodeParser.prototype.paintText = function(container) {
     container.applyTextTransform();
     var characters = punycode.ucs2.decode(container.node.data);
-    var wordRendering = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data);
+
+    // MCH: allow letter rendering only for latin/cyrillic/greek scripts -->
+    //var wordRendering = (!this.options.letterRendering || noLetterSpacing(container)) && !hasUnicode(container.node.data);
+    var wordRendering = !isLatinCyrillicGreek(container.node.data) || !this.options.letterRendering || noLetterSpacing(container); // && !hasUnicode(container.node.data);
+    // <--
+
     var textList = wordRendering ? getWords(characters) : characters.map(function(character) {
         return punycode.ucs2.encode([character]);
     });
+    console.log(textList);
     if (!wordRendering) {
         container.parent.node.style.fontVariantLigatures = 'none';
     }
@@ -4517,7 +4700,7 @@ function nonIgnoredElement(nodeContainer) {
 }
 
 function flatten(arrays) {
-    return [].concat.apply([], arrays);
+    return Array.prototype.concat.apply([], arrays);
 }
 
 /*
@@ -4564,9 +4747,18 @@ function hasUnicode(string) {
     return (/[^\u0000-\u00ff]/).test(string);
 }
 
+/*
+function isArabic(s) {
+    return /[\u0600-\u06FF]/.test(s);
+}*/
+
+function isLatinCyrillicGreek(s) {
+    return !/[^\u0000-\u052f\u1d00-\u2bff\u2c60-\u2c7f\u2de0-\u2e7f]/.test(s);
+}
+
 module.exports = NodeParser;
 
-},{"./color":11,"./fontmetrics":15,"./log":21,"./nodecontainer":22,"./pseudoelementcontainer":25,"./stackingcontext":31,"./textcontainer":35,"./utils":36,"liststyletype-formatter":6,"punycode":7}],24:[function(_dereq_,module,exports){
+},{"./color":11,"./fontmetrics":15,"./log":21,"./nodecontainer":22,"./pseudoelementcontainer":25,"./stackingcontext":31,"./textcontainer":35,"./utils":36,"liststyletype-formatter":7,"punycode":1}],24:[function(_dereq_,module,exports){
 var XHR = _dereq_('./xhr');
 var utils = _dereq_('./utils');
 var log = _dereq_('./log');
