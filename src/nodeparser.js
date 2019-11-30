@@ -1083,7 +1083,8 @@ NodeParser.prototype.paintText = function(container) {
     var textList = wordRendering ? getWords(characters) : characters.map(function(character) {
         return punycode.ucs2.encode([character]);
     });
-    console.log(textList);
+    //console.log(textList);
+
     if (!wordRendering) {
         container.parent.node.style.fontVariantLigatures = 'none';
     }
